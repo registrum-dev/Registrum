@@ -25,7 +25,7 @@ export function aiSettingsOf(connection: Connection): AiSettings {
 
 /** Whether an endpoint and a model have been named. The key may be empty -- a
  *  local Ollama wants none. */
-export function isConfigured(connection: {
+export function isAiConfigured(connection: {
 	baseUrl: string;
 	model: string;
 }): boolean {

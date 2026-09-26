@@ -1,6 +1,6 @@
 // What a shelf holds, counted for the filter.
 
-import type { Client } from "@Registrum/db";
+import type { Client } from "@registrum/db";
 
 import { compare } from "../lib/text";
 import {
@@ -13,7 +13,7 @@ import {
 } from "../vocabulary";
 import { STATUS_WHERE } from "./record";
 
-export interface NameFacet {
+export interface FacetEntry {
 	name: string;
 	count: number;
 }
@@ -26,7 +26,7 @@ export interface SeriesFacet {
 	author: string | null;
 }
 
-export interface LibraryFacets {
+export interface ShelfFacets {
 	total: number;
 	statuses: Partial<Record<BookStatus, number>>;
 	categories: Partial<Record<BookCategory, number>>;
@@ -35,14 +35,14 @@ export interface LibraryFacets {
 	ratings: Record<string, number>;
 	favorite: number;
 	missing: number;
-	authors: NameFacet[];
-	publishers: NameFacet[];
+	authors: FacetEntry[];
+	publishers: FacetEntry[];
 	series: SeriesFacet[];
-	collections: NameFacet[];
-	tags: NameFacet[];
+	collections: FacetEntry[];
+	tags: FacetEntry[];
 	noSeries: number;
 	/** The newest record is the last time a scan read anything. */
-	lastScan: string | null;
+	lastScannedAt: string | null;
 }
 
 /** Every key present, whether or not the shelf has one. A count of zero is an
@@ -66,7 +66,7 @@ function byUse<T extends { count: number; nameKey: string }>(rows: T[]): T[] {
 /** One kind of name, each with how many books carry it. */
 function counted(
 	rows: { name: string; nameKey: string; _count: { books: number } }[],
-): NameFacet[] {
+): FacetEntry[] {
 	return byUse(
 		rows
 			.filter((row) => row._count.books > 0)
@@ -82,7 +82,7 @@ function counted(
 export async function facets(
 	db: Client,
 	shelfId: string,
-): Promise<LibraryFacets> {
+): Promise<ShelfFacets> {
 	const shelf = { shelfId };
 	const countSelect = {
 		name: true,
@@ -98,7 +98,7 @@ export async function facets(
 			db.book.count({ where: { ...shelf, favorite: true } }),
 			db.book.count({ where: { ...shelf, missing: true } }),
 			db.book.count({ where: { ...shelf, seriesId: null } }),
-			db.book.aggregate({ where: shelf, _max: { indexedAt: true } }),
+			db.book.aggregate({ where: shelf, _max: { scannedAt: true } }),
 		]);
 
 	const [categories, formats, ratings] = await Promise.all([
@@ -142,7 +142,7 @@ export async function facets(
 		favorite,
 		missing,
 		noSeries,
-		lastScan: newest._max.indexedAt,
+		lastScannedAt: newest._max.scannedAt,
 		authors: counted(authors),
 		publishers: counted(publishers),
 		collections: counted(collections),

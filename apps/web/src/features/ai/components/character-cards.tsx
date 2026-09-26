@@ -1,12 +1,12 @@
-// The cast, as cards.
+// The characters, as cards.
 
-import { Badge } from "@Registrum/ui/components/badge";
+import { Badge } from "@registrum/ui/components/badge";
 import { useTranslation } from "react-i18next";
 import type { Character } from "../types";
 
 export function CharacterCards({ characters }: { characters: Character[] }) {
 	return (
-		// A cast is at most two dozen, and it has just been written: it is worth
+		// The characters are at most two dozen, and it has just been written: it is worth
 		// watching arrive.
 		<div className="motion-cascade grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-2.5 [--step:35ms]">
 			{characters.map((person) => (

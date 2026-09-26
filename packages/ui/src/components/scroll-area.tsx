@@ -1,5 +1,5 @@
-import { cn } from "@Registrum/ui/lib/utils";
 import { ScrollArea as ScrollAreaPrimitive } from "@base-ui/react/scroll-area";
+import { cn } from "@registrum/ui/lib/utils";
 
 function ScrollArea({
 	className,

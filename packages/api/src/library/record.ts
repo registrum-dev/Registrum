@@ -1,6 +1,6 @@
 // One book as the screen sees it.
 
-import type { Client, Prisma } from "@Registrum/db";
+import type { Client, Prisma } from "@registrum/db";
 
 import {
 	type BookCategory,
@@ -8,17 +8,17 @@ import {
 	type BookLayout,
 	type BookStatus,
 	FINISHED,
-	rating,
 	readCategory,
 	readFormat,
 	readLayout,
 	toDay,
+	validRating,
 } from "../vocabulary";
 
 /** How many ids go into one `in` list. */
 export const BATCH = 900;
 
-export interface Progress {
+export interface ReadingPosition {
 	cfi: string;
 	fraction: number;
 	label: string | null;
@@ -62,9 +62,9 @@ export interface BookRecord {
 	status: BookStatus;
 
 	addedAt: string;
-	indexedAt: string;
+	scannedAt: string;
 	lastOpenedAt: string | null;
-	progress: Progress | null;
+	position: ReadingPosition | null;
 }
 
 const byPosition = { orderBy: { position: "asc" } } as const;
@@ -74,7 +74,7 @@ const byPosition = { orderBy: { position: "asc" } } as const;
 export const BOOK_INCLUDE = {
 	publisher: { select: { name: true } },
 	series: { select: { name: true } },
-	readingState: true,
+	position: true,
 	authors: { ...byPosition, select: { author: { select: { name: true } } } },
 	collections: {
 		...byPosition,
@@ -129,7 +129,7 @@ export async function recordsFor(
 export function recordOf(row: BookRow): BookRecord | null {
 	const format = readFormat(row.format);
 	if (!format) return null;
-	const progress = progressOf(row.readingState);
+	const position = positionOf(row.position);
 	return {
 		id: row.id,
 		path: row.path,
@@ -153,26 +153,26 @@ export function recordOf(row: BookRow): BookRecord | null {
 		tags: row.tags.map((each) => each.tag.name),
 		category: readCategory(row.category),
 		note: row.note,
-		rating: rating(row.rating),
+		rating: validRating(row.rating),
 		favorite: row.favorite,
 		cover: row.cover,
 		missing: row.missing,
-		status: statusOf(progress),
+		status: statusOf(position),
 		addedAt: row.addedAt,
-		indexedAt: row.indexedAt,
+		scannedAt: row.scannedAt,
 		lastOpenedAt: row.lastOpenedAt,
-		progress,
+		position,
 	};
 }
 
 /** Where the reader stopped, if the book has a reading position. */
-function progressOf(state: BookRow["readingState"]): Progress | null {
-	if (!state) return null;
+function positionOf(position: BookRow["position"]): ReadingPosition | null {
+	if (!position) return null;
 	return {
-		cfi: state.cfi,
-		fraction: clampFraction(state.fraction),
-		label: state.label,
-		updatedAt: state.updatedAt,
+		cfi: position.cfi,
+		fraction: clampFraction(position.fraction),
+		label: position.label,
+		updatedAt: position.updatedAt,
 	};
 }
 
@@ -181,16 +181,16 @@ export function clampFraction(fraction: number): number {
 	return Math.min(1, Math.max(0, fraction));
 }
 
-export function statusOf(progress: { fraction: number } | null): BookStatus {
-	if (!progress) return "unread";
-	return progress.fraction >= FINISHED ? "finished" : "reading";
+export function statusOf(position: { fraction: number } | null): BookStatus {
+	if (!position) return "unread";
+	return position.fraction >= FINISHED ? "finished" : "reading";
 }
 
 /** `statusOf`, as the `where` of a book query. */
 export const STATUS_WHERE: Record<BookStatus, Prisma.BookWhereInput> = {
-	unread: { readingState: { is: null } },
-	reading: { readingState: { is: { fraction: { lt: FINISHED } } } },
-	finished: { readingState: { is: { fraction: { gte: FINISHED } } } },
+	unread: { position: { is: null } },
+	reading: { position: { is: { fraction: { lt: FINISHED } } } },
+	finished: { position: { is: { fraction: { gte: FINISHED } } } },
 };
 
 /** The day at the head of a publication date, if it is a real one:

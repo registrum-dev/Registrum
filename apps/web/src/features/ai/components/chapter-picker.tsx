@@ -1,12 +1,12 @@
 // What a question is allowed to draw on.
 
-import { Button } from "@Registrum/ui/components/button";
-import { Checkbox } from "@Registrum/ui/components/checkbox";
+import { Button } from "@registrum/ui/components/button";
+import { Checkbox } from "@registrum/ui/components/checkbox";
 import {
 	Popover,
 	PopoverContent,
 	PopoverTrigger,
-} from "@Registrum/ui/components/popover";
+} from "@registrum/ui/components/popover";
 import { ListIcon } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -17,8 +17,8 @@ import {
 	SheetBody,
 	SheetDock,
 } from "@/components/phone-sheet";
-import { useLayout } from "@/hooks/use-layout";
-import { chapterName, chaptersOf } from "../labels";
+import { useFormFactor } from "@/hooks/use-form-factor";
+import { chapterName, chaptersOf } from "../chapter-names";
 import type { Chapter } from "../types";
 
 /** The chapters, one tick each. The unit is the chapter, not the spine item:
@@ -41,7 +41,7 @@ export function ChapterPicker({
 		every.length > 0 && every.every((index) => selected.includes(index));
 	const picked = chaptersOf(chapters, selected).length;
 
-	const phone = useLayout() === "phone";
+	const phone = useFormFactor() === "phone";
 	const [open, setOpen] = useState(false);
 
 	const face = (

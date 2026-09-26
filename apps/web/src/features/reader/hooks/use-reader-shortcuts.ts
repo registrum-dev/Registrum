@@ -6,7 +6,7 @@ import type { ReaderNavigation } from "@/features/reader/hooks/use-reader-naviga
 import type { BookSource } from "@/features/reader/open-book";
 import type { OpenPanel, ReaderPanel } from "@/features/reader/panels";
 import { DEFAULT_SETTINGS, FONT_SIZE } from "@/features/reader/settings";
-import { useSettings } from "@/features/reader/store";
+import { useReaderSettings } from "@/features/reader/store";
 import { isTyping } from "@/lib/keys";
 
 /** What Ctrl and a key ask for together. */
@@ -60,7 +60,7 @@ export function useReaderShortcuts({
 			const combo = ctrlCombo(event);
 			if (!combo) return;
 			event.preventDefault();
-			const { settings, update } = useSettings.getState();
+			const { settings, update } = useReaderSettings.getState();
 			switch (combo) {
 				case "search":
 					if (canSearch) actions.togglePanel("search");

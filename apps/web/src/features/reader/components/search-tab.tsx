@@ -5,16 +5,16 @@ import {
 	EmptyDescription,
 	EmptyHeader,
 	EmptyTitle,
-} from "@Registrum/ui/components/empty";
+} from "@registrum/ui/components/empty";
 import {
 	InputGroup,
 	InputGroupAddon,
 	InputGroupButton,
 	InputGroupInput,
-} from "@Registrum/ui/components/input-group";
-import { ScrollArea } from "@Registrum/ui/components/scroll-area";
-import { Spinner } from "@Registrum/ui/components/spinner";
-import { cn } from "@Registrum/ui/lib/utils";
+} from "@registrum/ui/components/input-group";
+import { ScrollArea } from "@registrum/ui/components/scroll-area";
+import { Spinner } from "@registrum/ui/components/spinner";
+import { cn } from "@registrum/ui/lib/utils";
 import { SearchIcon, XIcon } from "lucide-react";
 import { useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
@@ -34,7 +34,7 @@ interface SearchTabProps {
 
 export function SearchTab({ view, active, onNavigate }: SearchTabProps) {
 	const { t } = useTranslation();
-	const { query, setQuery, groups, status, progress, total, start, clear } =
+	const { query, setFilter, groups, status, progress, total, start, clear } =
 		useBookSearch(view);
 	const inputRef = useRef<HTMLInputElement | null>(null);
 
@@ -66,7 +66,7 @@ export function SearchTab({ view, active, onNavigate }: SearchTabProps) {
 						ref={inputRef}
 						type="text"
 						value={query}
-						onChange={(event) => setQuery(event.target.value)}
+						onChange={(event) => setFilter(event.target.value)}
 						placeholder={t("reader.searchText")}
 						aria-label={t("reader.searchText")}
 						className="appearance-none"

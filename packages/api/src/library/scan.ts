@@ -1,24 +1,24 @@
 // One run over a shelf's files, start to finish: reading books several at a
 // time, writing them down in batches, saying how far it has got.
 
-import type { Database } from "@Registrum/db";
 import { cpus } from "node:os";
+import type { Database } from "@registrum/db";
 
-import type { LibraryConfig } from "../context";
+import type { PathsConfig } from "../context";
 import { Failure, failingAs } from "../failure";
+import { Channel, Jobs } from "../lib/jobs";
 import { fileStem, inside } from "../lib/paths";
-import { Channel, Runs } from "../lib/runs";
 import { readBook } from "../parse";
 import { writeCover } from "./covers";
-import type { OpenShelf } from "./shelf";
 import {
+	type Ingested,
 	type Planned,
-	planRestore,
+	planRescan,
 	planScan,
-	sweepNames,
-	type Taken,
-	writeTaken,
-} from "./take";
+	removeOrphanNames,
+	writeIngested,
+} from "./ingest";
+import type { OpenShelf } from "./shelf";
 import { statBook, walk } from "./walk";
 
 /** How many books are read at once. The reads are mostly waiting on the disk
@@ -47,15 +47,15 @@ const progress = new Channel<ScanProgress>();
 
 /** The runs that are going, one per shelf at most. A run started on a shelf
  *  stops the one before it, so a run the screen has given up on winds down. */
-const running = new Runs();
+const running = new Jobs();
 
 /** Stops the run on this shelf, if one is going. */
-export function cancelScan(shelfId: string): void {
+export function stopScan(shelfId: string): void {
 	running.stop(shelfId);
 }
 
 /** Every word about runs on this shelf, until the signal says to stop listening. */
-export async function* scanProgress(
+export async function* onScanProgress(
 	shelfId: string,
 	signal?: AbortSignal,
 ): AsyncGenerator<ScanProgress> {
@@ -67,7 +67,7 @@ export async function* scanProgress(
  *  the shelf does not know yet. */
 export function scan(
 	db: Database,
-	config: LibraryConfig,
+	config: PathsConfig,
 	shelf: OpenShelf,
 ): Promise<ScanReport> {
 	return running.run(shelf.id, async ({ signal }) => {
@@ -79,14 +79,14 @@ export function scan(
 
 /** Reads these books again from their files, keeping what is the reader's own.
  *  A book whose file is no longer there is reported by its title. */
-export function restore(
+export function rescan(
 	db: Database,
-	config: LibraryConfig,
+	config: PathsConfig,
 	shelf: OpenShelf,
 	ids: readonly string[],
 ): Promise<ScanReport> {
 	return running.run(shelf.id, async ({ signal }) => {
-		const previous = await planRestore(db, shelf.id, ids);
+		const previous = await planRescan(db, shelf.id, ids);
 		const plan: Planned[] = [];
 		const failed: string[] = [];
 		for (const book of previous) {
@@ -106,27 +106,27 @@ export function restore(
  *  time, until the plan is done or the run is stopped. */
 async function run(
 	db: Database,
-	config: LibraryConfig,
+	config: PathsConfig,
 	shelf: OpenShelf,
 	stopped: AbortSignal,
 	plan: Planned[],
 	failedFirst: string[],
 ): Promise<ScanReport> {
 	const failed = [...failedFirst];
-	const told = new Teller(shelf.id, plan.length);
-	told.say();
+	const reporter = new ProgressReporter(shelf.id, plan.length);
+	reporter.report();
 
 	let swept = false;
 	for (let at = 0; at < plan.length && !stopped.aborted; at += BATCH_BOOKS) {
 		const batch = plan.slice(at, at + BATCH_BOOKS);
-		const taken: Taken[] = [];
+		const ingested: Ingested[] = [];
 		let next = 0;
 		const lane = async () => {
 			while (next < batch.length && !stopped.aborted) {
 				const planned = batch[next++] as Planned;
-				told.reading(planned.file.path);
+				reporter.reading(planned.file.path);
 				try {
-					taken.push(await readOne(config, shelf, planned));
+					ingested.push(await readPlanned(config, shelf, planned));
 				} catch (error) {
 					// One unreadable book must not cost the reader the rest of the
 					// run; it is named at the end.
@@ -137,27 +137,28 @@ async function run(
 					console.warn(`Could not read ${planned.file.path}: ${detail}`);
 					failed.push(fileStem(planned.file.path));
 				}
-				told.readOne();
+				reporter.bookDone();
 			}
 		};
 		await Promise.all(
 			Array.from({ length: Math.min(LANES, batch.length) }, lane),
 		);
 		swept =
-			(await failingAs("db", () => writeTaken(db, shelf.id, taken))) || swept;
+			(await failingAs("db", () => writeIngested(db, shelf.id, ingested))) ||
+			swept;
 	}
 
-	if (swept) await sweepNames(db, shelf.id);
+	if (swept) await removeOrphanNames(db, shelf.id);
 	return { failed };
 }
 
 /** One book, read and its thumbnail written. The record's id is already
  *  settled, which is what lets the cover be written before the row is. */
-async function readOne(
-	config: LibraryConfig,
+async function readPlanned(
+	config: PathsConfig,
 	shelf: OpenShelf,
 	planned: Planned,
-): Promise<Taken> {
+): Promise<Ingested> {
 	const book = await readBook(
 		inside(shelf.root, planned.file.path),
 		planned.file.path,
@@ -171,7 +172,7 @@ async function readOne(
 
 /** How far the run has got, told to the screen now and then rather than at
  *  every book. */
-class Teller {
+class ProgressReporter {
 	#done = 0;
 	#title = "";
 	#last = 0;
@@ -183,17 +184,17 @@ class Teller {
 
 	reading(path: string): void {
 		this.#title = fileStem(path);
-		this.say();
+		this.report();
 	}
 
-	readOne(): void {
+	bookDone(): void {
 		this.#done += 1;
-		this.say();
+		this.report();
 	}
 
 	/** Tells the screen, unless it was told a moment ago. The first and the last
 	 *  word always go out, and a run with nothing to read says nothing. */
-	say(): void {
+	report(): void {
 		if (this.total === 0) return;
 		const now = Date.now();
 		if (

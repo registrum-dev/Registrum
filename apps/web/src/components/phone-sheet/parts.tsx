@@ -1,7 +1,7 @@
 // What goes inside a sheet: its bar, body, dock and menu.
 
-import { Button } from "@Registrum/ui/components/button";
-import { cn } from "@Registrum/ui/lib/utils";
+import { Button } from "@registrum/ui/components/button";
+import { cn } from "@registrum/ui/lib/utils";
 import { CheckIcon, XIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";

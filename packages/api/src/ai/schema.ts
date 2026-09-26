@@ -5,7 +5,7 @@ import { z } from "zod";
 
 import { CHARACTER_ROLES, RULE_FIELDS } from "../vocabulary";
 
-export const characterList = z.object({
+export const characterListSchema = z.object({
 	characters: z.array(
 		z.object({
 			name: z.string(),
@@ -20,11 +20,11 @@ export const characterList = z.object({
 		}),
 	),
 });
-export type AskedCharacter = z.infer<
-	typeof characterList
+export type CharacterAnswer = z.infer<
+	typeof characterListSchema
 >["characters"][number];
 
-export const relationList = z.object({
+export const relationListSchema = z.object({
 	relations: z.array(
 		z.object({
 			from: z.string(),
@@ -37,9 +37,11 @@ export const relationList = z.object({
 		}),
 	),
 });
-export type AskedRelation = z.infer<typeof relationList>["relations"][number];
+export type RelationAnswer = z.infer<
+	typeof relationListSchema
+>["relations"][number];
 
-export const askedRule = z.object({
+export const ruleAnswerSchema = z.object({
 	pattern: z.string().meta({
 		description:
 			"A JavaScript regular expression, used with the u flag. Name every group that is used: (?<name>...).",
@@ -58,4 +60,4 @@ export const askedRule = z.object({
 			description: "One entry for each field the examples give a value for.",
 		}),
 });
-export type AskedRule = z.infer<typeof askedRule>;
+export type RuleAnswer = z.infer<typeof ruleAnswerSchema>;

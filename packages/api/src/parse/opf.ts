@@ -11,7 +11,7 @@ import {
 	local,
 	Namespaces,
 	readMarkup,
-	tidy,
+	trimOrNull,
 } from "./xml";
 
 const DC_NS = "http://purl.org/dc/elements/1.1/";
@@ -71,7 +71,7 @@ function matches(property: string, term: string): boolean {
 /** An element's text, whitespace collapsed; `null` for no element, or one with
  *  nothing in it. */
 export function textOf(el: Element | undefined): string | null {
-	return el ? tidy(el.text) : null;
+	return el ? trimOrNull(el.text) : null;
 }
 
 function element(name: string, attributes: Attributes): Element {
@@ -218,7 +218,7 @@ export class Opf {
 		const meta = this.metas.find(
 			(each) => each.refines === id && matches(each.property, property),
 		);
-		return meta ? tidy(meta.text) : null;
+		return meta ? trimOrNull(meta.text) : null;
 	}
 
 	/** Everyone the book calls an author. */
@@ -244,10 +244,10 @@ export class Opf {
 					matches(meta.property, "role"),
 			)
 			.flatMap((meta) => {
-				const code = tidy(meta.text);
+				const code = trimOrNull(meta.text);
 				return code ? [code] : [];
 			});
-		const stated = tidy(el.attrs.get("role"));
+		const stated = trimOrNull(el.attrs.get("role"));
 		if (stated) codes.push(stated);
 		if (codes.length === 0) return [fallback];
 		return codes.map((code) => RELATORS[code] ?? fallback);
@@ -286,11 +286,11 @@ export class Opf {
 			// EPUB allows positions like "2.2.1", which is not a number; such a
 			// series keeps its name and loses only the volume.
 			return {
-				name: tidy(stated.text),
+				name: trimOrNull(stated.text),
 				index: readNumber(this.refines(stated.id, "group-position")),
 			};
 		}
-		const name = tidy(this.legacy.get("calibre:series"));
+		const name = trimOrNull(this.legacy.get("calibre:series"));
 		if (!name) return { name: null, index: null };
 		return {
 			name,

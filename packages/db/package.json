@@ -1,5 +1,5 @@
 {
-	"name": "@Registrum/db",
+	"name": "@registrum/db",
 	"type": "module",
 	"exports": {
 		".": "./src/index.ts",
@@ -20,7 +20,7 @@
 		"varlock": "catalog:"
 	},
 	"devDependencies": {
-		"@Registrum/config": "workspace:*",
+		"@registrum/config": "workspace:*",
 		"typescript": "catalog:",
 		"@types/bun": "catalog:"
 	}

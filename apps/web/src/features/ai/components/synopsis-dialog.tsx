@@ -1,13 +1,13 @@
 // The draft, shown before anything is kept.
 
-import { Button } from "@Registrum/ui/components/button";
+import { Button } from "@registrum/ui/components/button";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { AdaptiveDialog } from "@/components/adaptive-dialog";
-import type { BookRecord } from "@/features/library/types";
+import type { BookRecord } from "@/features/shelf/types";
 import { api } from "@/lib/api";
 import { useGeneration } from "../use-generation";
-import { Generating, UsageLine } from "./generation";
+import { Generating, UsageLine } from "./generation-parts";
 
 export function SynopsisDialog({
 	open,
@@ -30,7 +30,12 @@ export function SynopsisDialog({
 	const { t } = useTranslation();
 
 	const run = useGeneration<string>((run, locale) =>
-		api.ai.synopsis.mutate({ shelfId, id: book.id, locale, run }),
+		api.ai.generateSynopsis.mutate({
+			shelfId,
+			id: book.id,
+			locale,
+			runId: run,
+		}),
 	);
 
 	// Opening the dialog is the act of asking for one: there is nothing else to

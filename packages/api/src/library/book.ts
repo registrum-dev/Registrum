@@ -1,9 +1,9 @@
-// Finding one book, forgetting some, and the haystack the search box looks in.
+// Finding one book, removing some, and the search text the search box looks in.
 
-import { type Client, type Database, transaction } from "@Registrum/db";
+import { type Client, type Database, transaction } from "@registrum/db";
 
 import * as fold from "../lib/fold";
-import { sweep } from "./names";
+import { removeOrphans } from "./names";
 import {
 	BATCH,
 	type BookRecord,
@@ -12,7 +12,7 @@ import {
 	recordsFor,
 } from "./record";
 
-export async function findOne(
+export async function findBook(
 	db: Client,
 	shelfId: string,
 	id: string,
@@ -20,9 +20,9 @@ export async function findOne(
 	return (await findRecords(db, { where: { id, shelfId } }))[0] ?? null;
 }
 
-/** Drops everything the library remembers about these books. The files
+/** Removes everything the library remembers about these books. The files
  *  themselves are never touched; the caller deletes the thumbnails. */
-export async function forget(
+export async function removeBooks(
 	db: Database,
 	shelfId: string,
 	ids: readonly string[],
@@ -31,12 +31,12 @@ export async function forget(
 		for (const batch of chunks(ids, BATCH)) {
 			await tx.book.deleteMany({ where: { shelfId, id: { in: batch } } });
 		}
-		await sweep(tx, shelfId);
+		await removeOrphans(tx, shelfId);
 	});
 }
 
 /** The fields a book is searched by besides its title, path and lists, in the
- *  order they go into the haystack. */
+ *  order they go into the search text. */
 export type SearchFields = [
 	subtitle: string | null,
 	series: string | null,
@@ -45,7 +45,7 @@ export type SearchFields = [
 	description: string | null,
 ];
 
-/** The haystack the search box looks in, folded the way the needle will be. */
+/** The search text the search box looks in, folded the way the terms will be. */
 export function searchText(
 	title: string,
 	path: string,
@@ -58,7 +58,7 @@ export function searchText(
 	return fold.fold(parts.join("\n"));
 }
 
-/** The haystack of a record as it stands. */
+/** The search text of a record as it stands. */
 export function searchTextOf(book: BookRecord): string {
 	return searchText(
 		book.title,
@@ -68,9 +68,9 @@ export function searchTextOf(book: BookRecord): string {
 	);
 }
 
-/** Rewrites the haystack for these books from what the library now holds. The
+/** Rewrites the search text for these books from what the library now holds. The
  *  names in it are copies, so a name that changed elsewhere leaves them stale. */
-export async function refreshSearch(
+export async function refreshSearchText(
 	db: Client,
 	ids: readonly string[],
 ): Promise<void> {

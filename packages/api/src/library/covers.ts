@@ -3,11 +3,11 @@
 import { mkdir, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 
-import type { LibraryConfig } from "../context";
+import type { PathsConfig } from "../context";
 import { Failure } from "../failure";
 
 /** Where the thumbnails are kept. */
-export function coverDir(config: LibraryConfig): string {
+export function coverDir(config: PathsConfig): string {
 	return join(config.dataDir, "covers");
 }
 
@@ -20,7 +20,7 @@ export function coverFile(id: string): string {
 
 /** Stores a thumbnail and hands back the name the record keeps. */
 export async function writeCover(
-	config: LibraryConfig,
+	config: PathsConfig,
 	id: string,
 	bytes: Buffer,
 ): Promise<string> {
@@ -31,10 +31,10 @@ export async function writeCover(
 	return name;
 }
 
-/** Drops the thumbnails of books the library has just forgotten. A missing
+/** Removes the thumbnails of books the library has just removed. A missing
  *  thumbnail is not an error: plenty of books never had a cover. */
-export async function forgetCovers(
-	config: LibraryConfig,
+export async function removeCovers(
+	config: PathsConfig,
 	ids: readonly string[],
 ): Promise<void> {
 	const dir = coverDir(config);

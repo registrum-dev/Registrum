@@ -17,7 +17,7 @@ export type SearchStatus = "idle" | "running" | "finished";
 
 export interface BookSearch {
 	query: string;
-	setQuery: (query: string) => void;
+	setFilter: (query: string) => void;
 	groups: SearchGroup[];
 	status: SearchStatus;
 	/** How much of the book has been looked through, 0 to 1. */
@@ -28,7 +28,7 @@ export interface BookSearch {
 }
 
 export function useBookSearch(view: FoliateView | null): BookSearch {
-	const [query, setQuery] = useState("");
+	const [query, setFilter] = useState("");
 	const [groups, setGroups] = useState<SearchGroup[]>([]);
 	const [status, setStatus] = useState<SearchStatus>("idle");
 	const [progress, setProgress] = useState(0);
@@ -84,7 +84,7 @@ export function useBookSearch(view: FoliateView | null): BookSearch {
 	}, [view, query]);
 
 	const clear = useCallback(() => {
-		setQuery("");
+		setFilter("");
 		setGroups([]);
 		// A run already out is not called off by emptying the box; it simply has
 		// nothing to show for the moment.
@@ -92,5 +92,5 @@ export function useBookSearch(view: FoliateView | null): BookSearch {
 		view?.clearSearch();
 	}, [view]);
 
-	return { query, setQuery, groups, status, progress, total, start, clear };
+	return { query, setFilter, groups, status, progress, total, start, clear };
 }

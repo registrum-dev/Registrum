@@ -4,10 +4,10 @@ import {
 	Alert,
 	AlertAction,
 	AlertDescription,
-} from "@Registrum/ui/components/alert";
-import { Button } from "@Registrum/ui/components/button";
-import { TooltipProvider } from "@Registrum/ui/components/tooltip";
-import { cn } from "@Registrum/ui/lib/utils";
+} from "@registrum/ui/components/alert";
+import { Button } from "@registrum/ui/components/button";
+import { TooltipProvider } from "@registrum/ui/components/tooltip";
+import { cn } from "@registrum/ui/lib/utils";
 import { createRootRoute, Outlet } from "@tanstack/react-router";
 import {
 	CheckIcon,
@@ -19,8 +19,8 @@ import {
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Presence } from "@/components/presence";
-import { useArrivingBooks } from "@/features/library/hooks/use-arriving-books";
-import { useSettings } from "@/features/reader/store";
+import { useReaderSettings } from "@/features/reader/store";
+import { useArrivingBooks } from "@/features/shelf/hooks/use-arriving-books";
 import { resolveLanguage, setLocale } from "@/i18n";
 import { copyText } from "@/lib/clipboard";
 import { useAlert } from "@/store/alert";
@@ -37,8 +37,8 @@ export const Route = createRootRoute({ component: RootLayout });
 function RootLayout() {
 	const { t } = useTranslation();
 	const { dragging } = useArrivingBooks();
-	const theme = useSettings((state) => state.settings.theme);
-	const language = useSettings((state) => state.settings.language);
+	const theme = useReaderSettings((state) => state.settings.theme);
+	const language = useReaderSettings((state) => state.settings.language);
 
 	const message = useAlert((state) => state.message);
 	const tone = useAlert((state) => state.tone);

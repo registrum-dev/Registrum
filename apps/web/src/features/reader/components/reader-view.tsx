@@ -6,7 +6,7 @@ import {
 	type MountedBook,
 	mountBook,
 } from "@/features/reader/open-view";
-import { useSettings } from "@/features/reader/store";
+import { useReaderSettings } from "@/features/reader/store";
 
 interface ReaderViewProps extends Omit<MountCallbacks, "settings"> {
 	source: BookSource;
@@ -25,7 +25,7 @@ export function ReaderView({
 }: ReaderViewProps) {
 	const hostRef = useRef<HTMLDivElement | null>(null);
 	const mounted = useRef<MountedBook | null>(null);
-	const settings = useSettings((state) => state.settings);
+	const settings = useReaderSettings((state) => state.settings);
 
 	// Reachable from the mount without making it re-run and re-parse the book.
 	const latest = useEffectEvent(

@@ -26,7 +26,7 @@ import { marginPreset, type Settings } from "@/features/reader/settings";
 import {
 	keepArtworkAspect,
 	wrapSvgSections,
-} from "@/features/reader/svg-sections";
+} from "@/features/reader/wrap-svg-sections";
 import { t } from "@/i18n";
 import { errorText } from "@/store/alert";
 

@@ -1,8 +1,8 @@
-import type { Connection } from "@Registrum/api/ai/settings";
-import type { LibraryConfig } from "@Registrum/api/context";
-import { createPrismaClient, prepareDatabase } from "@Registrum/db";
 import { mkdir } from "node:fs/promises";
 import { resolve } from "node:path";
+import type { Connection } from "@registrum/api/ai/settings";
+import type { PathsConfig } from "@registrum/api/context";
+import { createPrismaClient, prepareDatabase } from "@registrum/db";
 
 import { ENV } from "./env.server";
 
@@ -10,7 +10,7 @@ export const db = createPrismaClient(ENV);
 
 /** The two folders, spelled absolute once so nothing downstream depends on the
  *  working directory. */
-export const config: LibraryConfig = {
+export const config: PathsConfig = {
 	booksDir: resolve(ENV.BOOKS_DIR),
 	dataDir: resolve(ENV.DATA_DIR),
 };

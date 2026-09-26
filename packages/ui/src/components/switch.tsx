@@ -1,5 +1,5 @@
-import { cn } from "@Registrum/ui/lib/utils";
 import { Switch as SwitchPrimitive } from "@base-ui/react/switch";
+import { cn } from "@registrum/ui/lib/utils";
 
 function Switch({
 	className,

@@ -1,8 +1,8 @@
 // The form two pieces of text are compared in when a list already on screen is
 // narrowed as the reader types. The server's own folding, so the screen and
-// the library read `ｶﾀｶﾅ` and `カタカナ` the same way.
+// the shelf read `ｶﾀｶﾅ` and `カタカナ` the same way.
 
-import { fold } from "@Registrum/api/lib/fold";
+import { fold } from "@registrum/api/lib/fold";
 
 export { fold as foldText };
 

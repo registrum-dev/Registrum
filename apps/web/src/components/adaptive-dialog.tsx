@@ -7,8 +7,8 @@ import {
 	DialogFooter,
 	DialogHeader,
 	DialogTitle,
-} from "@Registrum/ui/components/dialog";
-import { cn } from "@Registrum/ui/lib/utils";
+} from "@registrum/ui/components/dialog";
+import { cn } from "@registrum/ui/lib/utils";
 import type { ReactNode } from "react";
 import {
 	PhoneSheet,
@@ -17,7 +17,7 @@ import {
 	SheetDock,
 	type SheetKind,
 } from "@/components/phone-sheet";
-import { useLayout } from "@/hooks/use-layout";
+import { useFormFactor } from "@/hooks/use-form-factor";
 
 interface AdaptiveDialogProps {
 	open: boolean;
@@ -54,7 +54,7 @@ export function AdaptiveDialog({
 	dock,
 	bodyClassName,
 }: AdaptiveDialogProps) {
-	const phone = useLayout() === "phone";
+	const phone = useFormFactor() === "phone";
 
 	if (phone) {
 		const foot = dock ?? (trailing ? undefined : footer);

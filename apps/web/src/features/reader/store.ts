@@ -12,7 +12,7 @@ interface SettingsState {
 	reset: () => void;
 }
 
-export const useSettings = create<SettingsState>()(
+export const useReaderSettings = create<SettingsState>()(
 	persist<SettingsState, [], [], Settings>(
 		(set, get) => ({
 			settings: DEFAULT_SETTINGS,

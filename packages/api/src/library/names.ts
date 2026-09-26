@@ -1,11 +1,11 @@
 // The rows behind a book's names, and dropping the ones nobody carries any
 // more. Every name belongs to one shelf.
 
-import type { Client, Prisma } from "@Registrum/db";
 import { createId } from "@paralleldrive/cuid2";
+import type { Client, Prisma } from "@registrum/db";
 
 import * as fold from "../lib/fold";
-import { NAME_KINDS, type NameKind } from "../vocabulary";
+import { FACET_KINDS, type FacetKind } from "../vocabulary";
 import { BATCH, chunks } from "./record";
 
 /** The three names a book reaches through a junction, each an ordered list. */
@@ -43,8 +43,8 @@ interface NameTable {
 }
 
 /** The table one kind of name is kept in. */
-export function nameTable(db: Client, kind: NameKind): NameTable {
-	const tables: Record<NameKind, unknown> = {
+export function nameTable(db: Client, kind: FacetKind): NameTable {
+	const tables: Record<FacetKind, unknown> = {
 		author: db.author,
 		collection: db.collection,
 		tag: db.tag,
@@ -55,7 +55,7 @@ export function nameTable(db: Client, kind: NameKind): NameTable {
 }
 
 /** Whether a book reaches this kind of name through a junction. */
-export function isNameList(kind: NameKind): kind is NameList {
+export function isNameList(kind: FacetKind): kind is NameList {
 	return kind === "author" || kind === "collection" || kind === "tag";
 }
 
@@ -77,8 +77,8 @@ interface Link {
 }
 
 /** How books point at one kind of name. */
-export function linkOf(db: Client, kind: NameKind): Link {
-	const links: Record<NameKind, [unknown, Link["book"], string]> = {
+export function linkOf(db: Client, kind: FacetKind): Link {
+	const links: Record<FacetKind, [unknown, Link["book"], string]> = {
 		author: [db.bookAuthor, "bookId", "authorId"],
 		collection: [db.bookCollection, "bookId", "collectionId"],
 		tag: [db.bookTag, "bookId", "tagId"],
@@ -91,7 +91,7 @@ export function linkOf(db: Client, kind: NameKind): Link {
 
 /** The condition on a name's `books` that a book meeting `where` carries it. */
 export function carriedBy(
-	kind: NameKind,
+	kind: FacetKind,
 	where: Prisma.BookWhereInput,
 ): object {
 	return isNameList(kind) ? { some: { book: where } } : { some: where };
@@ -119,7 +119,7 @@ export function uniqueNames(values: readonly string[]): string[] {
 export function rowsNamed(
 	db: Client,
 	shelfId: string,
-	kind: NameKind,
+	kind: FacetKind,
 	names: string[],
 ): Promise<NameRow[]> {
 	return nameTable(db, kind).findMany({
@@ -130,10 +130,10 @@ export function rowsNamed(
 
 /** The row for each of these names, made where the shelf has not used one
  *  before, a batch at a time. */
-export async function idsFor(
+export async function ensureIds(
 	db: Client,
 	shelfId: string,
-	kind: NameKind,
+	kind: FacetKind,
 	names: readonly string[],
 ): Promise<Map<string, string>> {
 	const found = new Map<string, string>();
@@ -167,13 +167,13 @@ export async function fieldIds<T>(
 		...new Set(items.flatMap((item) => filled(pick(item)) ?? [])),
 	];
 	return {
-		publisher: await idsFor(db, shelfId, "publisher", named(publisherOf)),
-		series: await idsFor(db, shelfId, "series", named(seriesOf)),
+		publisher: await ensureIds(db, shelfId, "publisher", named(publisherOf)),
+		series: await ensureIds(db, shelfId, "series", named(seriesOf)),
 	};
 }
 
 /** Takes one of the lists off these books. */
-export async function dropNames(
+export async function unlinkNames(
 	db: Client,
 	kind: NameList,
 	bookIds: readonly string[],
@@ -193,7 +193,7 @@ export async function addLists(
 ): Promise<void> {
 	const names = uniqueNames(lists.flatMap(([, values]) => values));
 	if (lists.length === 0 || names.length === 0) return;
-	const ids = await idsFor(db, shelfId, kind, names);
+	const ids = await ensureIds(db, shelfId, kind, names);
 	const link = linkOf(db, kind);
 
 	const rows: object[] = [];
@@ -207,9 +207,12 @@ export async function addLists(
 		await link.table.createMany({ data: batch });
 }
 
-/** Drops the names no book on this shelf carries any more. */
-export async function sweep(db: Client, shelfId: string): Promise<void> {
+/** Removes the names no book on this shelf carries any more. */
+export async function removeOrphans(
+	db: Client,
+	shelfId: string,
+): Promise<void> {
 	const unused = { shelfId, books: { none: {} } };
-	for (const kind of NAME_KINDS)
+	for (const kind of FACET_KINDS)
 		await nameTable(db, kind).deleteMany({ where: unused });
 }

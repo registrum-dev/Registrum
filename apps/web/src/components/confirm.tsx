@@ -9,12 +9,12 @@ import {
 	AlertDialogFooter,
 	AlertDialogHeader,
 	AlertDialogTitle,
-} from "@Registrum/ui/components/alert-dialog";
-import { Button } from "@Registrum/ui/components/button";
+} from "@registrum/ui/components/alert-dialog";
+import { Button } from "@registrum/ui/components/button";
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { PhoneSheet } from "@/components/phone-sheet";
-import { useLayout } from "@/hooks/use-layout";
+import { useFormFactor } from "@/hooks/use-form-factor";
 
 /** The pause before something that cannot be undone. */
 export function Confirm({
@@ -36,7 +36,7 @@ export function Confirm({
 	onConfirm: () => void;
 }) {
 	const { t } = useTranslation();
-	const phone = useLayout() === "phone";
+	const phone = useFormFactor() === "phone";
 
 	if (phone) {
 		return (

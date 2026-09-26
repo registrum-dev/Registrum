@@ -1,17 +1,17 @@
 // The shelves: one folder under the books mount each, all in one database.
 
-import type { Database } from "@Registrum/db";
 import type { Dirent } from "node:fs";
 import { readdir, stat } from "node:fs/promises";
 import { join } from "node:path";
 import { createId } from "@paralleldrive/cuid2";
+import type { Database } from "@registrum/db";
 
-import type { LibraryConfig } from "../context";
+import type { PathsConfig } from "../context";
 import { Failure, failingAs } from "../failure";
 import { inside, joinRelative, safeRelative } from "../lib/paths";
 import { charCount } from "../lib/text";
 import { now } from "../lib/time";
-import { forgetCovers } from "./covers";
+import { removeCovers } from "./covers";
 
 /** The longest name a shelf may be given. */
 const NAME_MAX = 80;
@@ -62,7 +62,7 @@ async function isFolder(path: string): Promise<boolean> {
 
 export async function listShelves(
 	db: Database,
-	config: LibraryConfig,
+	config: PathsConfig,
 ): Promise<Shelf[]> {
 	const shelves = await failingAs("db", () =>
 		db.shelf.findMany({ orderBy: { createdAt: "asc" } }),
@@ -78,7 +78,7 @@ export async function listShelves(
 /** The shelf and its folder, or a failure for an id no shelf has. */
 export async function openShelf(
 	db: Database,
-	config: LibraryConfig,
+	config: PathsConfig,
 	id: string,
 ): Promise<OpenShelf> {
 	const shelf = await failingAs("db", () =>
@@ -102,7 +102,7 @@ function checkName(name: string): string {
 /** Makes a folder under the mount a shelf. Nothing is read yet: that is the scan. */
 export async function createShelf(
 	db: Database,
-	config: LibraryConfig,
+	config: PathsConfig,
 	folder: string,
 	name: string,
 ): Promise<Shelf> {
@@ -141,14 +141,14 @@ export async function renameShelf(
  */
 export async function removeShelf(
 	db: Database,
-	config: LibraryConfig,
+	config: PathsConfig,
 	id: string,
 ): Promise<void> {
 	const books = await failingAs("db", () =>
 		db.book.findMany({ where: { shelfId: id }, select: { id: true } }),
 	);
 	await failingAs("db", () => db.shelf.delete({ where: { id } }));
-	await forgetCovers(
+	await removeCovers(
 		config,
 		books.map((book) => book.id),
 	);
@@ -157,7 +157,7 @@ export async function removeShelf(
 /** The folders inside one folder of the mount, for the browser the screen draws. */
 export async function browse(
 	db: Database,
-	config: LibraryConfig,
+	config: PathsConfig,
 	at: string,
 ): Promise<Listing> {
 	const path = safeRelative(at);

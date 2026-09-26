@@ -28,17 +28,17 @@ export const ja = {
 	},
 
 	error: {
-		db: "ライブラリを読み書きできませんでした: {{message}}",
+		db: "本棚を読み書きできませんでした: {{message}}",
 		noShelf: "その本棚はもうありません。",
 		shelfTaken: "このフォルダはもう本棚です（{{message}}）。",
 		shelfName: "本棚の名前は 1〜80 文字で付けてください。",
-		aiUnset:
+		aiNotConfigured:
 			"サーバーの環境変数に AI_BASE_URL と AI_MODEL を設定してください。",
 		noFolder: "フォルダが見つかりません。",
 		readFolder: "フォルダを読み込めませんでした: {{message}}",
 		save: "保存できませんでした: {{message}}",
 		emptyName: "名前を空にはできません。",
-		noName: "その名前はライブラリにありません。",
+		noName: "その名前は本棚にありません。",
 		badId: "本の ID として使えない文字列です: {{message}}",
 		badPath: "本の場所として使えない文字列です: {{message}}",
 		badPattern: "正規表現として読めません: {{message}}",
@@ -48,7 +48,7 @@ export const ja = {
 		noBook: "本が見つかりません。",
 		noBookText:
 			"この本から本文を読み出せません。本文を持つのは EPUB だけです。",
-		noCast: "先に登場人物を作ってください。",
+		noCharacters: "先に登場人物を作ってください。",
 		noChapters: "選んだ章に、送れる本文がありません。",
 		noQuestion: "質問が空です。",
 		noExample: "例に値が 1 つも書かれていません。",
@@ -57,11 +57,11 @@ export const ja = {
 		aiUnreadable: "AI の返事を読み取れませんでした: {{message}}",
 		aiEmpty: "AI が何も返しませんでした。",
 		aiStopped: "AI への問い合わせを中止しました。",
-		loadLibrary: "ライブラリを読み込めませんでした: {{message}}",
+		loadShelf: "本棚を読み込めませんでした: {{message}}",
 		chooseFile: "ファイルを選択できませんでした: {{message}}",
-		forgetRecord: "メタデータを削除できませんでした: {{message}}",
+		removeRecord: "メタデータを削除できませんでした: {{message}}",
 		indexFailed_other: "{{count}} 冊を読み込めませんでした: {{books}}",
-		restoreFailed_other: "{{count}} 冊を読み直せませんでした: {{books}}",
+		rescanFailed_other: "{{count}} 冊を読み直せませんでした: {{books}}",
 		andMore_other: "ほか {{count}} 冊",
 	},
 
@@ -86,7 +86,7 @@ export const ja = {
 		unset: "未設定",
 		envHint:
 			"サーバーの環境変数 AI_BASE_URL・AI_MODEL・AI_API_KEY で設定します。鍵はブラウザには返しません。",
-		envUnsetHint:
+		notConfiguredHint:
 			"サーバーの環境変数に AI_BASE_URL と AI_MODEL（鍵が要る接続先なら AI_API_KEY も）を設定し、再起動すると使えます。",
 
 		generate: "AI で作る",
@@ -121,14 +121,14 @@ export const ja = {
 		mapNote:
 			"登場人物の間の関係だけを描きます。後半で明かされる関係には触れません。",
 		noMap: "まだ作っていません",
-		mapEmpty: "本文をすべて送って、いま載っている人物の間の関係を書かせます。",
+		mapIntro: "本文をすべて送って、いま載っている人物の間の関係を書かせます。",
 		mapOf: "登場人物 {{count}} 人の相関図",
 
 		ask: "AI に聞く",
 		askNote:
 			"選んだ章だけを送ります。選んでいない章のことは答えに出ません。やり取りは残らないので、画面を閉じると消えます。",
 		askPlaceholder: "この本について聞く",
-		askEmpty:
+		askIntro:
 			"章を選んで聞いてください。答えの根拠は選んだ章の本文だけで、やり取りは残りません。",
 		noAsking: "まだ聞けません",
 		send: "送る",
@@ -163,7 +163,7 @@ export const ja = {
 		finished: "読了",
 	},
 
-	layout: {
+	bookLayout: {
 		reflowable: "リフロー",
 		"pre-paginated": "固定レイアウト",
 		format: "{{format}}・{{layout}}",
@@ -241,14 +241,6 @@ export const ja = {
 		removeDescription:
 			"この本棚の記録をすべて消します。本のファイルはそのまま残るので、同じフォルダを本棚にし直してスキャンすれば書誌は戻りますが、評価・メモ・タグ・読書位置は戻りません。",
 		removed: "「{{name}}」を削除しました。",
-	},
-
-	view: {
-		grid: "表紙",
-		table: "表",
-	},
-
-	library: {
 		shownOfTotal: "{{shown}} / {{total}} 冊",
 		shelves: "本棚",
 		switch: "本棚を切り替える",
@@ -267,6 +259,11 @@ export const ja = {
 		clearSearch: "絞り込みを消す",
 		readBook: "「{{title}}」を読む",
 		readNow: "すぐ読む",
+	},
+
+	view: {
+		grid: "表紙",
+		table: "表",
 	},
 
 	scan: {
@@ -296,7 +293,7 @@ export const ja = {
 		retry: "もう一度試す",
 	},
 
-	start: {
+	shelfSetup: {
 		title: "本棚をつくる",
 		stepFolder: "本棚のフォルダ",
 		stepName: "本棚の名前",
@@ -390,9 +387,9 @@ export const ja = {
 		title: "パスから書誌を当てる",
 		fromSelection: "パスから当てる",
 		target: "対象",
-		targetLibrary: "本棚のすべて",
-		targetShelf: "絞り込みの結果",
-		targetBooks: "選んだ本",
+		targetShelf: "本棚のすべて",
+		targetFiltered: "絞り込みの結果",
+		targetSelected: "選んだ本",
 		pattern: "パターン",
 		patternHint: "本棚のフォルダからの相対パスに当てます",
 		groups: "使える値",
@@ -412,7 +409,7 @@ export const ja = {
 		fixPattern: "パターンを直すと、ここに結果が出ます",
 		noBooks: "ここに入る本はありません",
 		more: "ほか {{count}} 冊",
-		summary_other: "{{count}} 冊・{{cells}} か所を書き換えます",
+		writeTally_other: "{{count}} 冊・{{cells}} か所を書き換えます",
 		nothingToWrite: "書き換える本はありません",
 		overwrites: "すでに入っている値を {{count}} か所上書きします",
 		write: "書き込む…",
@@ -452,13 +449,13 @@ export const ja = {
 	},
 
 	bulk: {
-		clearReading: "履歴を消す",
-		clearReadingTitle_other: "{{count}} 冊の読書履歴を消しますか？",
+		clearPosition: "履歴を消す",
+		clearPositionTitle_other: "{{count}} 冊の読書履歴を消しますか？",
 		selected_other: "{{count}} 冊を選択中",
 		edit: "まとめて編集",
 		clearSelection: "選択を解除",
-		restoreTitle_other: "{{count}} 冊をファイルから読み直しますか？",
-		forgetTitle_other: "{{count}} 冊をライブラリから削除しますか？",
+		rescanTitle_other: "{{count}} 冊をファイルから読み直しますか？",
+		removeTitle_other: "{{count}} 冊を本棚から削除しますか？",
 		title_other: "{{count}} 冊をまとめて編集",
 		description_other:
 			"チェックを入れた項目だけが、選んだ {{count}} 冊すべてに同じ値で書き込まれます。巻だけは本ごとに指定できます。本ごとに違う項目（タイトル・あらすじ・メモ）は、行の鉛筆ボタンから編集してください。",
@@ -483,17 +480,17 @@ export const ja = {
 		authorsPlaceholder: "名前を入力して Enter",
 		collectionsPlaceholder: "棚の名前を入力して Enter",
 		tagsPlaceholder: "言葉を入力して Enter",
-		restore: "元に戻す",
-		restoreConfirm: "読み直す",
-		restoreDescription:
+		rescan: "元に戻す",
+		rescanConfirm: "読み直す",
+		rescanDescription:
 			"タイトル・著者・出版社・シリーズ・あらすじなどが、本のファイルに書かれている内容に戻ります。手で直した内容は元に戻せません。コレクション・タグ・分類・メモ・評価・読書位置はそのまま残ります。",
-		forgetDescription:
+		removeDescription:
 			"編集した内容・評価・読書位置が削除されます。本のファイルそのものは削除されません。次にスキャンすると、ファイルから読み直して並び直します。",
 		pagePosition: "{{total}} ページ中 {{at}} ページ目",
 		sectionPosition: "{{total}} 節中 {{at}} 節目",
 	},
 
-	name: {
+	facet: {
 		sheet: "名前の詳細",
 		open: "「{{name}}」の本を見る",
 		backToBook: "本の詳細に戻る",
@@ -516,7 +513,7 @@ export const ja = {
 	detail: {
 		sheet: "本の詳細",
 		notFoundTitle: "この本は見つかりませんでした",
-		notFound: "ライブラリから削除されたのかもしれません。",
+		notFound: "本棚から削除されたのかもしれません。",
 		previousBook: "前の本",
 		nextBook: "次の本",
 		noPrevious: "前の本はありません",
@@ -537,7 +534,7 @@ export const ja = {
 			"読書位置と最後に開いた日が消え、未読に戻ります。評価・メモ・タグ・コレクションはそのまま残ります。消した位置は元に戻せません。",
 		clearConfirm: "消す",
 		positionSaved: "位置を保存した日",
-		added: "ライブラリに追加",
+		added: "本棚に追加",
 		note: "読書位置は、本を閉じたときとアプリを終了するときに保存されます。",
 	},
 
@@ -560,8 +557,8 @@ export const ja = {
 		seriesOf: "シリーズ · {{series}}",
 		volume: "第 {{index}} 巻",
 		currentVolume: "いま開いている本 · {{percent}}%",
-		forget: "ライブラリから削除",
-		forgetTitle: "「{{title}}」をライブラリから削除しますか？",
+		remove: "本棚から削除",
+		removeTitle: "「{{title}}」を本棚から削除しますか？",
 	},
 
 	edit: {
@@ -575,7 +572,7 @@ export const ja = {
 		tagsNote:
 			"コレクションが本を置く棚なら、タグは本について言えること。いくつ付けても構いません。",
 		notePlaceholder: "次に読むときの自分へ",
-		restoreTitle: "ファイルから読み直しますか？",
+		rescanTitle: "ファイルから読み直しますか？",
 	},
 
 	reader: {
@@ -600,7 +597,7 @@ export const ja = {
 		noMatchesTitle: "見つかりませんでした",
 		noMatches:
 			"画像だけのページ（CBZ やスキャンした PDF）は本文を持たないため検索できません。",
-		notInLibrary: "この本はライブラリにありません。",
+		notOnShelf: "この本は本棚にありません。",
 		readFailed: "ファイルを読み込めませんでした: {{message}}",
 		openBookFailed: "本を開けませんでした: {{message}}",
 		stillLoading:
@@ -652,7 +649,7 @@ export const ja = {
 	settings: {
 		title: "設定",
 		open: "設定を開く",
-		library: "ライブラリ",
+		shelf: "本棚",
 		folder: "フォルダ",
 		noFolder: "まだ選ばれていません",
 		leaveFolder: "最初の画面に戻る",

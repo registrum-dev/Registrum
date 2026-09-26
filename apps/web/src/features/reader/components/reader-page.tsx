@@ -1,20 +1,17 @@
 // The reader.
 
-import { Spinner } from "@Registrum/ui/components/spinner";
-import { cn } from "@Registrum/ui/lib/utils";
+import { Spinner } from "@registrum/ui/components/spinner";
+import { cn } from "@registrum/ui/lib/utils";
 import { useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Presence } from "@/components/presence";
-import { useAiReady } from "@/features/ai/queries";
+import { useAiConfigured } from "@/features/ai/queries";
 import { hasBookText } from "@/features/ai/types";
-import { baseName } from "@/features/library/paths";
-import { useBook } from "@/features/library/queries";
-import { useLibrary } from "@/features/library/store";
 import { AiPanel } from "@/features/reader/components/ai-panel";
 import { BookPanel } from "@/features/reader/components/book-panel";
 import { ChromeBar } from "@/features/reader/components/chrome-bar";
-import { PositionPanel } from "@/features/reader/components/position-panel";
+import { ProgressPanel } from "@/features/reader/components/progress-panel";
 import { ReaderView } from "@/features/reader/components/reader-view";
 import { SettingsPanel } from "@/features/reader/components/settings-panel";
 import { LTR_DIRECTION, type PageDirection } from "@/features/reader/direction";
@@ -30,8 +27,11 @@ import { useReadingPosition } from "@/features/reader/hooks/use-reading-position
 import { heldFile } from "@/features/reader/local-files";
 import type { BookInfo } from "@/features/reader/open-view";
 import type { OpenPanel, ReaderPanel } from "@/features/reader/panels";
-import { useSettings } from "@/features/reader/store";
+import { useReaderSettings } from "@/features/reader/store";
 import { PALETTES } from "@/features/reader/themes";
+import { baseName } from "@/features/shelf/paths";
+import { useBook } from "@/features/shelf/queries";
+import { useShelfStore } from "@/features/shelf/store";
 import { useWindowTitle } from "@/hooks/use-window-title";
 import { t as translate } from "@/i18n";
 import { aboveStyle, useStackLayer } from "@/lib/sheet-stack";
@@ -43,14 +43,14 @@ export function ReaderPage({ id, file, from }: ReaderSearch) {
 	const { t } = useTranslation();
 	const navigate = useNavigate();
 
-	const settings = useSettings((state) => state.settings);
-	const shelfId = useLibrary((state) => state.shelfId);
-	const hydrated = useLibrary((state) => state.hydrated);
+	const settings = useReaderSettings((state) => state.settings);
+	const shelfId = useShelfStore((state) => state.shelfId);
+	const hydrated = useShelfStore((state) => state.hydrated);
 
-	// Asked of the library, not taken off the shelf: a condition can be hiding it.
+	// Asked of the shelf, not taken off the list on screen: a filter can be hiding it.
 	const lookup = useBook(id);
 	const book = lookup.data ?? undefined;
-	/** Until the library has answered, "no book yet" is not "no such book". */
+	/** Until the shelf has answered, "no book yet" is not "no such book". */
 	const looking = Boolean(id) && lookup.isPending;
 
 	const bookId = book?.id ?? null;
@@ -66,9 +66,9 @@ export function ReaderPage({ id, file, from }: ReaderSearch) {
 
 	// Asking is offered for a book the shelf holds, whose words can be read,
 	// once an endpoint has been named.
-	const aiReady = useAiReady();
+	const aiConfigured = useAiConfigured();
 	const canAsk =
-		Boolean(book && shelfId && hasBookText(book.format)) && aiReady;
+		Boolean(book && shelfId && hasBookText(book.format)) && aiConfigured;
 
 	const [info, setInfo] = useState<BookInfo | null>(null);
 	const [direction, setDirection] = useState<PageDirection>(LTR_DIRECTION);
@@ -95,7 +95,7 @@ export function ReaderPage({ id, file, from }: ReaderSearch) {
 	// unknown.
 	useEffect(() => {
 		if (opening || (id && (!hydrated || looking))) return;
-		if (id) showAlert(translate("reader.notInLibrary"));
+		if (id) showAlert(translate("reader.notOnShelf"));
 		else if (file) showAlert(translate("reader.fileGone"));
 		void navigate({ to: "/", replace: true });
 	}, [opening, hydrated, looking, id, file, navigate]);
@@ -121,7 +121,7 @@ export function ReaderPage({ id, file, from }: ReaderSearch) {
 		showAlert(message);
 	});
 
-	// The library's title wins over the book's own: it is the one on the shelf,
+	// The shelf's title wins over the book's own: it is the one shown there,
 	// and for a CBZ the book's own is just the file name with its extension.
 	const title = book?.title ?? info?.title ?? fileName ?? t("app.name");
 
@@ -199,7 +199,7 @@ export function ReaderPage({ id, file, from }: ReaderSearch) {
 								key={readerKey}
 								source={source}
 								// Where this book was last left, until a relocation supersedes it.
-								initialLocation={lastCfi.current ?? book?.progress?.cfi}
+								initialLocation={lastCfi.current ?? book?.position?.cfi}
 								onReady={(opened, bookInfo) => {
 									setView(opened);
 									setInfo(bookInfo);
@@ -264,8 +264,8 @@ export function ReaderPage({ id, file, from }: ReaderSearch) {
 					onClose={() => setPanel("none")}
 				/>
 
-				<PositionPanel
-					open={panel === "position"}
+				<ProgressPanel
+					open={panel === "progress"}
 					fraction={relocation?.fraction ?? 0}
 					onSeek={(fraction) => void view?.goToFraction(fraction)}
 					onClose={() => setPanel("none")}

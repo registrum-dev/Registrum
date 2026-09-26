@@ -1,9 +1,9 @@
 // Handing a book file to foliate-js.
 
-import { bookFileUrl } from "@/features/library/ipc";
-import { BOOK_FORMATS, isComicFormat } from "@/features/library/types";
 import { type ComicBook, openComic } from "@/features/reader/comic-book";
 import type { FoliateBook } from "@/features/reader/foliate";
+import { BOOK_FORMATS, isComicFormat } from "@/features/shelf/types";
+import { bookFileUrl } from "@/features/shelf/urls";
 import { t } from "@/i18n";
 
 const MIME_TYPES: Record<string, string> = {
@@ -49,7 +49,7 @@ export function sourceFromFile(file: File): BookSource {
 }
 
 /** A book on a shelf: the archive on the server for a comic, the bytes here otherwise. */
-export async function sourceFromLibrary(
+export async function sourceFromShelf(
 	id: string,
 	name: string,
 ): Promise<BookSource> {

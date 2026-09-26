@@ -1,11 +1,11 @@
 // The files the browser reads directly rather than through tRPC: thumbnails,
 // book files and comic pages.
 
-import { Failure } from "@Registrum/api/failure";
-import { coverDir, coverFile } from "@Registrum/api/library/covers";
-import { bookFile, comicPage } from "@Registrum/api/library/files";
-import type { BookFormat } from "@Registrum/api/vocabulary";
 import { join } from "node:path";
+import { Failure } from "@registrum/api/failure";
+import { coverDir, coverFile } from "@registrum/api/library/covers";
+import { bookFile, comicPage } from "@registrum/api/library/files";
+import type { BookFormat } from "@registrum/api/vocabulary";
 import type { Context } from "hono";
 
 import { config, db } from "./services";
@@ -31,9 +31,9 @@ function failed(c: Context, error: unknown) {
 	return c.json({ code: "readBook", detail: String(error) }, 500);
 }
 
-/** A thumbnail. The URL carries the record's `indexedAt`, so what is served
+/** A thumbnail. The URL carries the record's `scannedAt`, so what is served
  *  under it never changes. */
-export async function cover(c: Context) {
+export async function serveCover(c: Context) {
 	try {
 		const path = join(coverDir(config), coverFile(c.req.param("id") ?? ""));
 		const file = Bun.file(path);
@@ -49,7 +49,7 @@ export async function cover(c: Context) {
 }
 
 /** A book's file, in whole or by range. */
-export async function book(c: Context) {
+export async function serveBookFile(c: Context) {
 	try {
 		const found = await bookFile(db, config, c.req.param("id") ?? "");
 		const file = Bun.file(found.path);
@@ -93,7 +93,7 @@ export async function book(c: Context) {
 }
 
 /** One page of a comic the reader has open. */
-export async function page(c: Context) {
+export async function serveComicPage(c: Context) {
 	try {
 		const index = Number(c.req.param("page"));
 		const found = await comicPage(

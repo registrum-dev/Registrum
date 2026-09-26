@@ -1,5 +1,5 @@
-import { Button, buttonVariants } from "@Registrum/ui/components/button";
-import { cn } from "@Registrum/ui/lib/utils";
+import { Button, buttonVariants } from "@registrum/ui/components/button";
+import { cn } from "@registrum/ui/lib/utils";
 import {
 	ChevronDownIcon,
 	ChevronLeftIcon,

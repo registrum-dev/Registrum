@@ -1,9 +1,9 @@
-@import "@Registrum/ui/globals.css";
+@import "@registrum/ui/globals.css";
 
 /*
  * A navigation's view transition. The router skips it wherever the browser can
  * name view-transition types (app/router.ts), so this is only ever drawn by a
- * browser that cannot: `.screen-pane`, the library screen, slides across, and
+ * browser that cannot: `.screen-pane`, the shelf screen, slides across, and
  * everything else keeps the browser's own crossfade. Reduced motion zeroes
  * `--shift-lg`, which leaves the crossfade and takes away the travel.
  */

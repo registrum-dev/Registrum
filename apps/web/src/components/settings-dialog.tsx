@@ -1,6 +1,6 @@
-// The settings there are before a library exists.
+// The settings there are before a shelf exists.
 
-import { ScrollArea } from "@Registrum/ui/components/scroll-area";
+import { ScrollArea } from "@registrum/ui/components/scroll-area";
 import { useTranslation } from "react-i18next";
 import { AdaptiveDialog } from "@/components/adaptive-dialog";
 import { LanguagePicker } from "@/components/language-picker";

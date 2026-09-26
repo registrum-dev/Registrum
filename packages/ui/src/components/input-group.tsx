@@ -1,7 +1,7 @@
-import { Button } from "@Registrum/ui/components/button";
-import { Input } from "@Registrum/ui/components/input";
-import { Textarea } from "@Registrum/ui/components/textarea";
-import { cn } from "@Registrum/ui/lib/utils";
+import { Button } from "@registrum/ui/components/button";
+import { Input } from "@registrum/ui/components/input";
+import { Textarea } from "@registrum/ui/components/textarea";
+import { cn } from "@registrum/ui/lib/utils";
 import { cva, type VariantProps } from "class-variance-authority";
 import type * as React from "react";
 

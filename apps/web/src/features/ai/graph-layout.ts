@@ -52,7 +52,7 @@ export interface Bounds {
 	height: number;
 }
 
-export interface Layout {
+export interface GraphLayout {
 	nodes: Node[];
 	edges: Edge[];
 }
@@ -61,7 +61,7 @@ export interface Layout {
 export function layoutGraph(
 	characters: Character[],
 	relations: Relation[],
-): Layout {
+): GraphLayout {
 	const nodes = initialNodes(characters);
 	const index = new Map(nodes.map((node, at) => [node.name, at]));
 
@@ -69,7 +69,7 @@ export function layoutGraph(
 	for (const relation of relations) {
 		const from = index.get(relation.from);
 		const to = index.get(relation.to);
-		// A stored line's two ends are foreign keys into the cast, so this cannot
+		// A stored line's two ends are foreign keys into the characters, so this cannot
 		// miss; it is the name lookup the drawing needs either way.
 		if (from === undefined || to === undefined || from === to) continue;
 		edges.push({ from, to, label: relation.label, mutual: relation.mutual });
@@ -81,7 +81,7 @@ export function layoutGraph(
 	return { nodes, edges };
 }
 
-/** The starting ring, in the order the cast was written down. */
+/** The starting ring, in the order the characters were written down. */
 function initialNodes(characters: Character[]): Node[] {
 	const count = Math.max(characters.length, 1);
 	const radius = Math.max(140, count * 18);

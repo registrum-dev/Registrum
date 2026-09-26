@@ -1,8 +1,8 @@
 "use client";
 
-import { Label } from "@Registrum/ui/components/label";
-import { Separator } from "@Registrum/ui/components/separator";
-import { cn } from "@Registrum/ui/lib/utils";
+import { Label } from "@registrum/ui/components/label";
+import { Separator } from "@registrum/ui/components/separator";
+import { cn } from "@registrum/ui/lib/utils";
 import { cva, type VariantProps } from "class-variance-authority";
 import { useMemo } from "react";
 

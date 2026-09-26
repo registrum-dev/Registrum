@@ -1,5 +1,5 @@
 {
-	"name": "web",
+	"name": "@registrum/web",
 	"version": "0.0.0",
 	"private": true,
 	"type": "module",
@@ -11,8 +11,8 @@
 		"check-types": "tsr generate && tsc --noEmit"
 	},
 	"dependencies": {
-		"@Registrum/api": "workspace:*",
-		"@Registrum/ui": "workspace:*",
+		"@registrum/api": "workspace:*",
+		"@registrum/ui": "workspace:*",
 		"@tanstack/react-query": "^5.102.8",
 		"@tanstack/react-router": "^1.170.32",
 		"@tanstack/react-table": "^9.2.4",
@@ -31,7 +31,7 @@
 		"zustand": "^5.0.15"
 	},
 	"devDependencies": {
-		"@Registrum/config": "workspace:*",
+		"@registrum/config": "workspace:*",
 		"@tailwindcss/vite": "catalog:",
 		"@tanstack/router-cli": "^1.167.38",
 		"@tanstack/router-plugin": "^1.168.35",
