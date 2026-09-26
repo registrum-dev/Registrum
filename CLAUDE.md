@@ -18,3 +18,4 @@
 ### Commits and pull requests
 
 - Write commit messages, PR titles, and PR descriptions in English by default.
+- Prefix branch names with the type of change, such as `feat/`, `fix/`, `refactor/`, `chore/`, or `docs/` (e.g. `feat/shelf-sorting`).
