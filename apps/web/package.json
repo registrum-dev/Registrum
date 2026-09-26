@@ -1,0 +1,47 @@
+{
+	"name": "web",
+	"version": "0.0.0",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"dev": "vite dev",
+		"build": "vite build",
+		"serve": "vite preview",
+		"start": "vite",
+		"check-types": "tsr generate && tsc --noEmit"
+	},
+	"dependencies": {
+		"@Registrum/api": "workspace:*",
+		"@Registrum/ui": "workspace:*",
+		"@tanstack/react-query": "^5.102.8",
+		"@tanstack/react-router": "^1.170.32",
+		"@tanstack/react-table": "^9.2.4",
+		"@trpc/client": "catalog:",
+		"@trpc/server": "catalog:",
+		"@trpc/tanstack-react-query": "catalog:",
+		"i18next": "^26.4.2",
+		"lucide-react": "catalog:",
+		"pdfjs-dist": "5.5.207",
+		"react": "catalog:",
+		"react-day-picker": "catalog:",
+		"react-dom": "catalog:",
+		"react-i18next": "^17.0.15",
+		"varlock": "catalog:",
+		"zod": "catalog:",
+		"zustand": "^5.0.15"
+	},
+	"devDependencies": {
+		"@Registrum/config": "workspace:*",
+		"@tailwindcss/vite": "catalog:",
+		"@tanstack/router-cli": "^1.167.38",
+		"@tanstack/router-plugin": "^1.168.35",
+		"@types/node": "catalog:",
+		"@types/react": "catalog:",
+		"@types/react-dom": "catalog:",
+		"@varlock/vite-integration": "1.5.1",
+		"@vitejs/plugin-react": "^6.1.1",
+		"tailwindcss": "catalog:",
+		"typescript": "catalog:",
+		"vite": "^8.2.2"
+	}
+}

@@ -1,0 +1,31 @@
+{
+	"name": "@Registrum/api",
+	"type": "module",
+	"exports": {
+		".": "./src/index.ts",
+		"./*": "./src/*.ts"
+	},
+	"scripts": {
+		"check-types": "tsc --noEmit"
+	},
+	"dependencies": {
+		"@Registrum/db": "workspace:*",
+		"@napi-rs/canvas": "^1.0.9",
+		"@paralleldrive/cuid2": "^3.3.0",
+		"@tanstack/ai": "^0.58.0",
+		"@tanstack/ai-openai": "^0.23.1",
+		"@trpc/server": "catalog:",
+		"htmlparser2": "^12.0.0",
+		"pdfjs-dist": "^6.3.289",
+		"sharp": "^0.35.4",
+		"yauzl": "^3.4.0",
+		"zod": "catalog:"
+	},
+	"devDependencies": {
+		"@Registrum/config": "workspace:*",
+		"@types/bun": "catalog:",
+		"@types/node": "catalog:",
+		"@types/yauzl": "^3.4.0",
+		"typescript": "catalog:"
+	}
+}

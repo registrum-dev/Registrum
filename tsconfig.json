@@ -1,0 +1,3 @@
+{
+	"extends": "@Registrum/config/tsconfig.base.json"
+}

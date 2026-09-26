@@ -1,0 +1,55 @@
+{
+	"name": "Registrum",
+	"private": true,
+	"license": "MIT",
+	"workspaces": {
+		"packages": [
+			"apps/*",
+			"packages/*"
+		],
+		"catalog": {
+			"zod": "^4.5.4",
+			"typescript": "^6.0.3",
+			"@types/bun": "^1.4.2",
+			"varlock": "1.18.0",
+			"@trpc/server": "^11.18.0",
+			"lucide-react": "^1.41.0",
+			"react": "^19.2.8",
+			"react-dom": "^19.2.8",
+			"@trpc/client": "^11.18.0",
+			"@types/react": "^19.2.18",
+			"@types/react-dom": "^19.2.7",
+			"tailwindcss": "^4.3.3",
+			"@types/node": "^26.4.1",
+			"react-day-picker": "^10.0.1",
+			"@tailwindcss/vite": "^4.3.3",
+			"@trpc/tanstack-react-query": "^11.19.0"
+		}
+	},
+	"type": "module",
+	"scripts": {
+		"dev": "turbo run dev",
+		"build": "turbo run build",
+		"check-types": "turbo run check-types",
+		"dev:web": "turbo run dev -F web --",
+		"dev:server": "turbo run dev -F server --",
+		"db:push": "turbo run db:push -F @Registrum/db --",
+		"db:studio": "turbo run db:studio -F @Registrum/db --",
+		"db:generate": "turbo run db:generate -F @Registrum/db --",
+		"db:migrate": "turbo run db:migrate -F @Registrum/db --",
+		"env:generate": "varlock codegen --path ./apps/server/",
+		"postinstall": "bun run env:generate",
+		"check": "biome check --write .",
+		"db:deploy": "turbo run db:migrate:deploy -F @Registrum/db --",
+		"start": "bun run --cwd apps/server start"
+	},
+	"devDependencies": {
+		"@Registrum/config": "workspace:*",
+		"@biomejs/biome": "^2.5.12",
+		"@types/bun": "catalog:",
+		"turbo": "^2.10.12",
+		"typescript": "catalog:",
+		"varlock": "catalog:"
+	},
+	"packageManager": "bun@1.4.2"
+}

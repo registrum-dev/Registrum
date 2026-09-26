@@ -1,0 +1,50 @@
+{
+	"$schema": "https://turbo.build/schema.json",
+	"ui": "tui",
+	"tasks": {
+		"build": {
+			"dependsOn": ["^build"],
+			"outputs": ["dist/**"]
+		},
+		"check-types": {
+			"dependsOn": ["^check-types"]
+		},
+		"dev": {
+			"cache": false,
+			"persistent": true
+		},
+		"db:push": {
+			"cache": false,
+			"interactive": true
+		},
+		"db:generate": {
+			"cache": false,
+			"interactive": true
+		},
+		"db:migrate": {
+			"cache": false,
+			"interactive": true
+		},
+		"db:studio": {
+			"cache": false,
+			"persistent": true
+		},
+		"db:migrate:deploy": {
+			"cache": false
+		}
+	},
+	"globalEnv": [
+		"CI",
+		"NODE_ENV",
+		"PORT",
+		"DATA_DIR",
+		"BOOKS_DIR",
+		"DATABASE_URL",
+		"REGISTRUM_PASSWORD",
+		"CORS_ORIGIN",
+		"WEB_DIST",
+		"VITE_SERVER_URL",
+		"_VARLOCK_ENV_KEY"
+	],
+	"globalDependencies": [".env*", "apps/*/.env*", "packages/*/.env*"]
+}

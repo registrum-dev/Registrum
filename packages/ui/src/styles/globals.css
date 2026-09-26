@@ -1,0 +1,243 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "@fontsource-variable/geist";
+@source "../../../apps/**/*.{ts,tsx}";
+@source "../**/*.{ts,tsx}";
+
+/*
+ * The reading theme is the app's theme. shadcn's `dark:` variant therefore
+ * follows `data-theme` on <html>, not a `.dark` class.
+ */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+/* The two layouts, drawn at the same line as `useLayout()`. */
+@custom-variant phone (@media (width < 48rem));
+@custom-variant desktop (@media (width >= 48rem));
+
+/*
+ * Three reading themes. Every colour the chrome uses is a shadcn semantic
+ * token, so the frame is re-themed by swapping this block and nothing else.
+ *
+ * `background` is what shows around a fixed-layout page and behind the open
+ * screen; `card`/`popover` are the floating chrome surfaces. The page a book
+ * paints itself lives in an iframe and is styled from src/features/reader/themes.ts.
+ */
+:root {
+	--background: #edf0f4;
+	--foreground: #1b1d1f;
+	--card: #ffffff;
+	--card-foreground: #1b1d1f;
+	--popover: #ffffff;
+	--popover-foreground: #1b1d1f;
+	--primary: #2563eb;
+	--primary-foreground: #ffffff;
+	--secondary: #e6eaf0;
+	--secondary-foreground: #1b1d1f;
+	--muted: #e6eaf0;
+	--muted-foreground: #5f6772;
+	--accent: #dbe7ff;
+	--accent-foreground: #1d4ed8;
+	--destructive: #c2341d;
+	--border: #d8dde5;
+	--input: #ccd3dd;
+	--ring: #2563eb;
+	--radius: 0.625rem;
+	/* The lift under a floating pill, panel or popover. */
+	--shadow-chrome: 0 8px 26px rgb(20 24 30 / 0.12);
+	--shadow-panel: 0 18px 46px rgb(20 24 30 / 0.16);
+}
+
+:root[data-theme="sepia"] {
+	--background: #f0e6d0;
+	--foreground: #38332a;
+	--card: #fdf9f0;
+	--card-foreground: #38332a;
+	--popover: #fdf9f0;
+	--popover-foreground: #38332a;
+	--primary: #8a5a1c;
+	--primary-foreground: #fffdf8;
+	--secondary: #e7dcc4;
+	--secondary-foreground: #38332a;
+	--muted: #e7dcc4;
+	--muted-foreground: #6e6553;
+	--accent: #eedfbe;
+	--accent-foreground: #7a4d13;
+	--destructive: #9e3618;
+	--border: #d7c8a6;
+	--input: #cbba93;
+	--ring: #8a5a1c;
+	--shadow-chrome: 0 8px 26px rgb(56 51 42 / 0.14);
+	--shadow-panel: 0 18px 46px rgb(56 51 42 / 0.2);
+}
+
+:root[data-theme="dark"] {
+	--background: #0f1216;
+	--foreground: #d3d8df;
+	--card: #1c2026;
+	--card-foreground: #d3d8df;
+	--popover: #1c2026;
+	--popover-foreground: #d3d8df;
+	--primary: #7fa8ff;
+	--primary-foreground: #0f1216;
+	--secondary: #272e37;
+	--secondary-foreground: #d3d8df;
+	--muted: #272e37;
+	--muted-foreground: #949ca7;
+	--accent: #26354e;
+	--accent-foreground: #cfe0ff;
+	--destructive: #e88a78;
+	--border: #3a434f;
+	--input: #46505e;
+	--ring: #7fa8ff;
+	--shadow-chrome: 0 8px 26px rgb(10 13 17 / 0.5);
+	--shadow-panel: 0 18px 46px rgb(10 13 17 / 0.6);
+}
+
+/*
+ * The rail is a shadcn Sidebar, which paints itself from its own token set.
+ * Every one of them is an alias, so the rail stays part of the chrome and all
+ * three themes reach it without repeating a colour here.
+ */
+:root {
+	--sidebar: var(--card);
+	--sidebar-foreground: var(--foreground);
+	--sidebar-primary: var(--primary);
+	--sidebar-primary-foreground: var(--primary-foreground);
+	--sidebar-accent: var(--accent);
+	--sidebar-accent-foreground: var(--accent-foreground);
+	--sidebar-muted: var(--muted);
+	--sidebar-border: var(--border);
+	--sidebar-ring: var(--ring);
+}
+
+/* How much of each edge the phone's own furniture covers. On a desktop they
+ * are zero and nothing moves. */
+:root {
+	--safe-top: env(safe-area-inset-top, 0px);
+	--safe-right: env(safe-area-inset-right, 0px);
+	--safe-bottom: env(safe-area-inset-bottom, 0px);
+	--safe-left: env(safe-area-inset-left, 0px);
+}
+
+/*
+ * Motion identity. A reader is a calm room: one signature curve, three
+ * durations, and entrances that are longer than exits because what appears
+ * matters more than what leaves. `--shift-*` is how far a surface travels;
+ * reduced motion zeroes the distance and keeps the fade.
+ */
+:root {
+	--dur-quick: 140ms;
+	--dur-standard: 260ms;
+	--dur-slow: 420ms;
+	--shift-sm: 6px;
+	--shift-md: 14px;
+	/* A screen is not a surface: it is the whole window, and it travels further. */
+	--shift-lg: 28px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	:root {
+		--dur-quick: 1ms;
+		--dur-standard: 120ms;
+		--dur-slow: 120ms;
+		--shift-sm: 0px;
+		--shift-md: 0px;
+		--shift-lg: 0px;
+	}
+}
+
+@theme inline {
+	--font-heading: var(--font-sans);
+	--font-sans:
+		"Geist Variable", "Segoe UI Variable Text", "Segoe UI", "Yu Gothic UI",
+		"Meiryo", system-ui, sans-serif;
+
+	/*
+   * 明朝. Used where the app speaks as a book rather than as a program: the
+   * wordmark, a title standing on its own, and the covers we set ourselves for
+   * books whose file carries no image. Every face here ships with the OS —
+   * bundling a CJK font would cost more than the whole app.
+   */
+	--font-serif:
+		"Shippori Mincho", "Hiragino Mincho ProN", "Yu Mincho", "YuMincho",
+		"MS PMincho", "Noto Serif JP", serif;
+
+	--ease-enter: cubic-bezier(0.05, 0.7, 0.1, 1);
+	--ease-exit: cubic-bezier(0.3, 0, 1, 1);
+	--ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+
+	--color-ring: var(--ring);
+	--color-input: var(--input);
+	--color-border: var(--border);
+	--color-destructive: var(--destructive);
+	--color-accent-foreground: var(--accent-foreground);
+	--color-accent: var(--accent);
+	--color-muted-foreground: var(--muted-foreground);
+	--color-muted: var(--muted);
+	--color-secondary-foreground: var(--secondary-foreground);
+	--color-secondary: var(--secondary);
+	--color-primary-foreground: var(--primary-foreground);
+	--color-primary: var(--primary);
+	--color-popover-foreground: var(--popover-foreground);
+	--color-popover: var(--popover);
+	--color-card-foreground: var(--card-foreground);
+	--color-card: var(--card);
+	--color-foreground: var(--foreground);
+	--color-background: var(--background);
+	--color-sidebar: var(--sidebar);
+	--color-sidebar-foreground: var(--sidebar-foreground);
+	--color-sidebar-primary: var(--sidebar-primary);
+	--color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+	--color-sidebar-accent: var(--sidebar-accent);
+	--color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+	--color-sidebar-muted: var(--sidebar-muted);
+	--color-sidebar-border: var(--sidebar-border);
+	--color-sidebar-ring: var(--sidebar-ring);
+
+	--radius-sm: calc(var(--radius) * 0.6);
+	--radius-md: calc(var(--radius) * 0.8);
+	--radius-lg: var(--radius);
+	--radius-xl: calc(var(--radius) * 1.4);
+	--radius-2xl: calc(var(--radius) * 1.8);
+	--radius-3xl: calc(var(--radius) * 2.2);
+	--radius-4xl: calc(var(--radius) * 2.6);
+}
+
+html,
+body,
+#root {
+	height: 100%;
+}
+
+body {
+	margin: 0;
+	overflow: hidden;
+	font-size: 14px;
+	-webkit-font-smoothing: antialiased;
+}
+
+@layer base {
+	* {
+		@apply border-border outline-ring/50;
+	}
+	body {
+		@apply bg-background text-foreground;
+	}
+	button:not(:disabled),
+	[role="button"]:not(:disabled) {
+		cursor: pointer;
+	}
+	html {
+		@apply font-sans;
+	}
+}
+
+/* Tab strips and column headers scroll sideways; the overflow itself is the cue. */
+@utility no-scrollbar {
+	scrollbar-width: none;
+
+	&::-webkit-scrollbar {
+		display: none;
+	}
+}

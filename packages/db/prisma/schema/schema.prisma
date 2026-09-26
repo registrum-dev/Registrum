@@ -1,0 +1,39 @@
+generator client {
+  provider     = "prisma-client"
+  output       = "../generated"
+  moduleFormat = "esm"
+  runtime      = "bun"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+// Timestamps are ISO-8601 text, the same spelling the API hands to the screen,
+// so that the raw queries in packages/api sort and compare them as they are.
+
+/// One folder under the books mount, and everything the library knows about it.
+/// Every other table hangs off a shelf, so one database holds any number of them.
+model Shelf {
+  id          String       @id
+  name        String
+  /// Relative to the books mount, `/`-separated. The empty string is the mount itself.
+  path        String       @unique
+  createdAt   String       @map("created_at")
+  books       Book[]
+  authors     Author[]
+  publishers  Publisher[]
+  series      Series[]
+  collections Collection[]
+  tags        Tag[]
+
+  @@map("shelf")
+}
+
+/// Key-value settings that belong to the server rather than to one browser.
+model Setting {
+  key   String @id
+  value String
+
+  @@map("setting")
+}

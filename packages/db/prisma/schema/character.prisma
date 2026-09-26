@@ -1,0 +1,63 @@
+/// One person a generation wrote down for a book. `name` is unique within the
+/// book, because the map's two ends are names.
+model Character {
+  id          String             @id
+  bookId      String             @map("book_id")
+  position    Int
+  name        String
+  nameKey     String             @map("name_key")
+  role        String
+  overview    String             @default("")
+  personality String             @default("")
+  appearance  String             @default("")
+  speech      String             @default("")
+  affiliation String             @default("")
+
+  book        Book               @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  aliases     CharacterAlias[]
+  events      CharacterEvent[]
+  relationsFrom CharacterRelation[] @relation("from")
+  relationsTo   CharacterRelation[] @relation("to")
+
+  @@unique([bookId, name])
+  @@index([bookId, position])
+  @@index([nameKey])
+  @@map("character")
+}
+
+model CharacterAlias {
+  characterId String    @map("character_id")
+  position    Int
+  name        String
+  character   Character @relation(fields: [characterId], references: [id], onDelete: Cascade)
+
+  @@id([characterId, position])
+  @@map("character_alias")
+}
+
+model CharacterEvent {
+  characterId String    @map("character_id")
+  position    Int
+  text        String
+  character   Character @relation(fields: [characterId], references: [id], onDelete: Cascade)
+
+  @@id([characterId, position])
+  @@map("character_event")
+}
+
+/// One line on the map, in the order the model gave.
+model CharacterRelation {
+  bookId   String    @map("book_id")
+  position Int
+  fromId   String    @map("from_id")
+  toId     String    @map("to_id")
+  label    String
+  mutual   Boolean   @default(false)
+
+  book     Book      @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  from     Character @relation("from", fields: [fromId], references: [id], onDelete: Cascade)
+  to       Character @relation("to", fields: [toId], references: [id], onDelete: Cascade)
+
+  @@id([bookId, position])
+  @@map("character_relation")
+}

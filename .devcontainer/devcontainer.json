@@ -1,0 +1,40 @@
+{
+	"name": "Registrum",
+	"build": {
+		"dockerfile": "Dockerfile"
+	},
+	"remoteUser": "bun",
+	// The container's own node_modules: the host's has macOS-only native binaries.
+	"mounts": [
+		"source=registrum-node_modules,target=${containerWorkspaceFolder}/node_modules,type=volume",
+		// Claude Code's sign-in and settings, kept across rebuilds.
+		"source=registrum-claude-config,target=/home/bun/.claude,type=volume"
+	],
+	// Set here so they win over a host-specific apps/server/.env.local.
+	"containerEnv": {
+		"DATA_DIR": "${containerWorkspaceFolder}/data",
+		"BOOKS_DIR": "${containerWorkspaceFolder}/books",
+		"DATABASE_URL": "file:${containerWorkspaceFolder}/data/registrum.db",
+		"CLAUDE_CONFIG_DIR": "/home/bun/.claude"
+	},
+	"postCreateCommand": ".devcontainer/post-create.sh",
+	"forwardPorts": [3001, 3000],
+	"portsAttributes": {
+		"3001": { "label": "Web (Vite)", "onAutoForward": "openBrowser" },
+		"3000": { "label": "API", "onAutoForward": "silent" }
+	},
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"biomejs.biome",
+				"Prisma.prisma",
+				"bradlc.vscode-tailwindcss",
+				"oven.bun-vscode",
+				"anthropic.claude-code"
+			],
+			"settings": {
+				"editor.defaultFormatter": "biomejs.biome"
+			}
+		}
+	}
+}

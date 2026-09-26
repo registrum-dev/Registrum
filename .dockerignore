@@ -1,0 +1,15 @@
+**/node_modules
+**/dist
+**/.turbo
+**/.env
+**/.env.*
+!**/.env.schema
+**/src/env.ts
+**/*.db
+**/*.db-*
+packages/db/prisma/generated
+apps/web/src/routeTree.gen.ts
+/data
+/books
+.git
+.DS_Store

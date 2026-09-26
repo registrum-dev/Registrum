@@ -1,0 +1,6 @@
+{
+	"extends": "@Registrum/config/tsconfig.base.json",
+	"compilerOptions": {
+		"noEmit": true
+	}
+}

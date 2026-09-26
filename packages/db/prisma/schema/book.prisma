@@ -1,0 +1,169 @@
+/// One book file on a shelf.
+model Book {
+  id           String        @id
+  shelfId      String        @map("shelf_id")
+  /// Relative to the shelf's folder, always `/`-separated.
+  path         String
+  /// `path` folded for comparison, which is what makes a path unique.
+  pathKey      String        @map("path_key")
+  format       String
+  layout       String        @default("reflowable")
+  size         BigInt        @default(0)
+  /// Milliseconds since the epoch, or 0 when the file system would not say.
+  mtime        BigInt        @default(0)
+  title        String
+  titleKey     String        @default("") @map("title_key")
+  subtitle     String?
+  publisherId  String?       @map("publisher_id")
+  language     String?
+  published    String?
+  identifier   String?
+  seriesId     String?       @map("series_id")
+  seriesIndex  Float?        @map("series_index")
+  description  String?
+  sections     Int           @default(0)
+  category     String?
+  note         String?
+  rating       Int?
+  favorite     Boolean       @default(false)
+  /// The thumbnail's file name under the covers folder, when there is one.
+  cover        String?
+  missing      Boolean       @default(false)
+  searchText   String        @default("") @map("search_text")
+  addedAt      String        @map("added_at")
+  indexedAt    String        @map("indexed_at")
+  lastOpenedAt String?       @map("last_opened_at")
+
+  shelf        Shelf         @relation(fields: [shelfId], references: [id], onDelete: Cascade)
+  publisher    Publisher?    @relation(fields: [publisherId], references: [id])
+  series       Series?       @relation(fields: [seriesId], references: [id])
+  readingState ReadingState?
+  authors      BookAuthor[]
+  collections  BookCollection[]
+  tags         BookTag[]
+  characters   Character[]
+  relations    CharacterRelation[]
+
+  @@unique([shelfId, pathKey])
+  @@index([shelfId, category])
+  @@index([shelfId, format])
+  @@index([shelfId, rating])
+  @@index([shelfId, titleKey])
+  @@index([publisherId])
+  @@index([seriesId, seriesIndex])
+  @@map("book")
+}
+
+/// A row here is the reading position, so a book nobody has opened has none.
+model ReadingState {
+  bookId    String @id @map("book_id")
+  cfi       String
+  fraction  Float  @default(0)
+  label     String?
+  updatedAt String @map("updated_at")
+
+  book Book @relation(fields: [bookId], references: [id], onDelete: Cascade)
+
+  @@map("reading_state")
+}
+
+/// The five tables that hold nothing but a name, each one per shelf.
+
+model Author {
+  id      String       @id
+  shelfId String       @map("shelf_id")
+  name    String
+  nameKey String       @map("name_key")
+  shelf   Shelf        @relation(fields: [shelfId], references: [id], onDelete: Cascade)
+  books   BookAuthor[]
+
+  @@unique([shelfId, name])
+  @@map("author")
+}
+
+model Publisher {
+  id      String @id
+  shelfId String @map("shelf_id")
+  name    String
+  nameKey String @map("name_key")
+  shelf   Shelf  @relation(fields: [shelfId], references: [id], onDelete: Cascade)
+  books   Book[]
+
+  @@unique([shelfId, name])
+  @@map("publisher")
+}
+
+model Series {
+  id      String @id
+  shelfId String @map("shelf_id")
+  name    String
+  nameKey String @map("name_key")
+  shelf   Shelf  @relation(fields: [shelfId], references: [id], onDelete: Cascade)
+  books   Book[]
+
+  @@unique([shelfId, name])
+  @@map("series")
+}
+
+model Collection {
+  id      String           @id
+  shelfId String           @map("shelf_id")
+  name    String
+  nameKey String           @map("name_key")
+  shelf   Shelf            @relation(fields: [shelfId], references: [id], onDelete: Cascade)
+  books   BookCollection[]
+
+  @@unique([shelfId, name])
+  @@map("collection")
+}
+
+model Tag {
+  id      String    @id
+  shelfId String    @map("shelf_id")
+  name    String
+  nameKey String    @map("name_key")
+  shelf   Shelf     @relation(fields: [shelfId], references: [id], onDelete: Cascade)
+  books   BookTag[]
+
+  @@unique([shelfId, name])
+  @@map("tag")
+}
+
+/// The ordered lists a book carries. `position` is the order the reader put
+/// the names in, and the first one is what the column sorts on.
+
+model BookAuthor {
+  bookId   String @map("book_id")
+  authorId String @map("author_id")
+  position Int
+  book     Book   @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  author   Author @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@id([bookId, authorId])
+  @@index([authorId])
+  @@map("book_author")
+}
+
+model BookCollection {
+  bookId       String     @map("book_id")
+  collectionId String     @map("collection_id")
+  position     Int
+  book         Book       @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  collection   Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+
+  @@id([bookId, collectionId])
+  @@index([collectionId])
+  @@map("book_collection")
+}
+
+model BookTag {
+  bookId   String @map("book_id")
+  tagId    String @map("tag_id")
+  position Int
+  book     Book   @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  tag      Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([bookId, tagId])
+  @@index([tagId])
+  @@map("book_tag")
+}

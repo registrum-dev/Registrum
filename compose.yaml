@@ -1,0 +1,15 @@
+services:
+  registrum:
+    build: .
+    image: registrum
+    ports:
+      - "3000:3000"
+    environment:
+      # Leave empty to serve without a sign-in, on a network you trust.
+      REGISTRUM_PASSWORD: ${REGISTRUM_PASSWORD:-}
+    volumes:
+      # The database and the covers.
+      - ./data:/data
+      # The folder whose sub-folders become shelves. The app never writes to it.
+      - ./books:/books:ro
+    restart: unless-stopped

@@ -1,0 +1,390 @@
+@import "@Registrum/ui/globals.css";
+
+/*
+ * A navigation's view transition. The router skips it wherever the browser can
+ * name view-transition types (app/router.ts), so this is only ever drawn by a
+ * browser that cannot: `.screen-pane`, the library screen, slides across, and
+ * everything else keeps the browser's own crossfade. Reduced motion zeroes
+ * `--shift-lg`, which leaves the crossfade and takes away the travel.
+ */
+::view-transition-old(pane) {
+	animation: screen-out var(--dur-quick) var(--ease-exit) both;
+}
+
+::view-transition-new(pane) {
+	animation: screen-in var(--dur-standard) var(--ease-enter) var(--dur-quick)
+		both;
+}
+
+@keyframes screen-out {
+	to {
+		opacity: 0;
+		transform: translateX(calc(var(--shift-lg) * -1));
+	}
+}
+
+@keyframes screen-in {
+	from {
+		opacity: 0;
+		transform: translateX(var(--shift-lg));
+	}
+}
+
+@layer components {
+	/* What a navigation replaces, captured apart from the backdrop. */
+	.screen-pane {
+		view-transition-name: pane;
+	}
+
+	/* The app frame is furniture, not content: don't let it be selected. */
+	.chrome {
+		user-select: none;
+		-webkit-user-select: none;
+	}
+
+	/*
+   * A floating chrome surface: pill, panel, popover. Translucent so the page
+   * shows through, blurred so text under it never competes with text on it.
+   */
+	.chrome-surface {
+		background: color-mix(in srgb, var(--card) 92%, transparent);
+		backdrop-filter: blur(14px);
+		-webkit-backdrop-filter: blur(14px);
+		box-shadow: var(--shadow-chrome);
+		@apply border border-border;
+	}
+
+	/* An opaque floating surface, unlike the pills: words in it are read. */
+	.chrome-panel {
+		background: var(--card);
+		box-shadow: var(--shadow-panel);
+		@apply border border-border;
+	}
+}
+
+@layer utilities {
+	/*
+   * Chrome auto-hide. Fading alone reads as a glitch, so each cluster also
+   * slides a few pixels back toward the edge it is docked to — the exit is
+   * shorter than the entrance and uses the accelerating curve.
+   */
+	/*
+   * The nudge uses `transform` on purpose. Tailwind v4's `translate-*` helpers
+   * set the separate `translate` property, so a surface can carry one of those
+   * and still slide from here: the two compose instead of overwriting.
+   */
+	.chrome-enter {
+		opacity: 1;
+		transform: translateY(0);
+		transition:
+			opacity var(--dur-standard) var(--ease-enter),
+			transform var(--dur-standard) var(--ease-enter);
+	}
+
+	.chrome-leave {
+		opacity: 0;
+		pointer-events: none;
+		transition:
+			opacity var(--dur-quick) var(--ease-exit),
+			transform var(--dur-quick) var(--ease-exit);
+	}
+
+	.chrome-leave-up {
+		transform: translateY(calc(var(--shift-sm) * -1));
+	}
+
+	.chrome-leave-down {
+		transform: translateY(var(--shift-sm));
+	}
+}
+
+/*
+ * Fixed-layout pages (PDF, CBZ) are images, so the dark theme cannot be applied
+ * with a stylesheet the way it is for EPUB. Inverting the frame is the only
+ * option foliate-js gives us, and it mangles photographs — hence opt-in.
+ */
+.invert-pages foliate-view::part(filter) {
+	filter: invert(1) hue-rotate(180deg);
+}
+
+/*
+ * Arrivals, departures and cascades, all in CSS so the compositor plays them.
+ * Arrivals fill backwards only: once played they
+ * let go of `transform`, so a hover's `translate` or `scale` is never fought.
+ */
+@property --i {
+	syntax: "<integer>";
+	inherits: false;
+	initial-value: 0;
+}
+
+@keyframes arrive-fade {
+	from {
+		opacity: 0;
+	}
+}
+
+@keyframes arrive-rise {
+	from {
+		opacity: 0;
+		transform: translateY(var(--shift-sm));
+	}
+}
+
+@keyframes arrive-dock {
+	from {
+		opacity: 0;
+		transform: translateY(var(--shift-md));
+	}
+}
+
+@keyframes arrive-aside {
+	from {
+		opacity: 0;
+		transform: translateX(calc(var(--shift-sm) * -1));
+	}
+}
+
+@keyframes arrive-grow {
+	from {
+		opacity: 0;
+		transform: scale(0.94);
+	}
+}
+
+@keyframes leave-fade {
+	to {
+		opacity: 0;
+	}
+}
+
+@keyframes leave-rise {
+	to {
+		opacity: 0;
+		transform: translateY(var(--shift-sm));
+	}
+}
+
+@keyframes leave-dock {
+	to {
+		opacity: 0;
+		transform: translateY(var(--shift-md));
+	}
+}
+
+@keyframes draw-line {
+	from {
+		stroke-dashoffset: 1;
+		opacity: 0;
+	}
+}
+
+@utility motion-fade {
+	animation: arrive-fade var(--dur-standard) var(--ease-enter) backwards;
+	animation-delay: var(--delay, 0ms);
+	&[data-leaving] {
+		animation: leave-fade var(--dur-quick) var(--ease-exit) forwards;
+	}
+}
+
+@utility motion-rise {
+	animation: arrive-rise var(--dur-standard) var(--ease-enter) backwards;
+	animation-delay: min(
+		calc(var(--from, 0ms) + var(--i) * var(--step, 0ms)),
+		var(--cap, 400ms)
+	);
+	&[data-leaving] {
+		animation: leave-rise var(--dur-quick) var(--ease-exit) forwards;
+	}
+}
+
+@utility motion-dock {
+	animation: arrive-dock var(--dur-standard) var(--ease-enter) backwards;
+	&[data-leaving] {
+		animation: leave-dock var(--dur-quick) var(--ease-exit) forwards;
+	}
+}
+
+@utility motion-aside {
+	animation: arrive-aside var(--dur-standard) var(--ease-enter) backwards;
+}
+
+/* Only the leaving half; what arrives in its place brings its own cascade. */
+@utility motion-leave-rise {
+	&[data-leaving] {
+		animation: leave-rise var(--dur-quick) var(--ease-exit) forwards;
+	}
+}
+
+@utility motion-leave-fade {
+	&[data-leaving] {
+		animation: leave-fade var(--dur-quick) var(--ease-exit) forwards;
+	}
+}
+
+/* Numbers the children, so each `motion-rise` among them waits its turn. */
+@utility motion-cascade {
+	--step: 50ms;
+	--from: 40ms;
+	& > :nth-child(2) {
+		--i: 1;
+	}
+	& > :nth-child(3) {
+		--i: 2;
+	}
+	& > :nth-child(4) {
+		--i: 3;
+	}
+	& > :nth-child(5) {
+		--i: 4;
+	}
+	& > :nth-child(6) {
+		--i: 5;
+	}
+	& > :nth-child(7) {
+		--i: 6;
+	}
+	& > :nth-child(8) {
+		--i: 7;
+	}
+	& > :nth-child(9) {
+		--i: 8;
+	}
+	& > :nth-child(10) {
+		--i: 9;
+	}
+	& > :nth-child(11) {
+		--i: 10;
+	}
+	& > :nth-child(12) {
+		--i: 11;
+	}
+	& > :nth-child(13) {
+		--i: 12;
+	}
+	& > :nth-child(14) {
+		--i: 13;
+	}
+	& > :nth-child(15) {
+		--i: 14;
+	}
+	& > :nth-child(16) {
+		--i: 15;
+	}
+	& > :nth-child(17) {
+		--i: 16;
+	}
+	& > :nth-child(18) {
+		--i: 17;
+	}
+	& > :nth-child(19) {
+		--i: 18;
+	}
+	& > :nth-child(20) {
+		--i: 19;
+	}
+	& > :nth-child(21) {
+		--i: 20;
+	}
+	& > :nth-child(22) {
+		--i: 21;
+	}
+	& > :nth-child(23) {
+		--i: 22;
+	}
+	& > :nth-child(n + 24) {
+		--i: 23;
+	}
+}
+
+/*
+ * The phone's stack. Each sheet names a view timeline on its own surface; what
+ * is under it runs its step-back on that timeline, so the compositor moves both
+ * off the one scroll. Names are global, hence the scope on <body>.
+ */
+body {
+	timeline-scope:
+		--layer-1, --layer-2, --layer-3, --layer-4, --layer-5, --layer-6, --layer-7,
+		--layer-8;
+}
+
+@keyframes scrim-lift {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: var(--scrim);
+	}
+}
+
+@keyframes screen-step-back {
+	to {
+		transform: translateY(var(--safe-top)) scale(0.93);
+	}
+}
+
+@keyframes screen-round {
+	to {
+		border-radius: 14px;
+	}
+}
+
+@keyframes sheet-step-back {
+	to {
+		transform: translateY(-10px) scale(0.95);
+	}
+}
+
+@layer components {
+	.sheet-scroller {
+		scroll-snap-type: y mandatory;
+		overflow-x: hidden;
+		overflow-y: auto;
+		overscroll-behavior: contain;
+		scrollbar-width: none;
+		&::-webkit-scrollbar {
+			display: none;
+		}
+		&[data-axis="x"] {
+			scroll-snap-type: x mandatory;
+			overflow-x: auto;
+			overflow-y: hidden;
+		}
+	}
+
+	.sheet-scrim {
+		animation: scrim-lift linear both;
+		animation-timeline: var(--layer);
+		animation-range: var(--lift);
+		&[data-axis="x"] {
+			animation-direction: reverse;
+		}
+	}
+
+	/* Half up, the content does not scroll: a drag lifts the sheet first. */
+	.sheet-scroller[data-medium]
+	:is([data-sheet-scroll], [data-slot="scroll-area-viewport"]) {
+		overflow-y: hidden !important;
+	}
+
+	/* Only a phone steps back what is under a sheet; a desktop leaves it where it is. */
+	.screen-stepped {
+		@variant phone {
+			transform-origin: top;
+			animation:
+				screen-step-back linear both,
+				screen-round linear both;
+			animation-timeline: var(--above), var(--above);
+			animation-range: var(--above-push), var(--above-push);
+		}
+	}
+
+	.sheet-stepped {
+		@variant phone {
+			transform-origin: top;
+			animation: sheet-step-back linear both;
+			animation-timeline: var(--above);
+			animation-range: var(--above-push);
+		}
+	}
+}
