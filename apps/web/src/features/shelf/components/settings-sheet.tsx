@@ -97,7 +97,7 @@ function SettingsSections({ className }: { className?: string }) {
 		<div
 			className={cn("motion-cascade flex flex-col [--step:70ms]", className)}
 		>
-			<Section title={t("settings.shelf")}>
+			<Section title={t("settings.shelfFolder")}>
 				<div className="flex flex-col gap-3 rounded-xl border border-border bg-card px-4 py-3.5">
 					<div className="flex flex-wrap items-center gap-x-4 gap-y-2">
 						<div className="min-w-0 flex-1">

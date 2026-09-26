@@ -518,7 +518,7 @@ export const en = {
 		noSuggestions: "No suggestions",
 		addName: "Add “{{name}}”",
 		authorsPlaceholder: "Type a name and press Enter",
-		collectionsPlaceholder: "Type a shelf name and press Enter",
+		collectionsPlaceholder: "Type a collection name and press Enter",
 		tagsPlaceholder: "Type a word and press Enter",
 		rescan: "Restore",
 		rescanConfirm: "Read again",
@@ -613,7 +613,7 @@ export const en = {
 		pickDate: "Pick from a calendar",
 		datePlaceholder: "e.g. 2024-03-15",
 		tagsNote:
-			"If a collection is a shelf to put a book on, a tag is something you can say about it. Add as many as you like.",
+			"A collection groups books; a tag is something you can say about a book. Add as many as you like.",
 		notePlaceholder: "For yourself, next time",
 		rescanTitle: "Read this book from its file again?",
 	},
@@ -694,7 +694,7 @@ export const en = {
 	settings: {
 		title: "Settings",
 		open: "Open the settings",
-		shelf: "Shelf",
+		shelfFolder: "Shelf folder",
 		folder: "Folder",
 		noFolder: "None chosen yet",
 		leaveFolder: "Back to the first screen",

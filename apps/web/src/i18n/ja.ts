@@ -478,7 +478,7 @@ export const ja = {
 		noSuggestions: "候補がありません",
 		addName: "「{{name}}」を追加",
 		authorsPlaceholder: "名前を入力して Enter",
-		collectionsPlaceholder: "棚の名前を入力して Enter",
+		collectionsPlaceholder: "コレクション名を入力して Enter",
 		tagsPlaceholder: "言葉を入力して Enter",
 		rescan: "元に戻す",
 		rescanConfirm: "読み直す",
@@ -494,7 +494,7 @@ export const ja = {
 		sheet: "名前の詳細",
 		open: "「{{name}}」の本を見る",
 		backToBook: "本の詳細に戻る",
-		standAt: "棚で見る",
+		standAt: "本棚で見る",
 		rename: "名前",
 		renameHint:
 			"この名前を変えると、この名前の本すべてに行き渡ります。本のファイルは変わりません。",
@@ -570,7 +570,7 @@ export const ja = {
 		pickDate: "カレンダーから選ぶ",
 		datePlaceholder: "例: 2024-03-15",
 		tagsNote:
-			"コレクションが本を置く棚なら、タグは本について言えること。いくつ付けても構いません。",
+			"コレクションは本をまとめるもの、タグは本について言えること。いくつ付けても構いません。",
 		notePlaceholder: "次に読むときの自分へ",
 		rescanTitle: "ファイルから読み直しますか？",
 	},
@@ -649,7 +649,7 @@ export const ja = {
 	settings: {
 		title: "設定",
 		open: "設定を開く",
-		shelf: "本棚",
+		shelfFolder: "本棚のフォルダ",
 		folder: "フォルダ",
 		noFolder: "まだ選ばれていません",
 		leaveFolder: "最初の画面に戻る",
