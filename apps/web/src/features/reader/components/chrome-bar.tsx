@@ -1,4 +1,4 @@
-import { cn } from "@Registrum/ui/lib/utils";
+import { cn } from "@registrum/ui/lib/utils";
 import {
 	ALargeSmallIcon,
 	ChevronDownIcon,
@@ -15,7 +15,7 @@ interface ChromeBarProps {
 	visible: boolean;
 	hasToc: boolean;
 	canSearch: boolean;
-	/** Whether this book can be asked about at all: a library EPUB, with an
+	/** Whether this book can be asked about at all: an EPUB on the shelf, with an
 	 *  endpoint named. */
 	canAsk: boolean;
 	/** Which one is open, since only one of them can be. */
@@ -87,8 +87,8 @@ export function ChromeBar({
 				<button
 					type="button"
 					aria-label={t("reader.position")}
-					aria-pressed={panel === "position"}
-					onClick={() => onTogglePanel("position")}
+					aria-pressed={panel === "progress"}
+					onClick={() => onTogglePanel("progress")}
 					className="chrome-surface pointer-events-auto col-start-2 flex h-12 min-w-16 items-center justify-center rounded-full px-4 text-[13px] tabular-nums transition-colors hover:bg-muted aria-pressed:bg-accent aria-pressed:text-accent-foreground"
 				>
 					{Math.round(fraction * 100)}%

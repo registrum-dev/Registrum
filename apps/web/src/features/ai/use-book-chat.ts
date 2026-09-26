@@ -4,7 +4,7 @@ import { useRef, useState } from "react";
 
 import { api } from "@/lib/api";
 import { type Exchange, useBookChats, useChat } from "./chat-store";
-import { useAiReady, useBookChapters } from "./queries";
+import { useAiConfigured, useBookChapters } from "./queries";
 import type { Chapter, Sent, Turn, Usage } from "./types";
 import { useGeneration } from "./use-generation";
 
@@ -50,7 +50,7 @@ export function useBookChat({
 	/** False where the screen draws no chat at all, so no book is read for one. */
 	offered: boolean;
 }): BookChat {
-	const ready = useAiReady();
+	const ready = useAiConfigured();
 
 	const listed = useBookChapters(shelfId, bookId, at, offered && ready);
 	const { exchanges, picked, draft } = useChat(bookId);
@@ -83,7 +83,7 @@ export function useBookChat({
 				shelfId,
 				id: bookId,
 				locale,
-				run,
+				runId: run,
 				asked: going.current,
 			}),
 		(answer) => {

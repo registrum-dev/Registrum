@@ -1,6 +1,6 @@
 // The rule being written, kept while the app is open.
 
-import { MAX_EXAMPLES } from "@Registrum/api/types";
+import { MAX_EXAMPLES } from "@registrum/api/types";
 import { create } from "zustand";
 
 import {
@@ -10,10 +10,10 @@ import {
 	RULE_FIELDS,
 	type RuleField,
 } from "./fields";
-import type { PatternDraft } from "./ipc";
+import type { PatternDraft } from "./types";
 
 /** Which books the rule is run over. */
-export type RuleScope = "library" | "shelf" | "books";
+export type RuleScope = "shelf" | "filtered" | "selected";
 
 /** A book held up for the model, and what the reader wants out of it. */
 export interface ExampleDraft {
@@ -34,7 +34,7 @@ interface RuleState {
 	setPattern: (pattern: string) => void;
 	setField: (field: RuleField, change: Partial<FieldDraft>) => void;
 	setScope: (scope: RuleScope) => void;
-	/** Opens on these books; none opens on the whole library. */
+	/** Opens on these books; none opens on the whole shelf. */
 	handOver: (ids: string[]) => void;
 	addExample: (path: string) => void;
 	removeExample: (path: string) => void;
@@ -57,10 +57,10 @@ export function canAddExample(
 	);
 }
 
-export const useRule = create<RuleState>()((set) => ({
+export const useRuleStore = create<RuleState>()((set) => ({
 	pattern: "",
 	fields: NO_FIELDS,
-	scope: "library",
+	scope: "shelf",
 	ids: [],
 	examples: [],
 	askFields: [],
@@ -74,7 +74,7 @@ export const useRule = create<RuleState>()((set) => ({
 			},
 		})),
 	setScope: (scope) => set({ scope }),
-	handOver: (ids) => set({ ids, scope: ids.length ? "books" : "library" }),
+	handOver: (ids) => set({ ids, scope: ids.length ? "selected" : "shelf" }),
 	addExample: (path) =>
 		set((state) =>
 			canAddExample(state, path)

@@ -1,4 +1,4 @@
-import { Slider } from "@Registrum/ui/components/slider";
+import { Slider } from "@registrum/ui/components/slider";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { sliderValue } from "@/features/reader/components/settings-rows";

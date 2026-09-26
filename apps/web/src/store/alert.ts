@@ -4,7 +4,7 @@ import {
 	FAILURE_CODES,
 	type FailureCode,
 	type FailureShape,
-} from "@Registrum/api/types";
+} from "@registrum/api/types";
 import { create } from "zustand";
 import { t } from "@/i18n";
 
@@ -81,11 +81,7 @@ export function failureMessage(error: unknown, fallback: string): string {
  * Every reason the server can give is also something the app can have been
  * doing, so the list is that one plus the attempts no call reports.
  */
-export type Wording =
-	| FailureCode
-	| "chooseFile"
-	| "forgetRecord"
-	| "loadLibrary";
+export type Wording = FailureCode | "chooseFile" | "removeRecord" | "loadShelf";
 
 /** Puts a caught failure in the banner, under the wording for what it was. */
 export function reportFailure(error: unknown, attempt: Wording): void {

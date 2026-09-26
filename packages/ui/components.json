@@ -12,11 +12,11 @@
 	},
 	"iconLibrary": "lucide",
 	"aliases": {
-		"components": "@Registrum/ui/components",
-		"utils": "@Registrum/ui/lib/utils",
-		"hooks": "@Registrum/ui/hooks",
-		"lib": "@Registrum/ui/lib",
-		"ui": "@Registrum/ui/components"
+		"components": "@registrum/ui/components",
+		"utils": "@registrum/ui/lib/utils",
+		"hooks": "@registrum/ui/hooks",
+		"lib": "@registrum/ui/lib",
+		"ui": "@registrum/ui/components"
 	},
 	"menuColor": "default",
 	"menuAccent": "subtle",

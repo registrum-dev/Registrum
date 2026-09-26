@@ -4,8 +4,8 @@ import {
 	EmptyHeader,
 	EmptyMedia,
 	EmptyTitle,
-} from "@Registrum/ui/components/empty";
-import { cn } from "@Registrum/ui/lib/utils";
+} from "@registrum/ui/components/empty";
+import { cn } from "@registrum/ui/lib/utils";
 import type { ReactNode } from "react";
 
 /** A whole screen with nothing on it: why, in the middle, and the way out. */

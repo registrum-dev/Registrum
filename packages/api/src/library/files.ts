@@ -1,10 +1,10 @@
 // What the reader opens: a book's file, and a comic archive held open so its
 // pages can be handed out one at a time.
 
-import type { Database } from "@Registrum/db";
 import { createId } from "@paralleldrive/cuid2";
+import type { Database } from "@registrum/db";
 
-import type { LibraryConfig } from "../context";
+import type { PathsConfig } from "../context";
 import { Failure, failingAs } from "../failure";
 import { fileName, inside } from "../lib/paths";
 import { Archive } from "../parse/archive";
@@ -22,7 +22,7 @@ export interface BookFile {
 /** The file behind a book on any shelf. */
 export async function bookFile(
 	db: Database,
-	config: LibraryConfig,
+	config: PathsConfig,
 	id: string,
 ): Promise<BookFile> {
 	const book = await failingAs("db", () =>
@@ -65,7 +65,7 @@ const open: Comic[] = [];
 /** Opens the archive behind a comic and keeps it open. */
 export async function openComic(
 	db: Database,
-	config: LibraryConfig,
+	config: PathsConfig,
 	id: string,
 ): Promise<ComicBook> {
 	const file = await bookFile(db, config, id);

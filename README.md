@@ -6,7 +6,7 @@ A self-hosted multilingual web book reader. Reads EPUB, PDF, CBZ and ZIP, in hor
 
 ## Features
 
-- **Libraries** — each folder under `/books` becomes a library; create as many as you like.
+- **Shelves** — each folder under `/books` becomes a shelf; create as many as you like.
 - **Scanning** — books are imported only when you press Scan. Metadata and covers are read from the files.
 - **Reader** — powered by [foliate-js](https://github.com/johnfactotum/foliate-js): vertical/RTL text, ruby, two-page spreads, scrolling, adjustable font, margins and themes.
 - **Progress sync** — saved on close, on tab switch, and every 60 seconds.
@@ -43,7 +43,7 @@ mkdir -p data books
 docker compose up -d
 ```
 
-Open `http://localhost:3000`, pick a folder under `/books` to create a library, then press **Scan**.
+Open `http://localhost:3000`, pick a folder under `/books` to create a shelf, then press **Scan**.
 
 Book files are never modified, so `/books` can be mounted read-only. Database migrations run automatically on startup.
 
@@ -74,7 +74,7 @@ docker compose up -d --build
 | `REGISTRUM_PASSWORD` | (empty) | Sign-in password. Empty disables sign-in |
 | `PORT` | `3000` | Listening port |
 | `DATA_DIR` | `/data` | Database and covers |
-| `BOOKS_DIR` | `/books` | Parent folder for libraries |
+| `BOOKS_DIR` | `/books` | Parent folder for shelves |
 | `DATABASE_URL` | `file:/data/registrum.db` | SQLite file |
 | `AI_BASE_URL` | (empty) | OpenAI-compatible endpoint, without `/chat/completions` (e.g. `https://openrouter.ai/api/v1`). Empty disables AI |
 | `AI_MODEL` | (empty) | Model name as the endpoint spells it (e.g. `google/gemini-2.5-pro`). Pick one with a long context |

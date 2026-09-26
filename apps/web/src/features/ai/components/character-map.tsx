@@ -1,10 +1,10 @@
 // The map: who stands in what relation to whom.
 
-import { cn } from "@Registrum/ui/lib/utils";
+import { cn } from "@registrum/ui/lib/utils";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { borderPoint, boundsOf, layoutGraph, type Node } from "../graph-layout";
-import type { Character, Graph } from "../types";
+import type { Character, Relation } from "../types";
 
 const ARROW_ID = "character-map-arrow";
 const LABEL_FONT_SIZE = 11;
@@ -25,15 +25,15 @@ function stagger(at: number, step: number, cap: number): number {
 
 export function CharacterMap({
 	characters,
-	graph,
+	relations,
 }: {
 	characters: Character[];
-	graph: Graph;
+	relations: Relation[];
 }) {
 	const { t } = useTranslation();
 	const layout = useMemo(
-		() => layoutGraph(characters, graph.relations),
-		[characters, graph],
+		() => layoutGraph(characters, relations),
+		[characters, relations],
 	);
 
 	/** Where boxes have been dragged to, by name, and nowhere else. Held for
@@ -189,7 +189,7 @@ function PersonBox({
 	onDrag,
 }: {
 	node: Node;
-	/** Which of the cast this is, which is when it stands up. */
+	/** Which of the characters this is, which is when it stands up. */
 	at: number;
 	onDrag: (x: number, y: number) => void;
 }) {

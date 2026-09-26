@@ -1,4 +1,4 @@
-import { Button } from "@Registrum/ui/components/button";
+import { Button } from "@registrum/ui/components/button";
 import { XIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import { PhoneSheet, type SheetKind } from "@/components/phone-sheet";

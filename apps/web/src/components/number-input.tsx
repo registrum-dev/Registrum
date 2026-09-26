@@ -1,4 +1,4 @@
-import { Input } from "@Registrum/ui/components/input";
+import { Input } from "@registrum/ui/components/input";
 
 /** Digits and at most one decimal point. A volume is 3, or 3.5, never a word. */
 const NUMERIC = /^\d*\.?\d*$/;

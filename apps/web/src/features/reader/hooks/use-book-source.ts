@@ -6,7 +6,7 @@ import { heldFile } from "@/features/reader/local-files";
 import {
 	type BookSource,
 	sourceFromFile,
-	sourceFromLibrary,
+	sourceFromShelf,
 } from "@/features/reader/open-book";
 import { t } from "@/i18n";
 
@@ -41,7 +41,7 @@ export function useBookSource({ book, file }: BookSourceProps): OpenedBook {
 		let openedComic: string | null = null;
 
 		const opening = (async (): Promise<BookSource> => {
-			if (bookId && bookName) return sourceFromLibrary(bookId, bookName);
+			if (bookId && bookName) return sourceFromShelf(bookId, bookName);
 			const held = file ? heldFile(file) : undefined;
 			if (!held) throw new Error(t("reader.fileGone"));
 			return sourceFromFile(held);

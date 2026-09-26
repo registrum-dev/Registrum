@@ -1,21 +1,21 @@
 // The left half of the path rule: which books, the pattern, and the fields.
 
-import { Checkbox } from "@Registrum/ui/components/checkbox";
-import { Input } from "@Registrum/ui/components/input";
+import { Checkbox } from "@registrum/ui/components/checkbox";
+import { Input } from "@registrum/ui/components/input";
 import {
 	ToggleGroup,
 	ToggleGroupItem,
-} from "@Registrum/ui/components/toggle-group";
-import { cn } from "@Registrum/ui/lib/utils";
+} from "@registrum/ui/components/toggle-group";
+import { cn } from "@registrum/ui/lib/utils";
 import { useTranslation } from "react-i18next";
 import { LabeledSelect } from "@/components/labeled-select";
 
 import { modesOf, RULE_FIELDS, type RuleField } from "../fields";
-import type { RuleTarget } from "../ipc";
 import type { ScopeChoice } from "../queries";
-import { type RuleScope, useRule } from "../store";
-import { RuleAsk } from "./rule-ask";
+import { type RuleScope, useRuleStore } from "../store";
+import type { RuleTarget } from "../types";
 import { groupTone } from "./rule-preview";
+import { RuleSuggest } from "./rule-suggest";
 
 export function RuleForm({
 	choices,
@@ -27,7 +27,7 @@ export function RuleForm({
 	className,
 }: {
 	choices: ScopeChoice[];
-	/** The scope standing, which is the whole library once the one chosen is
+	/** The scope standing, which is the whole shelf once the one chosen is
 	 *  no longer offered. */
 	scope: RuleScope;
 	target: RuleTarget;
@@ -40,15 +40,15 @@ export function RuleForm({
 	className?: string;
 }) {
 	const { t } = useTranslation();
-	const pattern = useRule((state) => state.pattern);
-	const setPattern = useRule((state) => state.setPattern);
-	const fields = useRule((state) => state.fields);
+	const pattern = useRuleStore((state) => state.pattern);
+	const setPattern = useRuleStore((state) => state.setPattern);
+	const fields = useRuleStore((state) => state.fields);
 	const chosen = RULE_FIELDS.filter((field) => fields[field].on).length;
 
 	return (
 		<div className={cn("flex flex-col gap-7", className)}>
 			<ScopePicker choices={choices} current={scope} />
-			<RuleAsk target={target} active={active} />
+			<RuleSuggest target={target} active={active} />
 
 			<section className="flex flex-col gap-2.5">
 				<div className="flex flex-wrap items-baseline justify-between gap-x-3">
@@ -141,11 +141,11 @@ function ScopePicker({
 	current: RuleScope;
 }) {
 	const { t } = useTranslation();
-	const setScope = useRule((state) => state.setScope);
+	const setScope = useRuleStore((state) => state.setScope);
 	const names = {
-		library: t("rule.targetLibrary"),
 		shelf: t("rule.targetShelf"),
-		books: t("rule.targetBooks"),
+		filtered: t("rule.targetFiltered"),
+		selected: t("rule.targetSelected"),
 	};
 
 	return (
@@ -185,8 +185,8 @@ function ScopePicker({
 
 function FieldRow({ field, groups }: { field: RuleField; groups: string[] }) {
 	const { t } = useTranslation();
-	const draft = useRule((state) => state.fields[field]);
-	const setField = useRule((state) => state.setField);
+	const draft = useRuleStore((state) => state.fields[field]);
+	const setField = useRuleStore((state) => state.setField);
 	const name = t(`ruleField.${field}`);
 
 	return (

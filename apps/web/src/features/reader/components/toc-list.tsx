@@ -5,20 +5,20 @@ import {
 	EmptyDescription,
 	EmptyHeader,
 	EmptyTitle,
-} from "@Registrum/ui/components/empty";
-import { cn } from "@Registrum/ui/lib/utils";
+} from "@registrum/ui/components/empty";
+import { cn } from "@registrum/ui/lib/utils";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { PANEL_ROW } from "@/features/reader/components/chrome-panel";
 import type { TocItem } from "@/features/reader/foliate";
-import { useSharedMark } from "@/hooks/use-shared-mark";
+import { useSlidingIndicator } from "@/hooks/use-sliding-indicator";
 import { MOVE } from "@/lib/motion";
 
 /** Shared by every row, so the mark travels between them rather than jumping. */
 const CURRENT_MARK = "toc-current";
 
 function CurrentMark() {
-	const ref = useSharedMark<HTMLSpanElement>(CURRENT_MARK, MOVE);
+	const ref = useSlidingIndicator<HTMLSpanElement>(CURRENT_MARK, MOVE);
 	return <span ref={ref} className="absolute inset-0 rounded-md bg-accent" />;
 }
 

@@ -76,7 +76,7 @@ const CHARACTERS_EN = `You are an assistant that writes up the characters of a n
 - role is main for characters at the centre of the story, supporting for recurring ones, minor otherwise.
 - Do not describe the relationships between characters.`;
 
-const GRAPH_JA = `あなたは小説の登場人物の関係を図にするアシスタントです。
+const RELATIONS_JA = `あなたは小説の登場人物の関係を図にするアシスタントです。
 - 以下はこの本の全文と、すでに決まった登場人物の一覧です。
 - 関係は一覧に載っている人物の間だけにしてください。人物を足さないでください。
 - 本文に書かれていない関係を補わないでください。
@@ -86,7 +86,7 @@ const GRAPH_JA = `あなたは小説の登場人物の関係を図にするア�
 - from と to は、一覧の name をそのまま使ってください。
 - mutual は、関係が双方向のとき（恋人・兄妹・同僚）に true、片方向のとき（〜を慕う）に false です。`;
 
-const GRAPH_EN = `You are an assistant that maps the relationships between the characters of a novel.
+const RELATIONS_EN = `You are an assistant that maps the relationships between the characters of a novel.
 - Below is the full text of the book and the character list already decided.
 - Draw relationships only between characters on that list. Do not add characters.
 - Do not add relationships the text does not state.
@@ -157,7 +157,7 @@ const TASKS = {
 		ja: "この本の登場人物の説明と、この巻で起きた出来事を出してください。",
 		en: "Give the characters of this book and what happens to them in this volume.",
 	},
-	graph: {
+	relations: {
 		ja: "この本の登場人物の間の関係を出してください。",
 		en: "Give the relationships between the characters of this book.",
 	},
@@ -191,20 +191,20 @@ export function charactersPrompt(
 	};
 }
 
-export function graphPrompt(
+export function relationsPrompt(
 	book: BookRecord,
 	text: BookText,
 	characters: readonly Character[],
 	locale: Locale,
 ): Prompt {
 	return {
-		system: pick(locale, GRAPH_JA, GRAPH_EN),
+		system: pick(locale, RELATIONS_JA, RELATIONS_EN),
 		history: [],
 		user: userMessage(
 			book,
 			text,
 			charactersBlock(characters),
-			TASKS.graph[locale],
+			TASKS.relations[locale],
 		),
 	};
 }

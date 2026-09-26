@@ -1,8 +1,8 @@
 // Whether a book can be asked about at all.
 
-import type { Locale } from "@Registrum/api/types";
+import type { Locale } from "@registrum/api/types";
 import type { Locale as Screen } from "@/i18n";
-import type { Holds, SameWords } from "@/lib/ipc";
+import type { Holds, SameWords } from "@/lib/type-contracts";
 
 /** A generation is asked in the language the screen is already in, so the two
  *  lists are one list: a locale the catalogue gains and the server has not
@@ -14,19 +14,18 @@ export type LocaleContract = Holds<SameWords<Locale, Screen>>;
 export type {
 	AiSettings,
 	Asked,
-	BookAi,
 	Chapter,
 	Chapters,
 	Character,
 	CharacterRole,
 	Generated,
-	Graph,
 	Locale,
 	Relation,
+	SavedAi,
 	Speaker,
 	Turn,
 	Usage,
-} from "@Registrum/api/types";
+} from "@registrum/api/types";
 
 /** How much of the book went. */
 export interface Sent {
@@ -35,7 +34,7 @@ export interface Sent {
 
 /** Whether an endpoint and a model have been named. The key may be empty -- a
  *  local Ollama wants none. */
-export function isConfigured(settings: {
+export function isAiConfigured(settings: {
 	baseUrl: string;
 	model: string;
 }): boolean {

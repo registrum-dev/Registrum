@@ -1,4 +1,4 @@
-// The cast and the map, where a book's record is read.
+// The characters and the map, where a book's record is read.
 
 import {
 	Empty,
@@ -6,15 +6,20 @@ import {
 	EmptyHeader,
 	EmptyMedia,
 	EmptyTitle,
-} from "@Registrum/ui/components/empty";
+} from "@registrum/ui/components/empty";
 import { MessagesSquareIcon, NetworkIcon, UsersIcon } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Section } from "@/features/library/components/book-detail/detail-parts";
-import type { BookRecord } from "@/features/library/types";
+import { DetailSection } from "@/features/shelf/components/book-detail/detail-parts";
+import type { BookRecord } from "@/features/shelf/types";
 import { api } from "@/lib/api";
-import { rememberCast, rememberGraph, useAiReady, useBookAi } from "../queries";
-import { type Character, type Graph, hasBookText } from "../types";
+import {
+	rememberCharacters,
+	rememberRelations,
+	useAiConfigured,
+	useSavedAi,
+} from "../queries";
+import { type Character, hasBookText, type Relation } from "../types";
 import { useBookChat } from "../use-book-chat";
 import { useGeneration } from "../use-generation";
 import { CharacterCards } from "./character-cards";
@@ -25,20 +30,20 @@ import {
 	GeneratedBlock,
 	UsageLine,
 	WholeBookNote,
-} from "./generation";
+} from "./generation-parts";
 
 /** Whether this book can be generated for at all. */
-function canGenerateCast(book: BookRecord): boolean {
+function canGenerateCharacters(book: BookRecord): boolean {
 	return book.category === "novel" && hasBookText(book.format);
 }
 
 /** Which of the three things there is to say about a map that is not there. */
-function mapEmptyNote(ready: boolean, hasCast: boolean) {
+function mapIntroNote(ready: boolean, hasCharacters: boolean) {
 	if (!ready) return "ai.notConfigured";
-	return hasCast ? "ai.mapEmpty" : "error.noCast";
+	return hasCharacters ? "ai.mapIntro" : "error.noCharacters";
 }
 
-/** Everything on this screen that is asked of a model: the cast, the map, and
+/** Everything on this screen that is asked of a model: the characters, the map, and
  *  the questions. */
 export function BookAiSections({
 	book,
@@ -49,7 +54,7 @@ export function BookAiSections({
 }) {
 	return (
 		<>
-			<CastSections book={book} shelfId={shelfId} />
+			<CharacterSections book={book} shelfId={shelfId} />
 			<AskSection book={book} shelfId={shelfId} />
 		</>
 	);
@@ -71,7 +76,7 @@ function AskSection({ book, shelfId }: { book: BookRecord; shelfId: string }) {
 	if (!hasBookText(book.format)) return null;
 
 	return (
-		<Section title={t("ai.ask")}>
+		<DetailSection title={t("ai.ask")}>
 			<p className="text-muted-foreground text-xs leading-relaxed">
 				{t("ai.askNote")}
 			</p>
@@ -91,11 +96,11 @@ function AskSection({ book, shelfId }: { book: BookRecord; shelfId: string }) {
 					description={t("ai.notConfigured")}
 				/>
 			)}
-		</Section>
+		</DetailSection>
 	);
 }
 
-function CastSections({
+function CharacterSections({
 	book,
 	shelfId,
 }: {
@@ -104,44 +109,55 @@ function CastSections({
 }) {
 	const { t } = useTranslation();
 
-	const offered = canGenerateCast(book);
-	const stored = useBookAi(shelfId, book.id, offered);
+	const offered = canGenerateCharacters(book);
+	const stored = useSavedAi(shelfId, book.id, offered);
 	const characters = stored.data?.characters ?? null;
-	const graph = stored.data?.graph ?? null;
+	const relations = stored.data?.relations ?? null;
 
-	const ready = useAiReady();
+	const ready = useAiConfigured();
 
-	const cast = useGeneration<Character[]>(
+	const charactersRun = useGeneration<Character[]>(
 		(run, locale) =>
-			api.ai.characters.mutate({ shelfId, id: book.id, locale, run }),
-		(found) => rememberCast(shelfId, book.id, found),
+			api.ai.generateCharacters.mutate({
+				shelfId,
+				id: book.id,
+				locale,
+				runId: run,
+			}),
+		(found) => rememberCharacters(shelfId, book.id, found),
 	);
 
-	// The server reads the cast from the library; this screen's copy may be one
+	// The server reads the characters from the shelf; this screen's copy may be one
 	// generation out of date.
-	const map = useGeneration<Graph>(
-		(run, locale) => api.ai.graph.mutate({ shelfId, id: book.id, locale, run }),
-		(found) => rememberGraph(shelfId, book.id, found),
+	const relationsRun = useGeneration<Relation[]>(
+		(run, locale) =>
+			api.ai.generateRelations.mutate({
+				shelfId,
+				id: book.id,
+				locale,
+				runId: run,
+			}),
+		(found) => rememberRelations(shelfId, book.id, found),
 	);
 
 	if (!offered) return null;
-	const hasCast = Boolean(characters?.length);
+	const hasCharacters = Boolean(characters?.length);
 
 	return (
 		<>
-			<Section title={t("ai.characters")}>
+			<DetailSection title={t("ai.characters")}>
 				<GeneratedBlock
 					note={<WholeBookNote />}
 					button={
 						<GenerateButton
-							pending={cast.pending}
-							disabled={!ready || map.pending}
-							again={hasCast}
-							onStart={cast.start}
-							onStop={cast.stop}
+							pending={charactersRun.pending}
+							disabled={!ready || relationsRun.pending}
+							again={hasCharacters}
+							onStart={charactersRun.start}
+							onStop={charactersRun.stop}
 						/>
 					}
-					generation={cast}
+					generation={charactersRun}
 					loading={stored.isPending}
 					empty={
 						<NothingYet
@@ -156,13 +172,15 @@ function CastSections({
 					{characters && characters.length > 0 && (
 						<>
 							<CharacterCards characters={characters} />
-							{cast.result && <UsageLine usage={cast.result.usage} />}
+							{charactersRun.result && (
+								<UsageLine usage={charactersRun.result.usage} />
+							)}
 						</>
 					)}
 				</GeneratedBlock>
-			</Section>
+			</DetailSection>
 
-			<Section title={t("ai.map")}>
+			<DetailSection title={t("ai.map")}>
 				<GeneratedBlock
 					note={
 						<p className="text-muted-foreground text-xs leading-relaxed">
@@ -171,35 +189,37 @@ function CastSections({
 					}
 					button={
 						<GenerateButton
-							pending={map.pending}
+							pending={relationsRun.pending}
 							// Unavailable rather than failing when pressed.
-							disabled={!ready || cast.pending || !hasCast}
-							again={Boolean(graph?.relations.length)}
-							onStart={map.start}
-							onStop={map.stop}
+							disabled={!ready || charactersRun.pending || !hasCharacters}
+							again={Boolean(relations?.length)}
+							onStart={relationsRun.start}
+							onStop={relationsRun.stop}
 						/>
 					}
-					generation={map}
+					generation={relationsRun}
 					loading={stored.isPending}
 					empty={
 						<NothingYet
 							icon={<NetworkIcon />}
 							title={t("ai.noMap")}
-							description={t(mapEmptyNote(ready, hasCast))}
+							description={t(mapIntroNote(ready, hasCharacters))}
 						/>
 					}
 				>
-					{graph &&
-						graph.relations.length > 0 &&
+					{relations &&
+						relations.length > 0 &&
 						characters &&
 						characters.length > 0 && (
 							<>
-								<CharacterMap characters={characters} graph={graph} />
-								{map.result && <UsageLine usage={map.result.usage} />}
+								<CharacterMap characters={characters} relations={relations} />
+								{relationsRun.result && (
+									<UsageLine usage={relationsRun.result.usage} />
+								)}
 							</>
 						)}
 				</GeneratedBlock>
-			</Section>
+			</DetailSection>
 		</>
 	);
 }

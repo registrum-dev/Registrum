@@ -1,22 +1,21 @@
 // The right half of the path rule: what each book would get.
 
-import { Button } from "@Registrum/ui/components/button";
-import { Tabs, TabsList, TabsTrigger } from "@Registrum/ui/components/tabs";
-import { cn } from "@Registrum/ui/lib/utils";
+import { Button } from "@registrum/ui/components/button";
+import { Tabs, TabsList, TabsTrigger } from "@registrum/ui/components/tabs";
+import { cn } from "@registrum/ui/lib/utils";
 import type { TFunction } from "i18next";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useAiReady } from "@/features/ai/queries";
-import { categoryName } from "@/features/library/labels";
-
+import { useAiConfigured } from "@/features/ai/queries";
+import { categoryName } from "@/features/shelf/labels";
+import { canAddExample, useRuleStore } from "../store";
 import type {
 	RuleBook,
 	RuleChange,
 	RuleOutcome,
 	RulePreview,
 	RuleValue,
-} from "../ipc";
-import { canAddExample, useRule } from "../store";
+} from "../types";
 
 /** More than this in one list is left to the count under it. */
 const SHOWN = 200;
@@ -173,9 +172,9 @@ function BookRow({ book }: { book: RuleBook }) {
 /** Hands a book's path to the example list, while there is room in it. */
 function UseAsExample({ path }: { path: string }) {
 	const { t } = useTranslation();
-	const configured = useAiReady();
-	const room = useRule((state) => canAddExample(state, path));
-	const addExample = useRule((state) => state.addExample);
+	const configured = useAiConfigured();
+	const room = useRuleStore((state) => canAddExample(state, path));
+	const addExample = useRuleStore((state) => state.addExample);
 	if (!configured || !room) return null;
 
 	return (

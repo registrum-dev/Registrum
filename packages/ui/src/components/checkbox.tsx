@@ -1,5 +1,5 @@
-import { cn } from "@Registrum/ui/lib/utils";
 import { Checkbox as CheckboxPrimitive } from "@base-ui/react/checkbox";
+import { cn } from "@registrum/ui/lib/utils";
 import { CheckIcon, MinusIcon } from "lucide-react";
 
 function Checkbox({

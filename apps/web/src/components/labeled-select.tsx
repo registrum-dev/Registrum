@@ -6,8 +6,8 @@ import {
 	SelectSeparator,
 	SelectTrigger,
 	SelectValue,
-} from "@Registrum/ui/components/select";
-import { cn } from "@Registrum/ui/lib/utils";
+} from "@registrum/ui/components/select";
+import { cn } from "@registrum/ui/lib/utils";
 import { Fragment } from "react";
 
 /** A choice, and how many books it would leave where that is worth saying. */

@@ -44,16 +44,17 @@ export const en = {
 	},
 
 	error: {
-		db: "Could not read or write the library: {{message}}",
+		db: "Could not read or write the shelf: {{message}}",
 		noShelf: "That shelf is no longer there.",
 		shelfTaken: "This folder is a shelf already ({{message}}).",
 		shelfName: "Give the shelf a name of 1 to 80 characters.",
-		aiUnset: "Set AI_BASE_URL and AI_MODEL in the server's environment.",
+		aiNotConfigured:
+			"Set AI_BASE_URL and AI_MODEL in the server's environment.",
 		noFolder: "The folder could not be found.",
 		readFolder: "Could not read the folder: {{message}}",
 		save: "Could not save: {{message}}",
 		emptyName: "A name cannot be empty.",
-		noName: "The library no longer has that name.",
+		noName: "The shelf no longer has that name.",
 		badId: "Not usable as a book id: {{message}}",
 		badPath: "Not usable as a book's location: {{message}}",
 		badPattern: "Not a regular expression: {{message}}",
@@ -62,7 +63,7 @@ export const en = {
 		noPages: "The archive holds no images.",
 		noBook: "No such book.",
 		noBookText: "This book has no text to read. Only EPUB carries any.",
-		noCast: "Generate the characters first.",
+		noCharacters: "Generate the characters first.",
 		noChapters: "The chapters you picked have no text to send.",
 		noQuestion: "The question was empty.",
 		noExample: "None of the examples has a value written in.",
@@ -71,13 +72,13 @@ export const en = {
 		aiUnreadable: "The AI's answer could not be read: {{message}}",
 		aiEmpty: "The AI returned nothing.",
 		aiStopped: "The request to the AI was stopped.",
-		loadLibrary: "Could not load the library: {{message}}",
+		loadShelf: "Could not load the shelf: {{message}}",
 		chooseFile: "Could not choose a file: {{message}}",
-		forgetRecord: "Could not delete the metadata: {{message}}",
+		removeRecord: "Could not delete the metadata: {{message}}",
 		indexFailed_one: "“{{books}}” could not be read.",
 		indexFailed_other: "{{count}} books could not be read: {{books}}",
-		restoreFailed_one: "“{{books}}” could not be read again.",
-		restoreFailed_other: "{{count}} books could not be read again: {{books}}",
+		rescanFailed_one: "“{{books}}” could not be read again.",
+		rescanFailed_other: "{{count}} books could not be read again: {{books}}",
 		andMore_one: "and {{count}} more",
 		andMore_other: "and {{count}} more",
 	},
@@ -103,7 +104,7 @@ export const en = {
 		unset: "Not set",
 		envHint:
 			"Set by the server's AI_BASE_URL, AI_MODEL and AI_API_KEY environment variables. The key is never sent to a browser.",
-		envUnsetHint:
+		notConfiguredHint:
 			"Set AI_BASE_URL and AI_MODEL (and AI_API_KEY if the endpoint wants one) in the server's environment, then restart it.",
 
 		generate: "Write with AI",
@@ -139,7 +140,7 @@ export const en = {
 		mapNote:
 			"Draws only the ties between them, and leaves out anything the later half of the story reveals.",
 		noMap: "Nothing drawn yet",
-		mapEmpty:
+		mapIntro:
 			"Sends the whole book and asks how the people listed above stand to one another.",
 		mapOf: "A map of {{count}} characters",
 
@@ -147,7 +148,7 @@ export const en = {
 		askNote:
 			"Only the chapters you pick are sent. Nothing from the others reaches the answer, and the exchange is gone once you leave the screen.",
 		askPlaceholder: "Ask about this book",
-		askEmpty:
+		askIntro:
 			"Pick chapters and ask. An answer is drawn from those chapters and nothing else, and the exchange is not kept.",
 		noAsking: "Nothing to ask with yet",
 		send: "Send",
@@ -184,7 +185,7 @@ export const en = {
 		finished: "Finished",
 	},
 
-	layout: {
+	bookLayout: {
 		reflowable: "Reflowable",
 		"pre-paginated": "Fixed layout",
 		format: "{{format}} · {{layout}}",
@@ -262,14 +263,6 @@ export const en = {
 		removeDescription:
 			"Every record on this shelf is deleted. The book files stay where they are, so making the folder a shelf again and scanning brings the metadata back, but not ratings, notes, tags or reading positions.",
 		removed: "Deleted “{{name}}”.",
-	},
-
-	view: {
-		grid: "Covers",
-		table: "Table",
-	},
-
-	library: {
 		shownOfTotal: "{{shown}} / {{total}} books",
 		shelves: "Shelves",
 		switch: "Switch shelf",
@@ -288,6 +281,11 @@ export const en = {
 		clearSearch: "Clear the shelf's search",
 		readBook: "Read {{title}}",
 		readNow: "Read now",
+	},
+
+	view: {
+		grid: "Covers",
+		table: "Table",
 	},
 
 	scan: {
@@ -316,7 +314,7 @@ export const en = {
 		retry: "Try again",
 	},
 
-	start: {
+	shelfSetup: {
 		title: "Make a shelf",
 		stepFolder: "Folder",
 		stepName: "Shelf name",
@@ -413,9 +411,9 @@ export const en = {
 		title: "Fill in from paths",
 		fromSelection: "Fill in from paths",
 		target: "Books",
-		targetLibrary: "The whole library",
-		targetShelf: "The filtered shelf",
-		targetBooks: "The selected books",
+		targetShelf: "The whole shelf",
+		targetFiltered: "The filtered shelf",
+		targetSelected: "The selected books",
 		pattern: "Pattern",
 		patternHint: "Matched against the path inside the shelf's folder",
 		groups: "Values",
@@ -436,15 +434,15 @@ export const en = {
 		fixPattern: "Fix the pattern to see the results here",
 		noBooks: "No books here",
 		more: "{{count}} more",
-		summary_one: "{{count}} book, {{cells}} fields to write",
-		summary_other: "{{count}} books, {{cells}} fields to write",
+		writeTally_one: "{{count}} book, {{cells}} fields to write",
+		writeTally_other: "{{count}} books, {{cells}} fields to write",
 		nothingToWrite: "Nothing to write",
 		overwrites: "Replaces {{count}} values already there",
 		write: "Write…",
 		confirmTitle_one: "Write to {{count}} book?",
 		confirmTitle_other: "Write to {{count}} books?",
 		confirmDescription:
-			"{{fields}}. Books the pattern missed and books that stay the same are left alone. A scan keeps what is written; a book's Restore puts back what its file says.",
+			"{{fields}}. Books the pattern missed and books that stay the same are left alone. A scan keeps what is written; “Read from file” on a book puts back what its file says.",
 		fieldTally: "{{field}}: {{count}}",
 		fieldTallyOverwrite: "{{field}}: {{count}} ({{overwrites}} replaced)",
 		confirm: "Write",
@@ -483,17 +481,17 @@ export const en = {
 	},
 
 	bulk: {
-		clearReading: "Clear history",
-		clearReadingTitle_one: "Clear the reading history of {{count}} book?",
-		clearReadingTitle_other: "Clear the reading history of {{count}} books?",
+		clearPosition: "Clear history",
+		clearPositionTitle_one: "Clear the reading history of {{count}} book?",
+		clearPositionTitle_other: "Clear the reading history of {{count}} books?",
 		selected_one: "{{count}} book selected",
 		selected_other: "{{count}} books selected",
 		edit: "Edit together",
 		clearSelection: "Clear the selection",
-		restoreTitle_one: "Read {{count}} book from its file again?",
-		restoreTitle_other: "Read {{count}} books from their files again?",
-		forgetTitle_one: "Remove {{count}} book from the library?",
-		forgetTitle_other: "Remove {{count}} books from the library?",
+		rescanTitle_one: "Read {{count}} book from its file again?",
+		rescanTitle_other: "Read {{count}} books from their files again?",
+		removeTitle_one: "Remove {{count}} book from the shelf?",
+		removeTitle_other: "Remove {{count}} books from the shelf?",
 		title_one: "Edit {{count}} book",
 		title_other: "Edit {{count}} books together",
 		description_one:
@@ -520,19 +518,19 @@ export const en = {
 		noSuggestions: "No suggestions",
 		addName: "Add “{{name}}”",
 		authorsPlaceholder: "Type a name and press Enter",
-		collectionsPlaceholder: "Type a shelf name and press Enter",
+		collectionsPlaceholder: "Type a collection name and press Enter",
 		tagsPlaceholder: "Type a word and press Enter",
-		restore: "Restore",
-		restoreConfirm: "Read again",
-		restoreDescription:
+		rescan: "Read from file",
+		rescanConfirm: "Read again",
+		rescanDescription:
 			"The title, author, publisher, series and description go back to what the book's own file says. Corrections made by hand cannot be recovered. Collections, tags, category, note, rating and reading position are kept.",
-		forgetDescription:
+		removeDescription:
 			"The edits, the rating and the reading position are deleted. The book's own file is not. The next scan reads it from the file again and puts it back on the shelf.",
 		pagePosition: "Page {{at}} of {{total}}",
 		sectionPosition: "Section {{at}} of {{total}}",
 	},
 
-	name: {
+	facet: {
 		sheet: "Name details",
 		open: "Show the books under “{{name}}”",
 		backToBook: "Back to the book",
@@ -556,7 +554,7 @@ export const en = {
 	detail: {
 		sheet: "Book details",
 		notFoundTitle: "This book could not be found",
-		notFound: "It may have been removed from the library.",
+		notFound: "It may have been removed from the shelf.",
 		previousBook: "Previous book",
 		nextBook: "Next book",
 		noPrevious: "There is no previous book",
@@ -577,7 +575,7 @@ export const en = {
 			"The reading position and the date last opened are deleted, and the book is unread again. The rating, note, tags and collections are kept. The position cannot be recovered.",
 		clearConfirm: "Clear",
 		positionSaved: "Position saved",
-		added: "Added to the library",
+		added: "Added to the shelf",
 		note: "The reading position is written when a book is closed and when the app quits.",
 	},
 
@@ -602,8 +600,8 @@ export const en = {
 		seriesOf: "Series · {{series}}",
 		volume: "Volume {{index}}",
 		currentVolume: "This book · {{percent}}%",
-		forget: "Remove from the library",
-		forgetTitle: "Remove {{title}} from the library?",
+		remove: "Remove from the shelf",
+		removeTitle: "Remove {{title}} from the shelf?",
 	},
 
 	edit: {
@@ -615,9 +613,9 @@ export const en = {
 		pickDate: "Pick from a calendar",
 		datePlaceholder: "e.g. 2024-03-15",
 		tagsNote:
-			"If a collection is a shelf to put a book on, a tag is something you can say about it. Add as many as you like.",
+			"A collection groups books; a tag is something you can say about a book. Add as many as you like.",
 		notePlaceholder: "For yourself, next time",
-		restoreTitle: "Read this book from its file again?",
+		rescanTitle: "Read this book from its file again?",
 	},
 
 	reader: {
@@ -644,7 +642,7 @@ export const en = {
 		noMatchesTitle: "Nothing found",
 		noMatches:
 			"Pages that are only images — a CBZ, a scanned PDF — carry no text, so there is nothing to search.",
-		notInLibrary: "That book is not in the library.",
+		notOnShelf: "That book is not on the shelf.",
 		readFailed: "Could not read the file: {{message}}",
 		openBookFailed: "Could not open the book: {{message}}",
 		stillLoading:
@@ -696,7 +694,7 @@ export const en = {
 	settings: {
 		title: "Settings",
 		open: "Open the settings",
-		library: "Library",
+		shelfFolder: "Shelf folder",
 		folder: "Folder",
 		noFolder: "None chosen yet",
 		leaveFolder: "Back to the first screen",

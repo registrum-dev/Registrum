@@ -1,5 +1,5 @@
-import { ScrollArea } from "@Registrum/ui/components/scroll-area";
-import { cn } from "@Registrum/ui/lib/utils";
+import { ScrollArea } from "@registrum/ui/components/scroll-area";
+import { cn } from "@registrum/ui/lib/utils";
 import type * as React from "react";
 
 function Table({ className, ...props }: React.ComponentProps<"table">) {

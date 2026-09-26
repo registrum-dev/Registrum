@@ -1,10 +1,10 @@
-import { ScrollArea } from "@Registrum/ui/components/scroll-area";
+import { ScrollArea } from "@registrum/ui/components/scroll-area";
 import {
 	Tabs,
 	TabsContent,
 	TabsList,
 	TabsTrigger,
-} from "@Registrum/ui/components/tabs";
+} from "@registrum/ui/components/tabs";
 import { useRef } from "react";
 import { useTranslation } from "react-i18next";
 import {

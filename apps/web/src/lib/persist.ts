@@ -46,6 +46,27 @@ function flush(): void {
 // The tab can be closed before the wait is over.
 window.addEventListener("pagehide", flush);
 
+/** Moves what an older build kept under `from` over to `to`, once. */
+export function moveKey(
+	from: string,
+	to: string,
+	reshape: (stored: unknown) => unknown,
+): void {
+	try {
+		const old = localStorage.getItem(PREFIX + from);
+		if (old === null) return;
+		if (localStorage.getItem(PREFIX + to) === null) {
+			localStorage.setItem(
+				PREFIX + to,
+				JSON.stringify(reshape(JSON.parse(old))),
+			);
+		}
+		localStorage.removeItem(PREFIX + from);
+	} catch (error) {
+		console.warn("Could not move a preference.", error);
+	}
+}
+
 /** One key of this browser's preferences, as zustand's `persist` wants it. */
 export function preferences<T>(): PersistStorage<T> {
 	return {

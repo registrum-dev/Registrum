@@ -1,17 +1,17 @@
 // Asking about a book, wherever the question is asked from.
 
-import { MAX_QUESTION } from "@Registrum/api/types";
-import { Button } from "@Registrum/ui/components/button";
-import { Textarea } from "@Registrum/ui/components/textarea";
-import { cn } from "@Registrum/ui/lib/utils";
+import { MAX_QUESTION } from "@registrum/api/types";
+import { Button } from "@registrum/ui/components/button";
+import { Textarea } from "@registrum/ui/components/textarea";
+import { cn } from "@registrum/ui/lib/utils";
 import { SendHorizontalIcon, SquareIcon, Trash2Icon } from "lucide-react";
 import { useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useEnterToSend } from "@/hooks/use-enter-to-send";
-import { chapterNames, chaptersOf } from "../labels";
+import { chapterNames, chaptersOf } from "../chapter-names";
 import type { BookChat } from "../use-book-chat";
 import { ChapterPicker } from "./chapter-picker";
-import { Generating, UsageLine } from "./generation";
+import { Generating, UsageLine } from "./generation-parts";
 
 /**
  * The whole conversation: what it is drawing on, what has been said, and the
@@ -164,7 +164,7 @@ function Exchanges({ chat }: { chat: BookChat }) {
 	if (chat.exchanges.length === 0 && chat.asking === null) {
 		return (
 			<p className="flex min-h-24 flex-1 items-center justify-center px-6 text-center text-muted-foreground text-xs leading-relaxed">
-				{t("ai.askEmpty")}
+				{t("ai.askIntro")}
 			</p>
 		);
 	}

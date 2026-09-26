@@ -1,5 +1,5 @@
-import { cn } from "@Registrum/ui/lib/utils";
 import { Slider as SliderPrimitive } from "@base-ui/react/slider";
+import { cn } from "@registrum/ui/lib/utils";
 
 function Slider({
 	className,

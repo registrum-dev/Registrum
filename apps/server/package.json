@@ -1,5 +1,5 @@
 {
-	"name": "server",
+	"name": "@registrum/server",
 	"type": "module",
 	"main": "src/index.ts",
 	"scripts": {
@@ -9,15 +9,15 @@
 		"env:generate": "varlock codegen"
 	},
 	"dependencies": {
-		"@Registrum/api": "workspace:*",
-		"@Registrum/db": "workspace:*",
+		"@registrum/api": "workspace:*",
+		"@registrum/db": "workspace:*",
 		"@hono/trpc-server": "^0.4.2",
 		"@trpc/server": "catalog:",
 		"hono": "^4.13.7",
 		"varlock": "catalog:"
 	},
 	"devDependencies": {
-		"@Registrum/config": "workspace:*",
+		"@registrum/config": "workspace:*",
 		"@types/bun": "catalog:",
 		"typescript": "catalog:"
 	}

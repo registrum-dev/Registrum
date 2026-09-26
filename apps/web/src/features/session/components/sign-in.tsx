@@ -1,7 +1,7 @@
 // The password, before the shelf.
 
-import { Button } from "@Registrum/ui/components/button";
-import { Input } from "@Registrum/ui/components/input";
+import { Button } from "@registrum/ui/components/button";
+import { Input } from "@registrum/ui/components/input";
 import { LockIcon } from "lucide-react";
 import { type FormEvent, useState } from "react";
 import { useTranslation } from "react-i18next";

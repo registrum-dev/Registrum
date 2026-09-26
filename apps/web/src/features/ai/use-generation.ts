@@ -23,7 +23,7 @@ interface Generation<T> {
 /** Drops the request. Saying so about one that has already answered does
  *  nothing: the answer and the button can cross. */
 function stopRun(run: string | null): void {
-	if (run) void api.ai.stop.mutate({ run });
+	if (run) void api.ai.stop.mutate({ runId: run });
 }
 
 /**
@@ -71,9 +71,9 @@ export function useGeneration<T>(
 	// From the start, not from the button: the server says it as soon as it has
 	// read the book.
 	useSubscription(
-		trpc.ai.sent.subscriptionOptions(undefined, {
+		trpc.ai.onSent.subscriptionOptions(undefined, {
 			onData: (heard) => {
-				if (heard.run === running.current) setSent({ chars: heard.chars });
+				if (heard.runId === running.current) setSent({ chars: heard.chars });
 			},
 		}),
 	);

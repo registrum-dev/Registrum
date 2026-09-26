@@ -2,16 +2,16 @@
 
 import { keepPreviousData, useMutation, useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
-import { libraryChanged } from "@/features/library/cache";
-import { useFacets, useShelf, useShelfId } from "@/features/library/queries";
-import { isFiltered } from "@/features/library/query";
-import { useLibrary } from "@/features/library/store";
+import { invalidateShelf } from "@/features/shelf/cache";
+import { isFiltered } from "@/features/shelf/filter";
+import { useFacets, useShelfBooks, useShelfId } from "@/features/shelf/queries";
+import { useShelfStore } from "@/features/shelf/store";
 import { useDebounced } from "@/hooks/use-debounced";
 import { api, trpc } from "@/lib/api";
 
 import { RULE_FIELDS } from "./fields";
-import type { PathRule, RuleTarget } from "./ipc";
-import { type RuleScope, useRule } from "./store";
+import { type RuleScope, useRuleStore } from "./store";
+import type { PathRule, RuleTarget } from "./types";
 
 /** How long typing has to pause before the preview is asked for again. */
 const SETTLE_MS = 250;
@@ -23,40 +23,40 @@ export interface ScopeChoice {
 }
 
 /** The scopes there is something to offer for, the one standing (the one
- *  chosen, or the whole library once that is no longer offered), and the
+ *  chosen, or the whole shelf once that is no longer offered), and the
  *  question it is. */
 export function useRuleTarget(): {
 	choices: ScopeChoice[];
 	scope: RuleScope;
 	target: RuleTarget;
 } {
-	const scope = useRule((state) => state.scope);
-	const ids = useRule((state) => state.ids);
-	const query = useLibrary((state) => state.query);
+	const scope = useRuleStore((state) => state.scope);
+	const ids = useRuleStore((state) => state.ids);
+	const filter = useShelfStore((state) => state.filter);
 	const facets = useFacets();
-	const shelf = useShelf();
+	const shelf = useShelfBooks();
 
 	return useMemo(() => {
-		const choices: ScopeChoice[] = [{ scope: "library", count: facets.total }];
-		if (isFiltered(query))
-			choices.push({ scope: "shelf", count: shelf.data?.total ?? 0 });
-		if (ids.length) choices.push({ scope: "books", count: ids.length });
+		const choices: ScopeChoice[] = [{ scope: "shelf", count: facets.total }];
+		if (isFiltered(filter))
+			choices.push({ scope: "filtered", count: shelf.data?.total ?? 0 });
+		if (ids.length) choices.push({ scope: "selected", count: ids.length });
 
 		const offered = choices.some((choice) => choice.scope === scope)
 			? scope
-			: "library";
+			: "shelf";
 		const target: RuleTarget =
-			offered === "books"
+			offered === "selected"
 				? { kind: "books", ids }
-				: { kind: "shelf", query: offered === "shelf" ? query : {} };
+				: { kind: "shelf", filter: offered === "filtered" ? filter : {} };
 		return { choices, scope: offered, target };
-	}, [scope, ids, query, facets.total, shelf.data?.total]);
+	}, [scope, ids, filter, facets.total, shelf.data?.total]);
 }
 
 /** The rule as it is sent: only the fields that are ticked and say something. */
 export function useRuleDraft(): PathRule {
-	const pattern = useRule((state) => state.pattern);
-	const fields = useRule((state) => state.fields);
+	const pattern = useRuleStore((state) => state.pattern);
+	const fields = useRuleStore((state) => state.fields);
 	return useMemo(
 		() => ({
 			pattern,
@@ -115,13 +115,13 @@ export function useRulePaths(target: RuleTarget, active: boolean) {
 	);
 }
 
-/** Writes the rule, and says the library's answers are out of date. */
+/** Writes the rule, and says the shelf's answers are out of date. */
 export function useApplyRule() {
 	const { shelfId } = useShelfId();
 	return useMutation({
 		mutationFn: ({ target, rule }: { target: RuleTarget; rule: PathRule }) =>
 			api.rule.write.mutate({ shelfId, target, rule }),
-		onSuccess: () => libraryChanged(shelfId),
+		onSuccess: () => invalidateShelf(shelfId),
 		meta: { failure: "save" },
 	});
 }

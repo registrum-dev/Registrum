@@ -7,7 +7,7 @@ import {
 	RULE_FIELDS,
 	type RuleField,
 	type RuleMode,
-} from "@Registrum/api/types";
+} from "@registrum/api/types";
 
 export type { RuleField, RuleMode };
 export { modesOf, RULE_FIELDS };

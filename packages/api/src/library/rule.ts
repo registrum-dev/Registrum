@@ -1,7 +1,7 @@
 // Reading a book's record out of where its file sits.
 
-import type { Database } from "@Registrum/db";
 import { isDeepStrictEqual } from "node:util";
+import type { Database } from "@registrum/db";
 import { z } from "zod";
 
 import { Failure, failingAs } from "../failure";
@@ -17,10 +17,10 @@ import {
 } from "../vocabulary";
 import { type BookPatch, updateEach } from "./patch";
 import {
+	bookFilterSchema,
 	comparePathOrder,
-	libraryQuerySchema,
+	listBooks,
 	PATH_ORDER,
-	books as shelfBooks,
 } from "./query";
 import { BATCH, type BookRecord, chunks, findRecords } from "./record";
 
@@ -43,7 +43,7 @@ export type FieldRule = PathRule["fields"][number];
 
 export const ruleTargetSchema = z.discriminatedUnion("kind", [
 	/** Every book these conditions let through; no conditions is the shelf. */
-	z.object({ kind: z.literal("shelf"), query: libraryQuerySchema }),
+	z.object({ kind: z.literal("shelf"), filter: bookFilterSchema }),
 	z.object({ kind: z.literal("books"), ids: z.array(z.string()) }),
 ]);
 /** Which books a rule is run over. */
@@ -157,7 +157,7 @@ export async function preview(
 		fields: [],
 	};
 	for (const book of found) {
-		const judged = judge(pattern, rule.fields, book);
+		const judged = evaluateBook(pattern, rule.fields, book);
 		preview[judged.outcome] += 1;
 		for (const change of judged.changes) {
 			if (change.skipped) continue;
@@ -193,7 +193,7 @@ export async function apply(
 	let cells = 0;
 	const edits: [string, BookPatch][] = [];
 	for (const book of found) {
-		const judged = judge(pattern, rule.fields, book);
+		const judged = evaluateBook(pattern, rule.fields, book);
 		if (judged.outcome !== "changed") continue;
 		const written = judged.changes.filter((change) => !change.skipped);
 		cells += written.length;
@@ -223,7 +223,7 @@ async function booksOf(
 ): Promise<BookRecord[]> {
 	return failingAs("db", async () => {
 		if (target.kind === "shelf") {
-			return (await shelfBooks(db, shelfId, target.query, "path", "asc", null))
+			return (await listBooks(db, shelfId, target.filter, "path", "asc", null))
 				.books;
 		}
 		const batches = chunks([...new Set(target.ids)], BATCH);
@@ -243,7 +243,7 @@ async function booksOf(
 }
 
 /** One book, run through the rule. */
-function judge(
+function evaluateBook(
 	pattern: Pattern,
 	fields: readonly FieldRule[],
 	book: BookRecord,
@@ -361,7 +361,7 @@ function changeOf(
 /** What one field's template makes of one path, read the way it would be
  *  written: `null` when the pattern misses the path or the template comes out
  *  empty, `{ raw }` when what it made cannot be read as the field. */
-export function reading(
+export function evaluateTemplate(
 	pattern: Pattern,
 	field: RuleField,
 	template: string,

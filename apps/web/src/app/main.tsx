@@ -24,7 +24,7 @@ void fetchSession().then(async (session) => {
 	}
 	const [{ App }, { rememberSession }] = await Promise.all([
 		import("./app"),
-		import("@/features/library/session-query"),
+		import("@/features/session/queries"),
 	]);
 	rememberSession(session);
 	screen.render(

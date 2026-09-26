@@ -1,12 +1,12 @@
-import { Button } from "@Registrum/ui/components/button";
-import { ScrollArea } from "@Registrum/ui/components/scroll-area";
-import { Separator } from "@Registrum/ui/components/separator";
+import { Button } from "@registrum/ui/components/button";
+import { ScrollArea } from "@registrum/ui/components/scroll-area";
+import { Separator } from "@registrum/ui/components/separator";
 import {
 	Tabs,
 	TabsContent,
 	TabsList,
 	TabsTrigger,
-} from "@Registrum/ui/components/tabs";
+} from "@registrum/ui/components/tabs";
 import { Maximize2Icon } from "lucide-react";
 import { type ReactNode, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -23,8 +23,8 @@ import {
 	PageSection,
 } from "@/features/reader/components/settings-sections";
 import { LTR_DIRECTION, type PageDirection } from "@/features/reader/direction";
-import { useSettings } from "@/features/reader/store";
-import { useLayout } from "@/hooks/use-layout";
+import { useReaderSettings } from "@/features/reader/store";
+import { useFormFactor } from "@/hooks/use-form-factor";
 
 const TABS = ["appearance", "page", "details"] as const;
 type SettingsTab = (typeof TABS)[number];
@@ -51,9 +51,9 @@ export function SettingsPanel({
 	onClose,
 }: SettingsPanelProps) {
 	const { t } = useTranslation();
-	const reset = useSettings((state) => state.reset);
+	const reset = useReaderSettings((state) => state.reset);
 	// A phone's window is already the whole screen.
-	const windowed = useLayout() === "desktop";
+	const windowed = useFormFactor() === "desktop";
 	const [tab, setTab] = useState<SettingsTab>("appearance");
 
 	return (

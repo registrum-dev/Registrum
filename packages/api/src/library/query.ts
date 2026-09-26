@@ -1,6 +1,6 @@
-// What the shelf is asked for: its conditions, its order and its pages.
+// What the shelf is asked for: its filter, its order and its pages.
 
-import type { Client, Prisma } from "@Registrum/db";
+import type { Client, Prisma } from "@registrum/db";
 import { z } from "zod";
 
 import * as fold from "../lib/fold";
@@ -21,7 +21,7 @@ import { type BookRecord, findRecords, STATUS_WHERE, statusOf } from "./record";
  * met by a book that carries any one of its values; an empty list is the same
  * as an absent one.
  */
-export const libraryQuerySchema = z.object({
+export const bookFilterSchema = z.object({
 	q: z.string().nullish(),
 	status: z.enum(BOOK_STATUSES).nullish(),
 	category: z.array(z.enum(BOOK_CATEGORIES)).optional(),
@@ -37,9 +37,9 @@ export const libraryQuerySchema = z.object({
 	missing: z.boolean().nullish(),
 });
 
-export type LibraryQuery = z.infer<typeof libraryQuerySchema>;
+export type BookFilter = z.infer<typeof bookFilterSchema>;
 
-export const LIST_FIELDS = [
+export const FILTER_FIELDS = [
 	"author",
 	"publisher",
 	"series",
@@ -51,7 +51,7 @@ export const LIST_FIELDS = [
 ] as const;
 /** The conditions that are a list of values, each of which the filter offers as
  *  a list of its own. */
-export type ListField = (typeof LIST_FIELDS)[number];
+export type FilterField = (typeof FILTER_FIELDS)[number];
 
 export const SORT_KEYS = [
 	"title",
@@ -97,16 +97,18 @@ export interface BookPage {
 export async function whereOf(
 	db: Client,
 	shelfId: string,
-	query: LibraryQuery,
+	filter: BookFilter,
 ): Promise<Prisma.BookWhereInput> {
 	const all: Prisma.BookWhereInput[] = [{ shelfId }];
 
 	// Space-separated terms, each of which must appear somewhere in the book.
-	const terms = query.q ? fold.fold(query.q).split(/\s+/).filter(Boolean) : [];
+	const terms = filter.q
+		? fold.fold(filter.q).split(/\s+/).filter(Boolean)
+		: [];
 	for (const term of terms) all.push({ searchText: { contains: term } });
 	// On SQLite `contains` reads `%` and `_` as wildcards, and the reader is
 	// typing a title, not a pattern: a term holding either is checked again
-	// here, against the haystack itself.
+	// here, against the search text itself.
 	if (terms.some((term) => /[%_]/.test(term))) {
 		const candidates = await db.book.findMany({
 			where: { AND: [...all] },
@@ -119,43 +121,47 @@ export async function whereOf(
 	}
 
 	// Derived from the reading position rather than stored.
-	if (query.status) all.push(STATUS_WHERE[query.status]);
+	if (filter.status) all.push(STATUS_WHERE[filter.status]);
 
-	if (query.category?.length) all.push({ category: { in: query.category } });
-	if (query.format?.length) all.push({ format: { in: query.format } });
-	if (query.favorite === true) all.push({ favorite: true });
-	if (query.missing != null) all.push({ missing: query.missing });
-	if (query.rating?.length) {
-		const stars = query.rating.filter(
+	if (filter.category?.length) all.push({ category: { in: filter.category } });
+	if (filter.format?.length) all.push({ format: { in: filter.format } });
+	if (filter.favorite === true) all.push({ favorite: true });
+	if (filter.missing != null) all.push({ missing: filter.missing });
+	if (filter.rating?.length) {
+		const stars = filter.rating.filter(
 			(value): value is number => typeof value === "number",
 		);
 		const any: Prisma.BookWhereInput[] = [];
 		if (stars.length) any.push({ rating: { in: stars } });
 		// Unrated is `null`, which is not the same as one star.
-		if (query.rating.some((value) => typeof value === "string"))
+		if (filter.rating.some((value) => typeof value === "string"))
 			any.push({ rating: null });
 		all.push({ OR: any });
 	}
 
-	if (query.publisher?.length)
-		all.push({ publisher: { is: { name: { in: query.publisher } } } });
-	if (query.series?.length) {
-		const named = query.series.filter((name) => name !== NONE);
+	if (filter.publisher?.length)
+		all.push({ publisher: { is: { name: { in: filter.publisher } } } });
+	if (filter.series?.length) {
+		const named = filter.series.filter((name) => name !== NONE);
 		const any: Prisma.BookWhereInput[] = [];
 		if (named.length) any.push({ series: { is: { name: { in: named } } } });
-		if (query.series.includes(NONE)) any.push({ seriesId: null });
+		if (filter.series.includes(NONE)) any.push({ seriesId: null });
 		all.push({ OR: any });
 	}
 
-	if (query.author?.length)
-		all.push({ authors: { some: { author: { name: { in: query.author } } } } });
-	if (query.collection?.length) {
+	if (filter.author?.length)
 		all.push({
-			collections: { some: { collection: { name: { in: query.collection } } } },
+			authors: { some: { author: { name: { in: filter.author } } } },
+		});
+	if (filter.collection?.length) {
+		all.push({
+			collections: {
+				some: { collection: { name: { in: filter.collection } } },
+			},
 		});
 	}
-	if (query.tag?.length)
-		all.push({ tags: { some: { tag: { name: { in: query.tag } } } } });
+	if (filter.tag?.length)
+		all.push({ tags: { some: { tag: { name: { in: filter.tag } } } } });
 
 	return { AND: all };
 }
@@ -226,7 +232,7 @@ const OUTSIDE_SELECT = {
 	titleKey: true,
 	publisher: { select: { nameKey: true } },
 	series: { select: { nameKey: true } },
-	readingState: { select: { fraction: true } },
+	position: { select: { fraction: true } },
 	authors: {
 		orderBy: { position: "asc" },
 		take: 1,
@@ -259,9 +265,9 @@ function outsideValue(book: Outside, sort: SortKey): string | number | null {
 		case "publisher":
 			return book.publisher?.nameKey ?? null;
 		case "progress":
-			return book.readingState?.fraction ?? null;
+			return book.position?.fraction ?? null;
 		case "status":
-			return STATUS_RANK[statusOf(book.readingState)];
+			return STATUS_RANK[statusOf(book.position)];
 		default:
 			return null;
 	}
@@ -304,15 +310,15 @@ async function orderedOutside(
 }
 
 /** One page of the books on the shelf, in the order the shelf is sorted by. */
-export async function books(
+export async function listBooks(
 	db: Client,
 	shelfId: string,
-	query: LibraryQuery,
+	filter: BookFilter,
 	sort: SortKey,
 	order: SortOrder,
 	paging: Paging | null,
 ): Promise<BookPage> {
-	const where = await whereOf(db, shelfId, query);
+	const where = await whereOf(db, shelfId, filter);
 	const column = COLUMN_ORDER[sort];
 
 	if (column) {
@@ -338,19 +344,19 @@ export async function books(
 }
 
 /** The same question with one of its lists taken off. */
-function without(query: LibraryQuery, field: ListField): LibraryQuery {
-	return { ...query, [field]: undefined };
+function without(filter: BookFilter, field: FilterField): BookFilter {
+	return { ...filter, [field]: undefined };
 }
 
 /** The values of one list that some book would still carry if that list were
  *  taken off the question. */
-export async function reach(
+export async function filterOptions(
 	db: Client,
 	shelfId: string,
-	query: LibraryQuery,
-	field: ListField,
+	filter: BookFilter,
+	field: FilterField,
 ): Promise<string[]> {
-	const where = await whereOf(db, shelfId, without(query, field));
+	const where = await whereOf(db, shelfId, without(filter, field));
 
 	switch (field) {
 		case "author":

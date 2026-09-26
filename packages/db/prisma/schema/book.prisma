@@ -27,17 +27,17 @@ model Book {
   rating       Int?
   favorite     Boolean       @default(false)
   /// The thumbnail's file name under the covers folder, when there is one.
-  cover        String?
+  coverFile    String?       @map("cover_file")
   missing      Boolean       @default(false)
   searchText   String        @default("") @map("search_text")
   addedAt      String        @map("added_at")
-  indexedAt    String        @map("indexed_at")
+  scannedAt    String        @map("scanned_at")
   lastOpenedAt String?       @map("last_opened_at")
 
   shelf        Shelf         @relation(fields: [shelfId], references: [id], onDelete: Cascade)
   publisher    Publisher?    @relation(fields: [publisherId], references: [id])
   series       Series?       @relation(fields: [seriesId], references: [id])
-  readingState ReadingState?
+  position     ReadingPosition?
   authors      BookAuthor[]
   collections  BookCollection[]
   tags         BookTag[]
@@ -55,7 +55,7 @@ model Book {
 }
 
 /// A row here is the reading position, so a book nobody has opened has none.
-model ReadingState {
+model ReadingPosition {
   bookId    String @id @map("book_id")
   cfi       String
   fraction  Float  @default(0)
@@ -64,7 +64,7 @@ model ReadingState {
 
   book Book @relation(fields: [bookId], references: [id], onDelete: Cascade)
 
-  @@map("reading_state")
+  @@map("reading_position")
 }
 
 /// The five tables that hold nothing but a name, each one per shelf.

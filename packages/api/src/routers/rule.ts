@@ -13,7 +13,7 @@ import {
 	ruleTargetSchema,
 } from "../library/rule";
 
-const ruled = z.object({
+const ruleInput = z.object({
 	shelfId: z.string(),
 	target: ruleTargetSchema,
 	rule: pathRuleSchema,
@@ -22,14 +22,14 @@ const ruled = z.object({
 export const ruleRouter = router({
 	/** What a path rule would write, book by book. Nothing is written. */
 	preview: publicProcedure
-		.input(ruled)
+		.input(ruleInput)
 		.query(({ ctx, input }) =>
 			preview(ctx.db, input.shelfId, input.target, input.rule),
 		),
 
 	/** Works a path rule out again and writes it, in a single transaction. */
 	write: publicProcedure
-		.input(ruled)
+		.input(ruleInput)
 		.mutation(({ ctx, input }) =>
 			apply(ctx.db, input.shelfId, input.target, input.rule),
 		),
@@ -48,7 +48,7 @@ export const ruleRouter = router({
 				target: ruleTargetSchema,
 				examples: z.array(patternExampleSchema).max(MAX_EXAMPLES),
 				locale: z.enum(LOCALES),
-				run: z.string(),
+				runId: z.string(),
 			}),
 		)
 		.mutation(({ ctx, input }) =>
@@ -59,7 +59,7 @@ export const ruleRouter = router({
 				input.target,
 				input.examples,
 				input.locale,
-				input.run,
+				input.runId,
 			),
 		),
 });

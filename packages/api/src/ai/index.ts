@@ -1,19 +1,19 @@
 // The generations, end to end: read the book, ask, check the answer, and write
 // down what is kept.
 
-import type { Database } from "@Registrum/db";
+import type { Database } from "@registrum/db";
 import { z } from "zod";
 
-import type { LibraryConfig } from "../context";
+import type { PathsConfig } from "../context";
 import { Failure, failingAs } from "../failure";
 import { firstChars } from "../lib/text";
-import { findOne } from "../library/book";
+import { findBook } from "../library/book";
 import {
-	aiOf,
 	type Character,
-	type Graph,
+	type Relation,
+	savedAiOf,
 	setCharacters,
-	setGraph,
+	setRelations,
 } from "../library/character";
 import { bookFile } from "../library/files";
 import type { BookRecord } from "../library/record";
@@ -21,24 +21,20 @@ import type { RuleTarget } from "../library/rule";
 import { type BookText, readText } from "../parse/text";
 import { type Chapters, group, pick, readSoFar, spineIndex } from "./chapters";
 import { askForShape, askForText, type Generated } from "./client";
+import { announce, stoppable } from "./generations";
 import { MAX_QUESTION } from "./limits";
-import {
-	type PatternDraft,
-	type PatternExample,
-	suggestRule as suggest,
-} from "./pattern";
+import { draftRule, type PatternDraft, type PatternExample } from "./pattern";
 import {
 	askPrompt,
 	charactersPrompt,
-	graphPrompt,
 	type Locale,
+	relationsPrompt,
 	SPEAKERS,
 	synopsisPrompt,
 } from "./prompt";
-import { announce, stoppable } from "./runs";
-import { characterList, relationList } from "./schema";
-import { type Connection, isConfigured } from "./settings";
-import * as tidy from "./tidy";
+import * as sanitize from "./sanitize";
+import { characterListSchema, relationListSchema } from "./schema";
+import { type Connection, isAiConfigured } from "./settings";
 
 /** How many exchanges go back with a question. The chapters are the bulk of the
  *  call, so what was said before it is cheap -- an afternoon of it is not. */
@@ -56,16 +52,16 @@ export type Asked = z.infer<typeof askedSchema>;
 /** One generation, and everything it was given. */
 export interface Generation {
 	db: Database;
-	config: LibraryConfig;
+	config: PathsConfig;
 	ai: Connection;
 	shelfId: string;
 	id: string;
 	locale: Locale;
-	run: string;
+	runId: string;
 }
 
 function connection(ai: Connection): Connection {
-	if (!isConfigured(ai)) throw Failure.bare("aiUnset");
+	if (!isAiConfigured(ai)) throw Failure.bare("aiNotConfigured");
 	return ai;
 }
 
@@ -77,7 +73,7 @@ async function readBookText(
 	book: BookRecord;
 	text: BookText;
 }> {
-	const book = await findOne(at.db, at.shelfId, at.id);
+	const book = await findBook(at.db, at.shelfId, at.id);
 	if (!book) throw Failure.bare("noBook");
 	if (book.format !== "epub") throw Failure.bare("noBookText");
 	const file = await bookFile(at.db, at.config, at.id);
@@ -87,11 +83,11 @@ async function readBookText(
 }
 
 /** A draft synopsis. Nothing is written down: the reader keeps it, or does not. */
-export function synopsis(at: Generation): Promise<Generated<string>> {
-	return stoppable(at.run, async (controller) => {
+export function generateSynopsis(at: Generation): Promise<Generated<string>> {
+	return stoppable(at.runId, async (controller) => {
 		const endpoint = connection(at.ai);
 		const { book, text } = await readBookText(at);
-		const sent = announce(at.run, text.chars);
+		const sent = announce(at.runId, text.chars);
 		const answered = await askForText(
 			endpoint,
 			synopsisPrompt(book, text, at.locale),
@@ -102,54 +98,58 @@ export function synopsis(at: Generation): Promise<Generated<string>> {
 	});
 }
 
-/** The book's cast, written down and kept. */
-export function characters(at: Generation): Promise<Generated<Character[]>> {
-	return stoppable(at.run, async (controller) => {
+/** The book's characters, written down and kept. */
+export function generateCharacters(
+	at: Generation,
+): Promise<Generated<Character[]>> {
+	return stoppable(at.runId, async (controller) => {
 		const endpoint = connection(at.ai);
 		const { book, text } = await readBookText(at);
-		const sent = announce(at.run, text.chars);
+		const sent = announce(at.runId, text.chars);
 		const answered = await askForShape(
 			endpoint,
 			charactersPrompt(book, text, at.locale),
-			characterList,
+			characterListSchema,
 			controller,
 		);
-		const cast = tidy.characters(answered.value.characters);
-		if (cast.length === 0) throw Failure.bare("aiEmpty");
-		// Writing the list drops the map in the same transaction: a relation names
-		// a person by the spelling the old list gave.
-		await failingAs("db", () => setCharacters(at.db, at.id, cast));
-		return { value: cast, usage: answered.usage, sent };
+		const characters = sanitize.characters(answered.value.characters);
+		if (characters.length === 0) throw Failure.bare("aiEmpty");
+		// Writing the list drops the relations in the same transaction: a relation
+		// names a person by the spelling the old list gave.
+		await failingAs("db", () => setCharacters(at.db, at.id, characters));
+		return { value: characters, usage: answered.usage, sent };
 	});
 }
 
 /** The ties between the people already written down. */
-export function graph(at: Generation): Promise<Generated<Graph>> {
-	return stoppable(at.run, async (controller) => {
+export function generateRelations(
+	at: Generation,
+): Promise<Generated<Relation[]>> {
+	return stoppable(at.runId, async (controller) => {
 		const endpoint = connection(at.ai);
 		// Read from the library, and read first: a book with nobody in it is
 		// refused before its archive is opened.
-		const cast = (await aiOf(at.db, at.id)).characters ?? [];
-		if (cast.length === 0) throw Failure.bare("noCast");
+		const characters = (await savedAiOf(at.db, at.id)).characters ?? [];
+		if (characters.length === 0) throw Failure.bare("noCharacters");
 
 		const { book, text } = await readBookText(at);
-		const sent = announce(at.run, text.chars);
+		const sent = announce(at.runId, text.chars);
 		const answered = await askForShape(
 			endpoint,
-			graphPrompt(book, text, cast, at.locale),
-			relationList,
+			relationsPrompt(book, text, characters, at.locale),
+			relationListSchema,
 			controller,
 		);
-		const drawn = { relations: tidy.relations(answered.value.relations, cast) };
-		await failingAs("db", () => setGraph(at.db, at.id, drawn));
-		return { value: drawn, usage: answered.usage, sent };
+		const relations = sanitize.relations(answered.value.relations, characters);
+		await failingAs("db", () => setRelations(at.db, at.id, relations));
+		return { value: relations, usage: answered.usage, sent };
 	});
 }
 
 /** One answer about the chapters the reader picked. Nothing is written down:
  *  the exchange lives on the screen that asked for it. */
 export function ask(at: Generation, asked: Asked): Promise<Generated<string>> {
-	return stoppable(at.run, async (controller) => {
+	return stoppable(at.runId, async (controller) => {
 		const question = firstChars(asked.question.trim(), MAX_QUESTION);
 		if (question === "") throw Failure.bare("noQuestion");
 		const endpoint = connection(at.ai);
@@ -157,7 +157,7 @@ export function ask(at: Generation, asked: Asked): Promise<Generated<string>> {
 		const { book, text } = await readBookText(at);
 		const picked = pick(text, asked.sections);
 		if (!picked) throw Failure.bare("noChapters");
-		const sent = announce(at.run, picked.chars);
+		const sent = announce(at.runId, picked.chars);
 
 		const history = asked.history.slice(-HISTORY_TURNS * 2);
 		const answered = await askForText(
@@ -181,7 +181,7 @@ export async function bookChapters(
 	// What the screen says beats what the record says: the reader panel knows
 	// where the book is now, and the position is only written on the way out.
 	const position =
-		here ?? (book.progress ? spineIndex(book.progress.cfi) : null);
+		here ?? (book.position ? spineIndex(book.position.cfi) : null);
 	return {
 		chapters: grouped,
 		defaultSections: position === null ? [] : readSoFar(grouped, position),
@@ -197,10 +197,18 @@ export function suggestRule(
 	target: RuleTarget,
 	examples: readonly PatternExample[],
 	locale: Locale,
-	run: string,
+	runId: string,
 ): Promise<Generated<PatternDraft>> {
-	return stoppable(run, async (controller) => {
+	return stoppable(runId, async (controller) => {
 		const endpoint = connection(ai);
-		return suggest(db, shelfId, target, examples, endpoint, locale, controller);
+		return draftRule(
+			db,
+			shelfId,
+			target,
+			examples,
+			endpoint,
+			locale,
+			controller,
+		);
 	});
 }

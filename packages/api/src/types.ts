@@ -4,27 +4,27 @@
 
 export type { Chapter, Chapters } from "./ai/chapters";
 export type { Generated, Usage } from "./ai/client";
+export type { SentNotice } from "./ai/generations";
 export type { Asked } from "./ai/index";
 export { MAX_EXAMPLES, MAX_QUESTION } from "./ai/limits";
 export type { PatternDraft, PatternExample } from "./ai/pattern";
 export type { Locale, Speaker, Turn } from "./ai/prompt";
-export type { GenerationSent } from "./ai/runs";
 export type { AiSettings } from "./ai/settings";
 export { FAILURE_CODES, type FailureCode, type FailureShape } from "./failure";
-export type { BookAi, Character, Graph, Relation } from "./library/character";
-export type { LibraryFacets, NameFacet, SeriesFacet } from "./library/facets";
+export type { Character, Relation, SavedAi } from "./library/character";
+export type { FacetEntry, SeriesFacet, ShelfFacets } from "./library/facets";
 export type { ComicBook } from "./library/files";
 export type { BookPatch } from "./library/patch";
+export type { PositionInput } from "./library/position";
 export type {
+	BookFilter,
 	BookPage,
-	LibraryQuery,
-	ListField,
+	FilterField,
 	Paging,
 	SortKey,
 	SortOrder,
 } from "./library/query";
-export type { Position } from "./library/reading";
-export type { BookRecord, Progress } from "./library/record";
+export type { BookRecord, ReadingPosition } from "./library/record";
 export type { Renamed } from "./library/rename";
 export type {
 	FieldRule,

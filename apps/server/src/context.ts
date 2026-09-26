@@ -1,4 +1,4 @@
-import type { Context } from "@Registrum/api/context";
+import type { Context } from "@registrum/api/context";
 
 import { ai, config, db } from "./services";
 

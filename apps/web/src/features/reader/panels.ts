@@ -6,7 +6,7 @@ export type ReaderPanel =
 	| "none"
 	| "toc"
 	| "search"
-	| "position"
+	| "progress"
 	| "settings"
 	| "ai";
 

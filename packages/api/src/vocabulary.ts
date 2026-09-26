@@ -24,7 +24,7 @@ export const BOOK_STATUSES = ["unread", "reading", "finished"] as const;
 /** Worked out from the reading position, never stored. */
 export type BookStatus = (typeof BOOK_STATUSES)[number];
 
-export const NAME_KINDS = [
+export const FACET_KINDS = [
 	"author",
 	"series",
 	"publisher",
@@ -32,8 +32,8 @@ export const NAME_KINDS = [
 	"tag",
 ] as const;
 /** The names a shelf files books under, as far as a screen can rename them.
- *  The spelling is also the field `LibraryQuery` carries it in. */
-export type NameKind = (typeof NAME_KINDS)[number];
+ *  The spelling is also the field `BookFilter` carries it in. */
+export type FacetKind = (typeof FACET_KINDS)[number];
 
 export const CHARACTER_ROLES = ["main", "supporting", "minor"] as const;
 /** How much of the book a person is in, which is all the map draws them by. */
@@ -79,7 +79,7 @@ export function isComicFormat(format: string): boolean {
 
 /** A rating, or `null` for one this version cannot draw. Used reading a row and
  *  writing one, so the two cannot disagree. */
-export function rating(stars: number | null | undefined): number | null {
+export function validRating(stars: number | null | undefined): number | null {
 	return stars != null && (BOOK_RATINGS as readonly number[]).includes(stars)
 		? stars
 		: null;

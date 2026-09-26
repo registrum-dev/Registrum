@@ -1,40 +1,45 @@
 // What a book already carries, kept beside every other answer about that
-// library.
+// shelf.
 
 import { useQuery } from "@tanstack/react-query";
 
-import { libraryKeys } from "@/features/library/cache";
+import { shelfKeys } from "@/features/shelf/cache";
 import { api, trpc } from "@/lib/api";
-import { queryClient } from "@/lib/query";
+import { queryClient } from "@/lib/query-client";
 
-import { type BookAi, type Character, type Graph, isConfigured } from "./types";
+import {
+	type Character,
+	isAiConfigured,
+	type Relation,
+	type SavedAi,
+} from "./types";
 
 /** The endpoint and model the server asks, and whether it holds a key. */
 export function useAiSettings() {
 	return useQuery(
 		trpc.ai.settings.queryOptions(undefined, {
-			meta: { failure: "loadLibrary" },
+			meta: { failure: "loadShelf" },
 		}),
 	);
 }
 
 /** Whether generations can be asked for at all. False until the server says. */
-export function useAiReady(): boolean {
+export function useAiConfigured(): boolean {
 	const settings = useAiSettings().data;
-	return settings ? isConfigured(settings) : false;
+	return settings ? isAiConfigured(settings) : false;
 }
 
-// The two below are filed under the library's own keys rather than tRPC's:
-// a write to the library (`libraryChanged`) is what makes them stale -- a book
+// The two below are filed under the shelf's own keys rather than tRPC's:
+// a write to the shelf (`invalidateShelf`) is what makes them stale -- a book
 // edited, or read further along.
 
-/** The cast and the map this book already carries. */
-export function useBookAi(shelfId: string, id: string, offered: boolean) {
+/** The characters and the map this book already carries. */
+export function useSavedAi(shelfId: string, id: string, offered: boolean) {
 	return useQuery({
-		queryKey: libraryKeys.ai(shelfId, id),
-		queryFn: () => api.ai.bookAi.query({ shelfId, id }),
+		queryKey: shelfKeys.ai(shelfId, id),
+		queryFn: () => api.ai.saved.query({ shelfId, id }),
 		enabled: offered,
-		meta: { failure: "loadLibrary" },
+		meta: { failure: "loadShelf" },
 	});
 }
 
@@ -51,7 +56,7 @@ export function useBookChapters(
 	offered: boolean,
 ) {
 	return useQuery({
-		queryKey: libraryKeys.chapters(shelfId, id),
+		queryKey: shelfKeys.chapters(shelfId, id),
 		// The options are taken afresh every render, so this is always the `at`
 		// of the moment the question goes.
 		queryFn: () => api.ai.chapters.query({ shelfId, id, at }),
@@ -61,20 +66,24 @@ export function useBookChapters(
 }
 
 /** Puts a finished generation where the screen reads it from. */
-export function rememberCast(
+export function rememberCharacters(
 	shelfId: string,
 	id: string,
 	characters: Character[],
 ): void {
-	queryClient.setQueryData<BookAi>(libraryKeys.ai(shelfId, id), {
+	queryClient.setQueryData<SavedAi>(shelfKeys.ai(shelfId, id), {
 		characters,
-		graph: null,
+		relations: null,
 	});
 }
 
-export function rememberGraph(shelfId: string, id: string, graph: Graph): void {
-	queryClient.setQueryData<BookAi>(libraryKeys.ai(shelfId, id), (stored) => ({
+export function rememberRelations(
+	shelfId: string,
+	id: string,
+	relations: Relation[],
+): void {
+	queryClient.setQueryData<SavedAi>(shelfKeys.ai(shelfId, id), (stored) => ({
 		characters: stored?.characters ?? null,
-		graph,
+		relations,
 	}));
 }

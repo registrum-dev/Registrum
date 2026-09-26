@@ -1,5 +1,5 @@
-import { cn } from "@Registrum/ui/lib/utils";
 import { Progress as ProgressPrimitive } from "@base-ui/react/progress";
+import { cn } from "@registrum/ui/lib/utils";
 
 function Progress({
 	className,

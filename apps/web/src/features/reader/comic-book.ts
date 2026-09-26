@@ -1,7 +1,7 @@
 // A comic archive as foliate-js reads it, with the server holding the archive
 // and handing out one page at a time.
 
-import type { ComicBook } from "@Registrum/api/types";
+import type { ComicBook } from "@registrum/api/types";
 import type { FoliateBook } from "@/features/reader/foliate";
 import { api } from "@/lib/api";
 
@@ -9,12 +9,12 @@ export type { ComicBook };
 
 /** Opens the archive on the server and takes back its pages, in reading order. */
 export function openComic(id: string): Promise<ComicBook> {
-	return api.library.openComic.mutate({ id });
+	return api.book.openComic.mutate({ id });
 }
 
 /** Lets that archive go. A key already replaced closes nothing. */
 export async function closeComic(key: string): Promise<void> {
-	await api.library.closeComic.mutate({ key });
+	await api.book.closeComic.mutate({ key });
 }
 
 /**

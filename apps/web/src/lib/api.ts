@@ -1,6 +1,6 @@
 // The one client every call to the server goes through.
 
-import type { AppRouter } from "@Registrum/api/routers/index";
+import type { AppRouter } from "@registrum/api/routers/index";
 import {
 	createTRPCClient,
 	httpBatchLink,
@@ -10,7 +10,7 @@ import {
 } from "@trpc/client";
 import { createTRPCOptionsProxy } from "@trpc/tanstack-react-query";
 
-import { queryClient } from "@/lib/query";
+import { queryClient } from "@/lib/query-client";
 
 const URL = "/trpc";
 

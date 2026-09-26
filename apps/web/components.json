@@ -13,8 +13,8 @@
 	"iconLibrary": "lucide",
 	"aliases": {
 		"components": "@/components",
-		"utils": "@Registrum/ui/lib/utils",
-		"ui": "@Registrum/ui/components",
+		"utils": "@registrum/ui/lib/utils",
+		"ui": "@registrum/ui/components",
 		"lib": "@/lib",
 		"hooks": "@/hooks"
 	},

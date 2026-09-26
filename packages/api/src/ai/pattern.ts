@@ -1,26 +1,26 @@
 // A path rule, written by the model from the reader's examples and tried on them
 // here before the screen sees it.
 
-import type { Database } from "@Registrum/db";
 import { isDeepStrictEqual } from "node:util";
+import type { Database } from "@registrum/db";
 import { z } from "zod";
 
 import { Failure } from "../failure";
 import { charCount } from "../lib/text";
 import {
 	compile,
+	evaluateTemplate,
 	type Pattern,
 	pathsOf,
 	type RuleTarget,
 	type RuleValue,
 	readAs,
-	reading,
 } from "../library/rule";
 import { RULE_FIELDS, type RuleField } from "../vocabulary";
 import { askForShape, type Generated, type Usage } from "./client";
 import { MAX_EXAMPLES } from "./limits";
 import { type Locale, type RuleMiss, ruleAgain, rulePrompt } from "./prompt";
-import { type AskedRule, askedRule } from "./schema";
+import { type RuleAnswer, ruleAnswerSchema } from "./schema";
 import type { Connection } from "./settings";
 
 /** How many other paths go with the examples, so that the answer fits more than
@@ -58,7 +58,7 @@ interface Wanted {
 /** Asks for a rule, tries it on the examples, and asks again with what it got
  *  wrong. The last answer comes back whether it fits or not: the form and the
  *  preview are where the reader decides. */
-export async function suggestRule(
+export async function draftRule(
 	db: Database,
 	shelfId: string,
 	target: RuleTarget,
@@ -94,7 +94,7 @@ export async function suggestRule(
 		const answered = await askForShape(
 			connection,
 			asked,
-			askedRule,
+			ruleAnswerSchema,
 			controller,
 		);
 		add(usage, answered.usage);
@@ -164,7 +164,7 @@ function shown(value: RuleValue): string {
 
 /** Everything the answer gets wrong about the examples. */
 function check(
-	answer: AskedRule,
+	answer: RuleAnswer,
 	wanted: readonly Wanted[],
 	fields: readonly RuleField[],
 ): RuleMiss[] {
@@ -192,7 +192,12 @@ function check(
 		for (const [field, raw, want] of example.values) {
 			const template = answer.fields.find((each) => each.field === field);
 			if (!template) continue;
-			const got = reading(pattern, field, template.template, example.path);
+			const got = evaluateTemplate(
+				pattern,
+				field,
+				template.template,
+				example.path,
+			);
 			const fits =
 				got !== null && "value" in got && isDeepStrictEqual(got.value, want);
 			if (!fits) {
@@ -227,7 +232,7 @@ function missedExamples(
 
 /** The answer as the form takes it: only the fields the examples asked for. */
 function draft(
-	answer: AskedRule,
+	answer: RuleAnswer,
 	fields: readonly RuleField[],
 	attempts: number,
 	misses: number,

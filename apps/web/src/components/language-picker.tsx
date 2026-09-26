@@ -1,15 +1,15 @@
 // Which of the two languages the app speaks.
 
-import { cn } from "@Registrum/ui/lib/utils";
+import { cn } from "@registrum/ui/lib/utils";
 import { useTranslation } from "react-i18next";
-import { ChoiceGroup } from "@/components/choice-mark";
-import { useSettings } from "@/features/reader/store";
+import { ChoiceGroup } from "@/components/choice-group";
+import { useReaderSettings } from "@/features/reader/store";
 import { LANGUAGES } from "@/i18n";
 
 export function LanguagePicker({ className }: { className?: string }) {
 	const { t } = useTranslation();
-	const language = useSettings((state) => state.settings.language);
-	const update = useSettings((state) => state.update);
+	const language = useReaderSettings((state) => state.settings.language);
+	const update = useReaderSettings((state) => state.update);
 
 	return (
 		<ChoiceGroup

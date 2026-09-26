@@ -1,6 +1,6 @@
 // The groups of display settings: three tabs, or one page for a fixed layout.
 
-import { cn } from "@Registrum/ui/lib/utils";
+import { cn } from "@registrum/ui/lib/utils";
 import {
 	AArrowDownIcon,
 	AArrowUpIcon,
@@ -29,7 +29,7 @@ import {
 	MARGIN_SIZES,
 	type MarginSize,
 } from "@/features/reader/settings";
-import { useSettings } from "@/features/reader/store";
+import { useReaderSettings } from "@/features/reader/store";
 
 /** Base UI selects cannot carry an empty value, so "follow the book" gets a name. */
 const FOLLOW_BOOK = "__book__";
@@ -37,8 +37,8 @@ const FOLLOW_BOOK = "__book__";
 /** Look: the colours, and the size and face of the words. */
 export function AppearanceSection() {
 	const { t } = useTranslation();
-	const settings = useSettings((state) => state.settings);
-	const update = useSettings((state) => state.update);
+	const settings = useReaderSettings((state) => state.settings);
+	const update = useReaderSettings((state) => state.update);
 
 	return (
 		<section className="flex flex-col gap-4">
@@ -106,8 +106,8 @@ function MarginGlyph({ size }: { size: MarginSize }) {
 /** Page: how the text moves, how far in it sits, and which way it turns. */
 export function PageSection({ direction }: { direction: PageDirection }) {
 	const { t } = useTranslation();
-	const settings = useSettings((state) => state.settings);
-	const update = useSettings((state) => state.update);
+	const settings = useReaderSettings((state) => state.settings);
+	const update = useReaderSettings((state) => state.update);
 
 	return (
 		<section className="flex flex-col gap-4">
@@ -151,8 +151,8 @@ export function PageSection({ direction }: { direction: PageDirection }) {
 /** Details: the finer points of setting the type, seldom touched. */
 export function DetailsSection() {
 	const { t } = useTranslation();
-	const settings = useSettings((state) => state.settings);
-	const update = useSettings((state) => state.update);
+	const settings = useReaderSettings((state) => state.settings);
+	const update = useReaderSettings((state) => state.update);
 
 	return (
 		<section className="flex flex-col gap-4">
@@ -200,12 +200,12 @@ export function FixedLayoutSection({
 	direction: PageDirection;
 }) {
 	const { t } = useTranslation();
-	const settings = useSettings((state) => state.settings);
-	const update = useSettings((state) => state.update);
+	const settings = useReaderSettings((state) => state.settings);
+	const update = useReaderSettings((state) => state.update);
 
 	return (
 		<section className="flex flex-col gap-3">
-			<SectionTitle>{t("layout.pre-paginated")}</SectionTitle>
+			<SectionTitle>{t("bookLayout.pre-paginated")}</SectionTitle>
 
 			<ChoiceRow<FitMode>
 				label={t("display.zoom")}

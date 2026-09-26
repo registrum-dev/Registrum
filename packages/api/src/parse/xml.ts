@@ -94,7 +94,7 @@ export class Namespaces {
 
 /** Whitespace inside a value is collapsed the way XML asks, so that a title
  *  broken across lines in the source reads as one line on the shelf. */
-export function tidy(value: string | null | undefined): string | null {
+export function trimOrNull(value: string | null | undefined): string | null {
 	if (value == null) return null;
 	const out = value
 		.split(/[ \t\n\r\f]+/)

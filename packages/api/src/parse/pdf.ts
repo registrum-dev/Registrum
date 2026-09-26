@@ -11,7 +11,7 @@ import {
 
 import { Failure } from "../failure";
 import { type BookRead, bareBook, type ParsedBook } from "./book";
-import { tidy } from "./xml";
+import { trimOrNull } from "./xml";
 
 type RenderParameters = Parameters<PDFPageProxy["render"]>[0];
 type PDFPageProxy = Awaited<ReturnType<PDFDocumentProxy["getPage"]>>;
@@ -138,7 +138,7 @@ async function describe(
  *  bytes in some other encoding that no rescue below turns into words. */
 function readable(value: unknown): string | null {
 	if (typeof value !== "string") return null;
-	const text = tidy(shiftJis(value) ?? value);
+	const text = trimOrNull(shiftJis(value) ?? value);
 	if (!text) return null;
 	// U+FFFD and control characters are what undecodable bytes become.
 	if (/[\uFFFD\p{Cc}]/u.test(text)) return null;

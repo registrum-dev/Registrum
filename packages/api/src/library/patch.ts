@@ -5,20 +5,20 @@ import {
 	type Database,
 	type Prisma,
 	transaction,
-} from "@Registrum/db";
+} from "@registrum/db";
 import { z } from "zod";
 
 import * as fold from "../lib/fold";
-import { BOOK_CATEGORIES, rating } from "../vocabulary";
+import { BOOK_CATEGORIES, validRating } from "../vocabulary";
 import { searchText } from "./book";
 import {
 	addLists,
-	dropNames,
 	fieldIds,
 	filled,
 	type NameList,
-	sweep,
+	removeOrphans,
 	uniqueNames,
+	unlinkNames,
 } from "./names";
 import { BATCH, chunks, recordsFor } from "./record";
 
@@ -46,9 +46,9 @@ export const bookPatchSchema = z.object({
 
 export type BookPatch = z.infer<typeof bookPatchSchema>;
 
-/** Only these fields are in the haystack, so a patch that touches none of them
+/** Only these fields are in the search text, so a patch that touches none of them
  *  leaves it alone -- and then the lists behind it need not be read. */
-function touchesHaystack(patch: BookPatch): boolean {
+function touchesSearchText(patch: BookPatch): boolean {
 	return (
 		patch.title != null ||
 		patch.subtitle !== undefined ||
@@ -109,7 +109,8 @@ export async function updateEach(
 	await transaction(db, async (tx) => {
 		for (const batch of chunks(edits, BATCH))
 			await writeBatch(tx, shelfId, batch);
-		if (edits.some(([, patch]) => movesNames(patch))) await sweep(tx, shelfId);
+		if (edits.some(([, patch]) => movesNames(patch)))
+			await removeOrphans(tx, shelfId);
 	});
 }
 
@@ -120,7 +121,7 @@ async function writeBatch(
 	edits: readonly (readonly [string, BookPatch])[],
 ): Promise<void> {
 	// The books as they stand now, lists and all. Read before any list below
-	// is replaced: the haystack of a book whose lists the patch leaves alone
+	// is replaced: the search text of a book whose lists the patch leaves alone
 	// is made from these.
 	const held = new Map(
 		(
@@ -138,7 +139,7 @@ async function writeBatch(
 			const values = listOf(patch, kind);
 			return values ? [[id, values] as const] : [];
 		});
-		await dropNames(
+		await unlinkNames(
 			db,
 			kind,
 			lists.map(([id]) => id),
@@ -170,7 +171,7 @@ async function writeBatch(
 		const series =
 			patch.series !== undefined ? filled(patch.series) : book.series;
 
-		if (touchesHaystack(patch)) {
+		if (touchesSearchText(patch)) {
 			const now = (values: string[] | null | undefined, list: string[]) =>
 				values != null ? uniqueNames(values) : list;
 			data.searchText = searchText(
@@ -205,7 +206,7 @@ async function writeBatch(
 		if (patch.note !== undefined) data.note = note;
 		// Read and written by the same rule, so a row can never hold a number of
 		// stars the shelf will not draw.
-		if (patch.rating !== undefined) data.rating = rating(patch.rating);
+		if (patch.rating !== undefined) data.rating = validRating(patch.rating);
 		if (patch.favorite != null) data.favorite = patch.favorite;
 
 		if (Object.keys(data).length === 0) continue;

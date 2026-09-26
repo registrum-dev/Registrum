@@ -1,19 +1,19 @@
 // The rows the display settings are built out of.
 
-import { Field, FieldLabel } from "@Registrum/ui/components/field";
-import { Slider } from "@Registrum/ui/components/slider";
-import { Switch } from "@Registrum/ui/components/switch";
+import { Field, FieldLabel } from "@registrum/ui/components/field";
+import { Slider } from "@registrum/ui/components/slider";
+import { Switch } from "@registrum/ui/components/switch";
 import {
 	ToggleGroup,
 	ToggleGroupItem,
-} from "@Registrum/ui/components/toggle-group";
-import { cn } from "@Registrum/ui/lib/utils";
+} from "@registrum/ui/components/toggle-group";
+import { cn } from "@registrum/ui/lib/utils";
 import { type ReactNode, useId } from "react";
 import { useTranslation } from "react-i18next";
-import { ChoiceGroup, oneChoice } from "@/components/choice-mark";
+import { ChoiceGroup, oneChoice } from "@/components/choice-group";
 import { LabeledSelect } from "@/components/labeled-select";
 import type { PageDirection } from "@/features/reader/direction";
-import { useSettings } from "@/features/reader/store";
+import { useReaderSettings } from "@/features/reader/store";
 
 /** A slider hands back one number, or one per thumb; these have one thumb.
  *  An array with no thumb in it says nothing, so `current` stands. */
@@ -213,10 +213,10 @@ export function SelectRow<T extends string>({
    stands in both sections rather than being written out twice. */
 export function DirectionRow({ direction }: { direction: PageDirection }) {
 	const { t } = useTranslation();
-	const reverseDirection = useSettings(
+	const reverseDirection = useReaderSettings(
 		(state) => state.settings.reverseDirection,
 	);
-	const update = useSettings((state) => state.update);
+	const update = useReaderSettings((state) => state.update);
 
 	return (
 		<SwitchRow

@@ -1,24 +1,23 @@
 // The path rule's page: the rule on one side, what it would write on the
 // other.
 
-import { Button } from "@Registrum/ui/components/button";
-import { ScrollArea } from "@Registrum/ui/components/scroll-area";
-import { Spinner } from "@Registrum/ui/components/spinner";
+import { Button } from "@registrum/ui/components/button";
+import { ScrollArea } from "@registrum/ui/components/scroll-area";
+import { Spinner } from "@registrum/ui/components/spinner";
 import { useNavigate } from "@tanstack/react-router";
 import { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Confirm } from "@/components/confirm";
 import { SheetBar, SheetSurface } from "@/components/phone-sheet";
-import { useLayout } from "@/hooks/use-layout";
+import { useFormFactor } from "@/hooks/use-form-factor";
 import { describeError, showNotice } from "@/store/alert";
-
-import type { PathRule, RulePreview, RuleTarget } from "../ipc";
 import {
 	useApplyRule,
 	useRuleDraft,
 	useRulePreview,
 	useRuleTarget,
 } from "../queries";
+import type { PathRule, RulePreview, RuleTarget } from "../types";
 import { RuleForm } from "./rule-form";
 import { RulePreviewList } from "./rule-preview";
 
@@ -54,7 +53,7 @@ function RulePage({ open }: { open: boolean }) {
 	const { choices, scope, target } = useRuleTarget();
 	const rule = useRuleDraft();
 	const { preview, settled } = useRulePreview(target, rule, open);
-	const wide = useLayout() === "desktop";
+	const wide = useFormFactor() === "desktop";
 
 	const failure =
 		rule.pattern !== "" && preview.isError
@@ -155,7 +154,10 @@ function RuleDock({
 			<div className="flex min-w-0 flex-1 flex-col">
 				<span className="font-semibold text-sm tabular-nums">
 					{changed
-						? t("rule.summary", { count: changed, cells: preview?.cells ?? 0 })
+						? t("rule.writeTally", {
+								count: changed,
+								cells: preview?.cells ?? 0,
+							})
 						: t("rule.nothingToWrite")}
 				</span>
 				{Boolean(preview?.overwrites) && (

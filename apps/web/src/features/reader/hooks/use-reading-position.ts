@@ -1,16 +1,15 @@
 // Where the reader stopped, and the moments it is written.
 
-import type { Position } from "@Registrum/api/types";
+import type { PositionInput } from "@registrum/api/types";
 import { type RefObject, useCallback, useEffect, useRef } from "react";
-
-import { libraryChanged } from "@/features/library/cache";
+import type { RelocateDetail } from "@/features/reader/foliate";
+import { invalidateShelf } from "@/features/shelf/cache";
 import {
 	markOpened,
-	saveProgress,
-	saveProgressOnLeaving,
-} from "@/features/library/reading";
-import { useLibrary } from "@/features/library/store";
-import type { RelocateDetail } from "@/features/reader/foliate";
+	savePosition,
+	savePositionOnLeaving,
+} from "@/features/shelf/position";
+import { useShelfStore } from "@/features/shelf/store";
 
 /** Longest a reading position may go unwritten while the book is open. */
 const AUTOSAVE_MS = 60_000;
@@ -22,7 +21,7 @@ interface ReadingPosition {
 	lastCfi: RefObject<string | undefined>;
 }
 
-/** Remembers where a library book is being read, and writes it down. */
+/** Remembers where a book on the shelf is being read, and writes it down. */
 export function useReadingPosition(bookId: string | null): ReadingPosition {
 	const lastCfi = useRef<string | undefined>(undefined);
 	/** The most recent relocation, which is what gets written as the reading position. */
@@ -41,12 +40,12 @@ export function useReadingPosition(bookId: string | null): ReadingPosition {
 		lastCfi.current = undefined;
 	}
 
-	/** Writes where the reader stopped. Only library books have somewhere to write it. */
+	/** Writes where the reader stopped. Only books on the shelf have somewhere to write it. */
 	const writeProgress = useCallback(async () => {
 		const progress = progressOf(lastLocation.current);
 		if (!bookId || !progress) return;
 		savedAt.current = Date.now();
-		await saveProgress(bookId, progress);
+		await savePosition(bookId, progress);
 	}, [bookId]);
 
 	// Leaving the reader — the button, or anything else that changes route — is
@@ -55,7 +54,7 @@ export function useReadingPosition(bookId: string | null): ReadingPosition {
 	useEffect(
 		() => () =>
 			void writeProgress().then(() =>
-				libraryChanged(useLibrary.getState().shelfId),
+				invalidateShelf(useShelfStore.getState().shelfId),
 			),
 		[writeProgress],
 	);
@@ -79,7 +78,7 @@ export function useReadingPosition(bookId: string | null): ReadingPosition {
 			const progress = progressOf(lastLocation.current);
 			if (!progress) return;
 			savedAt.current = Date.now();
-			saveProgressOnLeaving(bookId, progress);
+			savePositionOnLeaving(bookId, progress);
 		};
 		const onHidden = () => {
 			if (document.visibilityState === "hidden") leaving();
@@ -108,7 +107,7 @@ export function useReadingPosition(bookId: string | null): ReadingPosition {
 }
 
 /** A relocation as the position written down, once it names a place. */
-function progressOf(detail: RelocateDetail | null): Position | null {
+function progressOf(detail: RelocateDetail | null): PositionInput | null {
 	if (!detail?.cfi) return null;
 	return {
 		cfi: detail.cfi,

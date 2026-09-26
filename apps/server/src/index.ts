@@ -1,5 +1,5 @@
-import { appRouter } from "@Registrum/api/routers/index";
 import { trpcServer } from "@hono/trpc-server";
+import { appRouter } from "@registrum/api/routers/index";
 import { Hono } from "hono";
 import { serveStatic } from "hono/bun";
 import { cors } from "hono/cors";
@@ -8,7 +8,7 @@ import { logger } from "hono/logger";
 import { createAuth } from "./auth";
 import { createContext } from "./context";
 import { ENV } from "./env.server";
-import { book, cover, page } from "./files";
+import { serveBookFile, serveComicPage, serveCover } from "./files";
 import { prepare } from "./services";
 
 await prepare();
@@ -36,9 +36,9 @@ app.post("/api/logout", auth.logout);
 app.use("/api/*", auth.guard);
 app.use("/trpc/*", auth.guard);
 
-app.get("/api/covers/:id", cover);
-app.get("/api/books/:id/file", book);
-app.get("/api/comics/:key/:page", page);
+app.get("/api/covers/:id", serveCover);
+app.get("/api/books/:id/file", serveBookFile);
+app.get("/api/comics/:key/:page", serveComicPage);
 // Anything else under /api is a mistake, not a page of the web app.
 app.all("/api/*", (c) => c.json({ error: "notFound" }, 404));
 

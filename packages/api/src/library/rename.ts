@@ -1,12 +1,12 @@
 // The names books are filed under, and what changing one does to the books
 // carrying it.
 
-import { type Database, type Transaction, transaction } from "@Registrum/db";
+import { type Database, type Transaction, transaction } from "@registrum/db";
 
 import { Failure } from "../failure";
 import * as fold from "../lib/fold";
-import type { NameKind } from "../vocabulary";
-import { refreshSearch } from "./book";
+import type { FacetKind } from "../vocabulary";
+import { refreshSearchText } from "./book";
 import { filled, isNameList, linkOf, nameTable, rowsNamed } from "./names";
 
 /** What a rename did. A name typed onto one the shelf already holds is a merge:
@@ -19,10 +19,10 @@ export interface Renamed {
 
 /** Gives one of the shelf's names another spelling, taking every book that
  *  carries it along. */
-export async function renameName(
+export async function renameFacet(
 	db: Database,
 	shelfId: string,
-	kind: NameKind,
+	kind: FacetKind,
 	from: string,
 	to: string,
 ): Promise<Renamed> {
@@ -48,9 +48,9 @@ export async function renameName(
 			});
 			renamed = { name: spelled, merged: false };
 		}
-		// The haystack holds these names as text, so every book that carried
+		// The search text holds these names as text, so every book that carried
 		// this one is searchable under a spelling nobody is going to type again.
-		await refreshSearch(tx, books);
+		await refreshSearchText(tx, books);
 		return renamed;
 	});
 }
@@ -58,7 +58,7 @@ export async function renameName(
 /** The books on one name, read before anything moves. */
 async function carriers(
 	tx: Transaction,
-	kind: NameKind,
+	kind: FacetKind,
 	id: string,
 ): Promise<string[]> {
 	const link = linkOf(tx, kind);
@@ -78,7 +78,7 @@ async function carriers(
  */
 async function merge(
 	tx: Transaction,
-	kind: NameKind,
+	kind: FacetKind,
 	from: string,
 	into: string,
 ): Promise<void> {

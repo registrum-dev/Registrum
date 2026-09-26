@@ -1,14 +1,14 @@
 import { useTranslation } from "react-i18next";
-import { ChoiceGroup } from "@/components/choice-mark";
+import { ChoiceGroup } from "@/components/choice-group";
 import { THEME_NAMES } from "@/features/reader/settings";
-import { useSettings } from "@/features/reader/store";
+import { useReaderSettings } from "@/features/reader/store";
 import { PALETTES, themeLabel } from "@/features/reader/themes";
 
 /** The three reading themes, each as a page of its own colours. */
 export function ThemePicker({ className }: { className?: string }) {
 	const { t } = useTranslation();
-	const theme = useSettings((state) => state.settings.theme);
-	const update = useSettings((state) => state.update);
+	const theme = useReaderSettings((state) => state.settings.theme);
+	const update = useReaderSettings((state) => state.update);
 
 	return (
 		<ChoiceGroup

@@ -1,11 +1,11 @@
 // The endpoint, the model and whether there is a key, as the server was started
 // with. They are set in its environment, not here.
 
-import { Spinner } from "@Registrum/ui/components/spinner";
+import { Spinner } from "@registrum/ui/components/spinner";
 import { useTranslation } from "react-i18next";
 
 import { useAiSettings } from "../queries";
-import { isConfigured } from "../types";
+import { isAiConfigured } from "../types";
 
 export function AiSettings() {
 	const { t } = useTranslation();
@@ -32,7 +32,9 @@ export function AiSettings() {
 				/>
 			</dl>
 			<p className="text-muted-foreground text-xs leading-relaxed">
-				{isConfigured(settings.data) ? t("ai.envHint") : t("ai.envUnsetHint")}
+				{isAiConfigured(settings.data)
+					? t("ai.envHint")
+					: t("ai.notConfiguredHint")}
 			</p>
 		</div>
 	);

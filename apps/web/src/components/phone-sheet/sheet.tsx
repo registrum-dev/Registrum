@@ -4,7 +4,7 @@
 // scrolls it, so the platform tracks, flings and snaps it; the scrim and the
 // step-back of what is under it run on the sheet's view timeline.
 
-import { cn } from "@Registrum/ui/lib/utils";
+import { cn } from "@registrum/ui/lib/utils";
 import {
 	type CSSProperties,
 	type ReactNode,
@@ -26,7 +26,7 @@ import {
 	useEdgePull,
 	useGripDrag,
 	useWheelInside,
-} from "./hand";
+} from "./gestures";
 import { RANGE, SCRIM, SHAPE, type SheetKind } from "./kinds";
 
 /** The same, for a sheet thrown out by hand, which coasts rather than being sent (ms). */

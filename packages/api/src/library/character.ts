@@ -1,7 +1,7 @@
-// The cast a generation wrote down, and the map of their ties.
+// The characters a generation wrote down, and the relations between them.
 
-import { type Client, type Database, transaction } from "@Registrum/db";
 import { createId } from "@paralleldrive/cuid2";
+import { type Client, type Database, transaction } from "@registrum/db";
 
 import * as fold from "../lib/fold";
 import { type CharacterRole, readRole } from "../vocabulary";
@@ -28,18 +28,14 @@ export interface Relation {
 	mutual: boolean;
 }
 
-export interface Graph {
-	relations: Relation[];
-}
-
 /** What a book already carries. `null` either way is "nothing generated yet",
  *  which is also what a map with no lines left in it comes back as. */
-export interface BookAi {
+export interface SavedAi {
 	characters: Character[] | null;
-	graph: Graph | null;
+	relations: Relation[] | null;
 }
 
-export async function aiOf(db: Client, bookId: string): Promise<BookAi> {
+export async function savedAiOf(db: Client, bookId: string): Promise<SavedAi> {
 	const people = await db.character.findMany({
 		where: { bookId },
 		orderBy: { position: "asc" },
@@ -48,7 +44,7 @@ export async function aiOf(db: Client, bookId: string): Promise<BookAi> {
 			events: { orderBy: { position: "asc" }, select: { text: true } },
 		},
 	});
-	if (people.length === 0) return { characters: null, graph: null };
+	if (people.length === 0) return { characters: null, relations: null };
 
 	// Read as names, which is what draws it.
 	const relations = await db.characterRelation.findMany({
@@ -74,16 +70,14 @@ export async function aiOf(db: Client, bookId: string): Promise<BookAi> {
 			affiliation: person.affiliation,
 			events: person.events.map((event) => event.text),
 		})),
-		graph:
+		relations:
 			relations.length > 0
-				? {
-						relations: relations.map((relation) => ({
-							from: relation.from.name,
-							to: relation.to.name,
-							label: relation.label,
-							mutual: relation.mutual,
-						})),
-					}
+				? relations.map((relation) => ({
+						from: relation.from.name,
+						to: relation.to.name,
+						label: relation.label,
+						mutual: relation.mutual,
+					}))
 				: null,
 	};
 }
@@ -99,11 +93,11 @@ function listed(
 		.map((value, position) => ({ position, value }));
 }
 
-/** Writes a new cast, and drops the map with it. */
+/** Writes new characters, and drops the relations with them. */
 export async function setCharacters(
 	db: Database,
 	bookId: string,
-	cast: readonly Character[],
+	characters: readonly Character[],
 ): Promise<void> {
 	await transaction(db, async (tx) => {
 		// The lists and the map go with the people by `onDelete: Cascade`.
@@ -111,7 +105,7 @@ export async function setCharacters(
 
 		const seen = new Set<string>();
 		let position = 0;
-		for (const person of cast) {
+		for (const person of characters) {
 			// A person with no name is a person nothing can point at, and the same
 			// name twice is one person. Either would fail the unique index.
 			const name = person.name.trim();
@@ -150,10 +144,10 @@ export async function setCharacters(
 }
 
 /** Writes the map between people who are already written down. */
-export async function setGraph(
+export async function setRelations(
 	db: Database,
 	bookId: string,
-	graph: Graph,
+	relations: readonly Relation[],
 ): Promise<void> {
 	await transaction(db, async (tx) => {
 		const people = await tx.character.findMany({
@@ -171,7 +165,7 @@ export async function setGraph(
 			label: string;
 			mutual: boolean;
 		}[] = [];
-		for (const relation of graph.relations) {
+		for (const relation of relations) {
 			const label = relation.label.trim();
 			const fromId = ids.get(relation.from.trim());
 			const toId = ids.get(relation.to.trim());
