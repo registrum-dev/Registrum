@@ -2,11 +2,13 @@
 // to the server: the browser reads them where they are, and holds them for as
 // long as the tab is open.
 
+import { randomId } from "@/lib/random-id";
+
 const held = new Map<string, File>();
 
 /** Keeps a file for the reader and hands back the token its URL carries. */
 export function holdFile(file: File): string {
-	const token = crypto.randomUUID();
+	const token = randomId();
 	held.set(token, file);
 	return token;
 }
