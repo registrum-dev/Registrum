@@ -6,6 +6,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import { currentLocale, type Locale } from "@/i18n";
 import { api, trpc } from "@/lib/api";
+import { randomId } from "@/lib/random-id";
 import type { Generated, Sent } from "./types";
 
 interface Generation<T> {
@@ -93,7 +94,7 @@ export function useGeneration<T>(
 	useEffect(() => () => stopRun(running.current), []);
 
 	const start = useCallback(() => {
-		const run = crypto.randomUUID();
+		const run = randomId();
 		running.current = run;
 		setSent(null);
 		setSeconds(0);

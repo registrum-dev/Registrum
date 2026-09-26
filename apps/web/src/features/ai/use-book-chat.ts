@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 
 import { api } from "@/lib/api";
+import { randomId } from "@/lib/random-id";
 import { type Exchange, useBookChats, useChat } from "./chat-store";
 import { useAiConfigured, useBookChapters } from "./queries";
 import type { Chapter, Sent, Turn, Usage } from "./types";
@@ -88,7 +89,7 @@ export function useBookChat({
 			}),
 		(answer) => {
 			remember(bookId, {
-				id: crypto.randomUUID(),
+				id: randomId(),
 				question: going.current.question,
 				answer,
 				sections: going.current.sections,
