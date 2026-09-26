@@ -135,3 +135,29 @@ jobs:
         run: docker buildx imagetools inspect "$IMAGE:$VERSION"
         env:
           VERSION: ${{ steps.meta.outputs.version }}
+
+  # Keeps the 10 newest tagged images and removes everything else. Deleting a
+  # multi-arch image also removes its platform images and attestations.
+  cleanup:
+    needs: merge
+    runs-on: ubuntu-24.04
+    concurrency:
+      group: cleanup-images
+    permissions:
+      packages: write
+
+    steps:
+      - id: package
+        run: |
+          echo "owner=${GITHUB_REPOSITORY_OWNER,,}" >> "$GITHUB_OUTPUT"
+          echo "name=${GITHUB_REPOSITORY#*/}" | tr '[:upper:]' '[:lower:]' >> "$GITHUB_OUTPUT"
+
+      - uses: dataaxiom/ghcr-cleanup-action@v1
+        with:
+          owner: ${{ steps.package.outputs.owner }}
+          package: ${{ steps.package.outputs.name }}
+          keep-n-tagged: 10
+          exclude-tags: latest
+          delete-untagged: true
+          delete-partial-images: true
+          validate: true
