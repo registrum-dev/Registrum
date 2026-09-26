@@ -1,6 +1,8 @@
 # Registrum
 
-A self-hosted web book reader. Reads EPUB, PDF, CBZ and ZIP, with support for both Japanese vertical text and horizontal Western text. Point it at your book folders, scan, and read from any browser — your reading position syncs across devices.
+![Registrum — a self-hosted web reader for your book library](.github/social-preview.png)
+
+A self-hosted multilingual web book reader. Reads EPUB, PDF, CBZ and ZIP, in horizontal, vertical and right-to-left text. Point it at your book folders, scan, and read from any browser — your reading position syncs across devices.
 
 ## Features
 
