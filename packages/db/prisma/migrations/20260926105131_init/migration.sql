@@ -27,7 +27,7 @@ CREATE TABLE "book" (
     "missing" BOOLEAN NOT NULL DEFAULT false,
     "search_text" TEXT NOT NULL DEFAULT '',
     "added_at" TEXT NOT NULL,
-    "indexed_at" TEXT NOT NULL,
+    "scanned_at" TEXT NOT NULL,
     "last_opened_at" TEXT,
     CONSTRAINT "book_shelf_id_fkey" FOREIGN KEY ("shelf_id") REFERENCES "shelf" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
     CONSTRAINT "book_publisher_id_fkey" FOREIGN KEY ("publisher_id") REFERENCES "publisher" ("id") ON DELETE SET NULL ON UPDATE CASCADE,
@@ -35,13 +35,13 @@ CREATE TABLE "book" (
 );
 
 -- CreateTable
-CREATE TABLE "reading_state" (
+CREATE TABLE "reading_position" (
     "book_id" TEXT NOT NULL PRIMARY KEY,
     "cfi" TEXT NOT NULL,
     "fraction" REAL NOT NULL DEFAULT 0,
     "label" TEXT,
     "updated_at" TEXT NOT NULL,
-    CONSTRAINT "reading_state_book_id_fkey" FOREIGN KEY ("book_id") REFERENCES "book" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+    CONSTRAINT "reading_position_book_id_fkey" FOREIGN KEY ("book_id") REFERENCES "book" ("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 -- CreateTable
