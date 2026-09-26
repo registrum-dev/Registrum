@@ -17,10 +17,9 @@ export interface ScannedFile {
 	mtime: number;
 }
 
-/** Dot-folders hold no books, and neither does the folder the desktop app kept
- *  its records in. */
+/** Dot-folders hold no books. */
 function skipped(name: string): boolean {
-	return name.startsWith(".") || name === "_registrum";
+	return name.startsWith(".");
 }
 
 /** Walks the shelf for books, depth first. */

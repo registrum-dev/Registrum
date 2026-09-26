@@ -29,11 +29,3 @@ model Shelf {
 
   @@map("shelf")
 }
-
-/// Key-value settings that belong to the server rather than to one browser.
-model Setting {
-  key   String @id
-  value String
-
-  @@map("setting")
-}
