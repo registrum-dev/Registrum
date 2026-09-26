@@ -16,7 +16,7 @@ RUN cd apps/web && bunx vite build
 
 # Only what the server runs: its own source, the two packages it imports, and
 # their production dependencies. The web app is its built files.
-FROM oven/bun:1.4 AS runtime
+FROM oven/bun:1.4-slim AS runtime
 WORKDIR /app
 
 COPY --from=build /app/package.json /app/bun.lock /app/bunfig.toml /app/tsconfig.json ./
@@ -25,8 +25,13 @@ COPY --from=build /app/packages/db packages/db
 COPY --from=build /app/packages/api packages/api
 COPY --from=build /app/apps/server apps/server
 COPY --from=build /app/apps/web/dist apps/web/dist
+# The base is glibc, so the musl binaries go, and so do the query compilers
+# for every database but SQLite.
 RUN rm -rf packages/*/node_modules apps/server/node_modules \
-	&& bun install --production --ignore-scripts
+	&& bun install --production --ignore-scripts \
+	&& rm -rf node_modules/.bun/*musl* /root/.bun/install/cache \
+	&& find node_modules/.bun/@prisma+client@*/node_modules/@prisma/client/runtime \
+		-name 'query_compiler_*' ! -name '*sqlite*' -delete
 
 ENV NODE_ENV=production \
 	PORT=3000 \
