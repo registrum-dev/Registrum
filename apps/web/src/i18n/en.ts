@@ -442,7 +442,7 @@ export const en = {
 		confirmTitle_one: "Write to {{count}} book?",
 		confirmTitle_other: "Write to {{count}} books?",
 		confirmDescription:
-			"{{fields}}. Books the pattern missed and books that stay the same are left alone. A scan keeps what is written; a book's Restore puts back what its file says.",
+			"{{fields}}. Books the pattern missed and books that stay the same are left alone. A scan keeps what is written; “Read from file” on a book puts back what its file says.",
 		fieldTally: "{{field}}: {{count}}",
 		fieldTallyOverwrite: "{{field}}: {{count}} ({{overwrites}} replaced)",
 		confirm: "Write",
@@ -520,7 +520,7 @@ export const en = {
 		authorsPlaceholder: "Type a name and press Enter",
 		collectionsPlaceholder: "Type a collection name and press Enter",
 		tagsPlaceholder: "Type a word and press Enter",
-		rescan: "Restore",
+		rescan: "Read from file",
 		rescanConfirm: "Read again",
 		rescanDescription:
 			"The title, author, publisher, series and description go back to what the book's own file says. Corrections made by hand cannot be recovered. Collections, tags, category, note, rating and reading position are kept.",

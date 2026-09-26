@@ -115,7 +115,7 @@ export function ShelfList() {
 function ShelfRow({ shelf }: { shelf: Shelf }) {
 	const switchTo = useShelfStore((state) => state.switchTo);
 	const busy = useShelfStore((state) => state.busy === "loading");
-	const gone = !shelf.present;
+	const gone = shelf.missing;
 
 	return (
 		<button

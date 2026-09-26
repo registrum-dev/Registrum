@@ -3,7 +3,7 @@
 
 import { join } from "node:path";
 import { Failure } from "@registrum/api/failure";
-import { coverDir, coverFile } from "@registrum/api/library/covers";
+import { coverDir, coverFileOf } from "@registrum/api/library/covers";
 import { bookFile, comicPage } from "@registrum/api/library/files";
 import type { BookFormat } from "@registrum/api/vocabulary";
 import type { Context } from "hono";
@@ -35,7 +35,7 @@ function failed(c: Context, error: unknown) {
  *  under it never changes. */
 export async function serveCover(c: Context) {
 	try {
-		const path = join(coverDir(config), coverFile(c.req.param("id") ?? ""));
+		const path = join(coverDir(config), coverFileOf(c.req.param("id") ?? ""));
 		const file = Bun.file(path);
 		if (!(await file.exists())) return c.body(null, 404);
 		// Handed to Bun as the file itself, so it is sent straight from disk with

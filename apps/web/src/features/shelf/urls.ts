@@ -5,7 +5,7 @@ import type { BookRecord } from "./types";
 /** The thumbnail's URL for `<img src>`. A book read again keeps its id, so the
  *  URL carries `scannedAt` to tell the new cover from the old. */
 export function coverUrl(record: BookRecord): string | null {
-	if (!record.cover) return null;
+	if (!record.coverFile) return null;
 	return `/api/covers/${encodeURIComponent(record.id)}?v=${encodeURIComponent(record.scannedAt)}`;
 }
 

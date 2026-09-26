@@ -27,7 +27,7 @@ model Book {
   rating       Int?
   favorite     Boolean       @default(false)
   /// The thumbnail's file name under the covers folder, when there is one.
-  cover        String?
+  coverFile    String?       @map("cover_file")
   missing      Boolean       @default(false)
   searchText   String        @default("") @map("search_text")
   addedAt      String        @map("added_at")

@@ -55,7 +55,7 @@ export interface BookRecord {
 	favorite: boolean;
 
 	/** The thumbnail's file name, when there is one. */
-	cover: string | null;
+	coverFile: string | null;
 	missing: boolean;
 	/** Derived from the reading position, never stored. Here so that the
 	 *  screen draws it rather than works it out again. */
@@ -155,7 +155,7 @@ export function recordOf(row: BookRow): BookRecord | null {
 		note: row.note,
 		rating: validRating(row.rating),
 		favorite: row.favorite,
-		cover: row.cover,
+		coverFile: row.coverFile,
 		missing: row.missing,
 		status: statusOf(position),
 		addedAt: row.addedAt,

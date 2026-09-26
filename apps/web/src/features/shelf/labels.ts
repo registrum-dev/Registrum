@@ -188,7 +188,7 @@ export function folderLabel(path: string): string {
 }
 
 /** What a shelf's row says under its name: its folder, or that it has gone. */
-export function shelfDetail(shelf: { path: string; present: boolean }): string {
+export function shelfDetail(shelf: { path: string; missing: boolean }): string {
 	const folder = folderLabel(shelf.path);
-	return shelf.present ? folder : t("shelf.gone", { folder });
+	return shelf.missing ? t("shelf.gone", { folder }) : folder;
 }

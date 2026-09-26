@@ -23,7 +23,7 @@ CREATE TABLE "book" (
     "note" TEXT,
     "rating" INTEGER,
     "favorite" BOOLEAN NOT NULL DEFAULT false,
-    "cover" TEXT,
+    "cover_file" TEXT,
     "missing" BOOLEAN NOT NULL DEFAULT false,
     "search_text" TEXT NOT NULL DEFAULT '',
     "added_at" TEXT NOT NULL,

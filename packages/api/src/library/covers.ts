@@ -13,7 +13,7 @@ export function coverDir(config: PathsConfig): string {
 
 /** A book id names a file, so it must not be able to climb out of the folder.
  *  The ids we write are cuids; nothing else is accepted. */
-export function coverFile(id: string): string {
+export function coverFileOf(id: string): string {
 	if (!/^[a-zA-Z0-9]+$/.test(id)) throw new Failure("badId", id);
 	return `${id}.webp`;
 }
@@ -24,14 +24,14 @@ export async function writeCover(
 	id: string,
 	bytes: Buffer,
 ): Promise<string> {
-	const name = coverFile(id);
+	const name = coverFileOf(id);
 	const dir = coverDir(config);
 	await mkdir(dir, { recursive: true });
 	await writeFile(join(dir, name), bytes);
 	return name;
 }
 
-/** Removes the thumbnails of books the library has just removed. A missing
+/** Removes the thumbnails of books just removed from the shelf. A missing
  *  thumbnail is not an error: plenty of books never had a cover. */
 export async function removeCovers(
 	config: PathsConfig,
@@ -41,7 +41,7 @@ export async function removeCovers(
 	await Promise.all(
 		ids.map(async (id) => {
 			try {
-				await rm(join(dir, coverFile(id)), { force: true });
+				await rm(join(dir, coverFileOf(id)), { force: true });
 			} catch {
 				// Nothing to drop.
 			}

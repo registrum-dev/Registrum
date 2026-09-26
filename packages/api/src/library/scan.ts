@@ -164,10 +164,10 @@ async function readPlanned(
 		planned.file.path,
 	);
 	// A cover is a nicety: one that cannot be written leaves the book without.
-	const cover = book.cover
+	const coverFile = book.cover
 		? await writeCover(config, planned.id, book.cover).catch(() => null)
 		: null;
-	return { plan: planned, parsed: book.parsed, cover };
+	return { plan: planned, parsed: book.parsed, coverFile };
 }
 
 /** How far the run has got, told to the screen now and then rather than at

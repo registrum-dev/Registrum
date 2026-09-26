@@ -41,7 +41,7 @@ export interface Ingested {
 	plan: Planned;
 	parsed: ParsedBook;
 	/** The thumbnail's name, already written. */
-	cover: string | null;
+	coverFile: string | null;
 }
 
 /** A book the reader asked to have read again, as far as the record can say
@@ -188,7 +188,7 @@ export async function writeIngested(
 		const letGo: string[] = [];
 		let mayOrphanNames = false;
 
-		for (const { plan, parsed, cover } of batch) {
+		for (const { plan, parsed, coverFile } of batch) {
 			const row = previous.get(plan.id);
 			const publisher = filled(parsed.publisher);
 			const series = filled(parsed.series);
@@ -226,7 +226,7 @@ export async function writeIngested(
 				description: parsed.description,
 				sections: parsed.sections,
 				// The thumbnail just written, or the one the record already had.
-				cover: cover ?? row?.cover ?? null,
+				coverFile: coverFile ?? row?.coverFile ?? null,
 				missing: false,
 				searchText: searchText(
 					parsed.title,

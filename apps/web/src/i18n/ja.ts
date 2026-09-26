@@ -415,7 +415,7 @@ export const ja = {
 		write: "書き込む…",
 		confirmTitle_other: "{{count}} 冊に書き込みますか？",
 		confirmDescription:
-			"{{fields}}。当たらなかった本と、変わらない本には触れません。スキャンし直しても消えず、本ごとの「元に戻す」でファイルの書誌に戻ります。",
+			"{{fields}}。当たらなかった本と、変わらない本には触れません。スキャンし直しても消えず、本ごとの「ファイルから読み直す」でファイルの書誌に戻ります。",
 		fieldTally: "{{field}} {{count}} 冊",
 		fieldTallyOverwrite: "{{field}} {{count}} 冊（うち上書き {{overwrites}}）",
 		confirm: "書き込む",
@@ -480,7 +480,7 @@ export const ja = {
 		authorsPlaceholder: "名前を入力して Enter",
 		collectionsPlaceholder: "コレクション名を入力して Enter",
 		tagsPlaceholder: "言葉を入力して Enter",
-		rescan: "元に戻す",
+		rescan: "ファイルから読み直す",
 		rescanConfirm: "読み直す",
 		rescanDescription:
 			"タイトル・著者・出版社・シリーズ・あらすじなどが、本のファイルに書かれている内容に戻ります。手で直した内容は元に戻せません。コレクション・タグ・分類・メモ・評価・読書位置はそのまま残ります。",

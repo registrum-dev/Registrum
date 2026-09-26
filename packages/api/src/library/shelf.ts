@@ -22,8 +22,8 @@ export interface Shelf {
 	/** Relative to the books mount; the empty string is the mount itself. */
 	path: string;
 	createdAt: string;
-	/** Whether the folder is there to be read right now. */
-	present: boolean;
+	/** Whether the folder has gone from the books mount right now. */
+	missing: boolean;
 }
 
 /** One folder inside the one being shown. */
@@ -70,7 +70,7 @@ export async function listShelves(
 	return Promise.all(
 		shelves.map(async (shelf) => ({
 			...shelf,
-			present: await isFolder(inside(config.booksDir, shelf.path)),
+			missing: !(await isFolder(inside(config.booksDir, shelf.path))),
 		})),
 	);
 }
@@ -121,7 +121,7 @@ export async function createShelf(
 			data: { id: createId(), name: named, path, createdAt: now() },
 		}),
 	);
-	return { ...shelf, present: true };
+	return { ...shelf, missing: false };
 }
 
 export async function renameShelf(

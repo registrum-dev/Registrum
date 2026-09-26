@@ -85,11 +85,11 @@ function DesktopSwitcher() {
 							closeOnClick
 							className="gap-3 py-2"
 						>
-							<RowIcon gone={!shelf.present} />
+							<RowIcon gone={shelf.missing} />
 							<RowText
 								name={shelf.name}
 								detail={shelfDetail(shelf)}
-								gone={!shelf.present}
+								gone={shelf.missing}
 							/>
 						</DropdownMenuRadioItem>
 					))}
@@ -144,7 +144,7 @@ function PhoneSwitcher() {
 					{shelves.map((shelf) => (
 						<SheetMenuItem
 							key={shelf.id}
-							icon={<RowIcon gone={!shelf.present} />}
+							icon={<RowIcon gone={shelf.missing} />}
 							checked={shelf.id === shelfId}
 							onClick={() => close(() => void switchTo(shelf.id))}
 							className="py-2"
@@ -152,7 +152,7 @@ function PhoneSwitcher() {
 							<RowText
 								name={shelf.name}
 								detail={shelfDetail(shelf)}
-								gone={!shelf.present}
+								gone={shelf.missing}
 							/>
 						</SheetMenuItem>
 					))}
