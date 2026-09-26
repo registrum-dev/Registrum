@@ -181,12 +181,6 @@ CREATE TABLE "shelf" (
     "created_at" TEXT NOT NULL
 );
 
--- CreateTable
-CREATE TABLE "setting" (
-    "key" TEXT NOT NULL PRIMARY KEY,
-    "value" TEXT NOT NULL
-);
-
 -- CreateIndex
 CREATE INDEX "book_shelf_id_category_idx" ON "book"("shelf_id", "category");
 
