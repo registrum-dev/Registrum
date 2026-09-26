@@ -54,6 +54,7 @@ export const ruleRouter = router({
 		.mutation(({ ctx, input }) =>
 			suggestRule(
 				ctx.db,
+				ctx.ai,
 				input.shelfId,
 				input.target,
 				input.examples,

@@ -1,7 +1,7 @@
 // What a book already carries, kept beside every other answer about that
 // library.
 
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 
 import { libraryKeys } from "@/features/library/cache";
 import { api, trpc } from "@/lib/api";
@@ -22,17 +22,6 @@ export function useAiSettings() {
 export function useAiReady(): boolean {
 	const settings = useAiSettings().data;
 	return settings ? isConfigured(settings) : false;
-}
-
-/** Writes a change to the endpoint, and keeps the answer as what is known. */
-export function useSaveAiSettings() {
-	return useMutation(
-		trpc.ai.saveSettings.mutationOptions({
-			onSuccess: (saved) =>
-				queryClient.setQueryData(trpc.ai.settings.queryKey(), saved),
-			meta: { failure: "save" },
-		}),
-	);
 }
 
 // The two below are filed under the library's own keys rather than tRPC's:

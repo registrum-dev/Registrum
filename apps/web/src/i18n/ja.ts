@@ -32,7 +32,8 @@ export const ja = {
 		noShelf: "その本棚はもうありません。",
 		shelfTaken: "このフォルダはもう本棚です（{{message}}）。",
 		shelfName: "本棚の名前は 1〜80 文字で付けてください。",
-		aiUnset: "設定画面で AI の接続先とモデルを入れてください。",
+		aiUnset:
+			"サーバーの環境変数に AI_BASE_URL と AI_MODEL を設定してください。",
 		noFolder: "フォルダが見つかりません。",
 		readFolder: "フォルダを読み込めませんでした: {{message}}",
 		save: "保存できませんでした: {{message}}",
@@ -79,16 +80,14 @@ export const ja = {
 	ai: {
 		title: "AI",
 		baseUrl: "接続先",
-		baseUrlHint: "/chat/completions を除いた URL。",
 		model: "モデル",
-		modelHint:
-			"接続先が呼ぶ名前をそのまま。本 1 冊ぶんを一度に読むので、長い文脈を持つモデルを選ぶこと。",
 		apiKey: "API キー",
-		apiKeyHint: "Ollama など鍵の要らない接続先では空のままでよい。",
-		apiKeySaved: "保存してあります",
-		apiKeySavedHint:
-			"鍵はサーバーにだけ置いてあり、ブラウザには返しません。変えるときだけ入力します。",
-		forgetKey: "鍵を消す",
+		apiKeySet: "設定済み",
+		unset: "未設定",
+		envHint:
+			"サーバーの環境変数 AI_BASE_URL・AI_MODEL・AI_API_KEY で設定します。鍵はブラウザには返しません。",
+		envUnsetHint:
+			"サーバーの環境変数に AI_BASE_URL と AI_MODEL（鍵が要る接続先なら AI_API_KEY も）を設定し、再起動すると使えます。",
 
 		generate: "AI で作る",
 		again: "作り直す",
@@ -98,7 +97,8 @@ export const ja = {
 		usage: "{{tokens}} トークン・{{model}}",
 		wholeBookNote:
 			"全文を根拠にしているので、まだ読んでいない人物や出来事も出ます。",
-		notConfigured: "設定画面で AI の接続先とモデルを入れると使えます。",
+		notConfigured:
+			"サーバーの環境変数に AI_BASE_URL と AI_MODEL を設定すると使えます。",
 
 		synopsisTitle: "あらすじを作る",
 		synopsisNote:

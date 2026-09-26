@@ -37,7 +37,7 @@ import {
 } from "./prompt";
 import { announce, stoppable } from "./runs";
 import { characterList, relationList } from "./schema";
-import { isConfigured, readConnection } from "./settings";
+import { type Connection, isConfigured } from "./settings";
 import * as tidy from "./tidy";
 
 /** How many exchanges go back with a question. The chapters are the bulk of the
@@ -57,16 +57,16 @@ export type Asked = z.infer<typeof askedSchema>;
 export interface Generation {
 	db: Database;
 	config: LibraryConfig;
+	ai: Connection;
 	shelfId: string;
 	id: string;
 	locale: Locale;
 	run: string;
 }
 
-async function connection(db: Database) {
-	const found = await readConnection(db);
-	if (!isConfigured(found)) throw Failure.bare("aiUnset");
-	return found;
+function connection(ai: Connection): Connection {
+	if (!isConfigured(ai)) throw Failure.bare("aiUnset");
+	return ai;
 }
 
 /** The book, and its own words. Nothing is kept between calls: an EPUB is read
@@ -89,7 +89,7 @@ async function readBookText(
 /** A draft synopsis. Nothing is written down: the reader keeps it, or does not. */
 export function synopsis(at: Generation): Promise<Generated<string>> {
 	return stoppable(at.run, async (controller) => {
-		const endpoint = await connection(at.db);
+		const endpoint = connection(at.ai);
 		const { book, text } = await readBookText(at);
 		const sent = announce(at.run, text.chars);
 		const answered = await askForText(
@@ -105,7 +105,7 @@ export function synopsis(at: Generation): Promise<Generated<string>> {
 /** The book's cast, written down and kept. */
 export function characters(at: Generation): Promise<Generated<Character[]>> {
 	return stoppable(at.run, async (controller) => {
-		const endpoint = await connection(at.db);
+		const endpoint = connection(at.ai);
 		const { book, text } = await readBookText(at);
 		const sent = announce(at.run, text.chars);
 		const answered = await askForShape(
@@ -126,7 +126,7 @@ export function characters(at: Generation): Promise<Generated<Character[]>> {
 /** The ties between the people already written down. */
 export function graph(at: Generation): Promise<Generated<Graph>> {
 	return stoppable(at.run, async (controller) => {
-		const endpoint = await connection(at.db);
+		const endpoint = connection(at.ai);
 		// Read from the library, and read first: a book with nobody in it is
 		// refused before its archive is opened.
 		const cast = (await aiOf(at.db, at.id)).characters ?? [];
@@ -152,7 +152,7 @@ export function ask(at: Generation, asked: Asked): Promise<Generated<string>> {
 	return stoppable(at.run, async (controller) => {
 		const question = firstChars(asked.question.trim(), MAX_QUESTION);
 		if (question === "") throw Failure.bare("noQuestion");
-		const endpoint = await connection(at.db);
+		const endpoint = connection(at.ai);
 
 		const { book, text } = await readBookText(at);
 		const picked = pick(text, asked.sections);
@@ -192,6 +192,7 @@ export async function bookChapters(
  *  paths, and the values the reader typed. */
 export function suggestRule(
 	db: Database,
+	ai: Connection,
 	shelfId: string,
 	target: RuleTarget,
 	examples: readonly PatternExample[],
@@ -199,7 +200,7 @@ export function suggestRule(
 	run: string,
 ): Promise<Generated<PatternDraft>> {
 	return stoppable(run, async (controller) => {
-		const endpoint = await connection(db);
+		const endpoint = connection(ai);
 		return suggest(db, shelfId, target, examples, endpoint, locale, controller);
 	});
 }
