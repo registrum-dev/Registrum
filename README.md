@@ -58,14 +58,18 @@ docker compose up -d
 
 ### Building from source
 
-The `compose.yaml` in this repository can also build the image itself:
+The compose files in [`docker/`](docker/) can also build the image itself:
 
 ```sh
 git clone https://github.com/registrum-dev/Registrum.git
-cd Registrum
+cd Registrum/docker
 mkdir -p data books
 docker compose up -d --build
 ```
+
+### Over Tailscale (HTTPS)
+
+[`docker/compose.tailscale.yaml`](docker/compose.tailscale.yaml) puts Registrum on your tailnet at `https://<TS_HOSTNAME>.<your-tailnet>.ts.net`, with a certificate from Tailscale Serve and no port opened on the host. See [`docker/README.md`](docker/README.md) for the setup.
 
 ### Environment variables
 
@@ -81,7 +85,7 @@ docker compose up -d --build
 | `AI_API_KEY` | (empty) | Key for the endpoint. Leave empty for one that wants none, such as Ollama |
 | `CORS_ORIGIN` | (empty) | Only needed when serving the web UI from another origin |
 
-Registrum does not terminate TLS. For access outside your home network, put it behind a reverse proxy such as Caddy or Traefik.
+Registrum does not terminate TLS. For access outside your home network, use the Tailscale setup above or put it behind a reverse proxy such as Caddy or Traefik.
 
 ## Notes
 

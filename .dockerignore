@@ -11,5 +11,7 @@ packages/db/prisma/generated
 apps/web/src/routeTree.gen.ts
 /data
 /books
+/docker/data
+/docker/books
 .git
 .DS_Store

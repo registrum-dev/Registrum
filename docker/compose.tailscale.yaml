@@ -1,0 +1,52 @@
+# Serves Registrum over HTTPS on your tailnet, with no port opened on the host.
+#
+#   docker compose -f compose.tailscale.yaml up -d
+#
+# Turn on HTTPS Certificates in the Tailscale admin console first, and put
+# TS_AUTHKEY in a .env next to this file.
+
+services:
+  tailscale:
+    image: tailscale/tailscale:stable
+    hostname: ${TS_HOSTNAME:-registrum}
+    environment:
+      TS_AUTHKEY: ${TS_AUTHKEY:?}
+      TS_AUTH_ONCE: "true"
+      TS_HOSTNAME: ${TS_HOSTNAME:-registrum}
+      TS_STATE_DIR: /var/lib/tailscale
+      TS_USERSPACE: "true"
+      # containerboot fills in ${TS_CERT_DOMAIN} with the node's MagicDNS name.
+      TS_SERVE_CONFIG: /config/serve.json
+    volumes:
+      - tailscale-state:/var/lib/tailscale
+      # The folder rather than the file, so edits to serve.json are picked up.
+      - ./tailscale:/config:ro
+    healthcheck:
+      test: ["CMD", "tailscale", "status"]
+      interval: 30s
+      timeout: 5s
+      start_period: 25s
+      retries: 5
+    restart: unless-stopped
+
+  registrum:
+    image: ghcr.io/registrum-dev/registrum:latest
+    # To run your own changes instead: docker compose -f compose.tailscale.yaml up -d --build
+    build: ..
+    # Shares the tailscale container's network, so Serve reaches 127.0.0.1:3000.
+    network_mode: service:tailscale
+    depends_on:
+      tailscale:
+        condition: service_healthy
+    environment:
+      REGISTRUM_PASSWORD: ${REGISTRUM_PASSWORD:-}
+      AI_BASE_URL: ${AI_BASE_URL:-}
+      AI_API_KEY: ${AI_API_KEY:-}
+      AI_MODEL: ${AI_MODEL:-}
+    volumes:
+      - ./data:/data
+      - ./books:/books:ro
+    restart: unless-stopped
+
+volumes:
+  tailscale-state:
