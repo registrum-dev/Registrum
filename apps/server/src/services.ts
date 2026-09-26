@@ -1,3 +1,4 @@
+import type { Connection } from "@Registrum/api/ai/settings";
 import type { LibraryConfig } from "@Registrum/api/context";
 import { createPrismaClient, prepareDatabase } from "@Registrum/db";
 import { mkdir } from "node:fs/promises";
@@ -12,6 +13,13 @@ export const db = createPrismaClient(ENV);
 export const config: LibraryConfig = {
 	booksDir: resolve(ENV.BOOKS_DIR),
 	dataDir: resolve(ENV.DATA_DIR),
+};
+
+/** The AI endpoint. Left unset, generations say so rather than being offered. */
+export const ai: Connection = {
+	baseUrl: ENV.AI_BASE_URL ?? "",
+	apiKey: ENV.AI_API_KEY ?? "",
+	model: ENV.AI_MODEL ?? "",
 };
 
 /** Makes the data folder, and puts the database in the mode the app reads it in.

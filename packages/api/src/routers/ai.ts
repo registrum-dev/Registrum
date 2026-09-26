@@ -10,11 +10,7 @@ import {
 } from "../ai";
 import { LOCALES } from "../ai/prompt";
 import { generationSent, stopGeneration } from "../ai/runs";
-import {
-	aiSettingsPatchSchema,
-	readAiSettings,
-	writeAiSettings,
-} from "../ai/settings";
+import { aiSettingsOf } from "../ai/settings";
 import type { Context } from "../context";
 import { dbProcedure, publicProcedure, router } from "../index";
 import { findOne } from "../library/book";
@@ -25,17 +21,13 @@ const generation = oneBook.extend({ locale: z.enum(LOCALES), run: z.string() });
 
 /** A call's input, with the library it runs against. */
 function withLibrary<T>(ctx: Context, input: T): T & Context {
-	return { ...input, db: ctx.db, config: ctx.config };
+	return { ...input, db: ctx.db, config: ctx.config, ai: ctx.ai };
 }
 
 export const aiRouter = router({
 	/** The endpoint and model, and whether a key has been given. The key itself
-	 *  never comes back. */
-	settings: publicProcedure.query(({ ctx }) => readAiSettings(ctx.db)),
-
-	saveSettings: publicProcedure
-		.input(aiSettingsPatchSchema)
-		.mutation(({ ctx, input }) => writeAiSettings(ctx.db, input)),
+	 *  never goes out. */
+	settings: publicProcedure.query(({ ctx }) => aiSettingsOf(ctx.ai)),
 
 	/** What a book already carries: the cast, and the map of their ties. */
 	bookAi: dbProcedure.input(oneBook).query(async ({ ctx, input }) => {

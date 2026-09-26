@@ -48,7 +48,7 @@ export const en = {
 		noShelf: "That shelf is no longer there.",
 		shelfTaken: "This folder is a shelf already ({{message}}).",
 		shelfName: "Give the shelf a name of 1 to 80 characters.",
-		aiUnset: "Enter the AI endpoint and model in Settings.",
+		aiUnset: "Set AI_BASE_URL and AI_MODEL in the server's environment.",
 		noFolder: "The folder could not be found.",
 		readFolder: "Could not read the folder: {{message}}",
 		save: "Could not save: {{message}}",
@@ -97,17 +97,14 @@ export const en = {
 	ai: {
 		title: "AI",
 		baseUrl: "Endpoint",
-		baseUrlHint: "The URL without /chat/completions.",
 		model: "Model",
-		modelHint:
-			"Spelled the way the endpoint spells it. A whole book goes in one call, so pick one with a long context.",
 		apiKey: "API key",
-		apiKeyHint:
-			"Leave empty for an endpoint that wants no key, such as Ollama.",
-		apiKeySaved: "Saved",
-		apiKeySavedHint:
-			"The key is kept on the server and never sent back to a browser. Type only to change it.",
-		forgetKey: "Remove key",
+		apiKeySet: "Set",
+		unset: "Not set",
+		envHint:
+			"Set by the server's AI_BASE_URL, AI_MODEL and AI_API_KEY environment variables. The key is never sent to a browser.",
+		envUnsetHint:
+			"Set AI_BASE_URL and AI_MODEL (and AI_API_KEY if the endpoint wants one) in the server's environment, then restart it.",
 
 		generate: "Write with AI",
 		again: "Write again",
@@ -118,7 +115,7 @@ export const en = {
 		wholeBookNote:
 			"This is written from the whole book, so people and events you have not reached will appear.",
 		notConfigured:
-			"Set an AI endpoint and model on the settings screen to use this.",
+			"Set AI_BASE_URL and AI_MODEL in the server's environment to use this.",
 
 		synopsisTitle: "Write a synopsis",
 		synopsisNote:

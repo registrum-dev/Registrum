@@ -28,6 +28,10 @@ services:
       - "3000:3000"
     environment:
       REGISTRUM_PASSWORD: ${REGISTRUM_PASSWORD:-}
+      # AI features, optional. Any OpenAI-compatible endpoint.
+      AI_BASE_URL: ${AI_BASE_URL:-}
+      AI_API_KEY: ${AI_API_KEY:-}
+      AI_MODEL: ${AI_MODEL:-}
     volumes:
       - ./data:/data          # database and covers
       - ./books:/books:ro     # your books
@@ -72,13 +76,16 @@ docker compose up -d --build
 | `DATA_DIR` | `/data` | Database and covers |
 | `BOOKS_DIR` | `/books` | Parent folder for libraries |
 | `DATABASE_URL` | `file:/data/registrum.db` | SQLite file |
+| `AI_BASE_URL` | (empty) | OpenAI-compatible endpoint, without `/chat/completions` (e.g. `https://openrouter.ai/api/v1`). Empty disables AI |
+| `AI_MODEL` | (empty) | Model name as the endpoint spells it (e.g. `google/gemini-2.5-pro`). Pick one with a long context |
+| `AI_API_KEY` | (empty) | Key for the endpoint. Leave empty for one that wants none, such as Ollama |
 | `CORS_ORIGIN` | (empty) | Only needed when serving the web UI from another origin |
 
 Registrum does not terminate TLS. For access outside your home network, put it behind a reverse proxy such as Caddy or Traefik.
 
 ## Notes
 
-- AI API keys are stored unencrypted in the database — protect `/data`. Summaries send the full book text to the endpoint (tens of thousands of tokens or more).
+- The AI key is read from `AI_API_KEY` and never sent to a browser. Summaries send the full book text to the endpoint (tens of thousands of tokens or more).
 - Manually edited metadata is never overwritten by rescans. Moved files keep their history if the name and size match.
 - Comics and scanned PDFs have no text, so they can't be searched.
 - Kanji titles sort by code point, not by reading.

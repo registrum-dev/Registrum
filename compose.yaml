@@ -8,6 +8,11 @@ services:
     environment:
       # Leave empty to serve without a sign-in, on a network you trust.
       REGISTRUM_PASSWORD: ${REGISTRUM_PASSWORD:-}
+      # AI features, optional: any endpoint that speaks OpenAI's Chat Completions.
+      # Put these in a .env next to this file rather than here.
+      AI_BASE_URL: ${AI_BASE_URL:-}
+      AI_API_KEY: ${AI_API_KEY:-}
+      AI_MODEL: ${AI_MODEL:-}
     volumes:
       # The database and the covers.
       - ./data:/data
