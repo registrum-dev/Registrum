@@ -17,11 +17,13 @@ A self-hosted multilingual web book reader. Reads EPUB, PDF, CBZ and ZIP, in hor
 
 ## Quick start (Docker)
 
+Images for `linux/amd64` and `linux/arm64` are published to the GitHub Container Registry on every change to `main`. No clone needed — save this as `compose.yaml` in an empty folder:
+
 ```yaml
 # compose.yaml
 services:
   registrum:
-    build: .
+    image: ghcr.io/registrum-dev/registrum:latest
     ports:
       - "3000:3000"
     environment:
@@ -34,12 +36,32 @@ services:
 
 ```sh
 mkdir -p data books
-docker compose up -d --build
+docker compose up -d
 ```
 
 Open `http://localhost:3000`, pick a folder under `/books` to create a library, then press **Scan**.
 
 Book files are never modified, so `/books` can be mounted read-only. Database migrations run automatically on startup.
+
+### Updating
+
+```sh
+docker compose pull
+docker compose up -d
+```
+
+`latest` follows `main`. To stay on one build, use a `sha-<commit>` tag instead (e.g. `ghcr.io/registrum-dev/registrum:sha-4cef92c`); the available tags are listed on the [package page](https://github.com/registrum-dev/Registrum/pkgs/container/registrum).
+
+### Building from source
+
+The `compose.yaml` in this repository can also build the image itself:
+
+```sh
+git clone https://github.com/registrum-dev/Registrum.git
+cd Registrum
+mkdir -p data books
+docker compose up -d --build
+```
 
 ### Environment variables
 

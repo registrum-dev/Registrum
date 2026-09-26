@@ -1,7 +1,8 @@
 services:
   registrum:
+    image: ghcr.io/registrum-dev/registrum:latest
+    # To run your own changes instead: docker compose up -d --build
     build: .
-    image: registrum
     ports:
       - "3000:3000"
     environment:
