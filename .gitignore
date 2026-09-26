@@ -16,6 +16,8 @@ local.db-*
 # The library's data and the books, in development
 /data
 /books
+/docker/data
+/docker/books
 
 # Environment variables
 .env
