@@ -8,6 +8,7 @@ CREATE TABLE "book" (
     "layout" TEXT NOT NULL DEFAULT 'reflowable',
     "size" BIGINT NOT NULL DEFAULT 0,
     "mtime" BIGINT NOT NULL DEFAULT 0,
+    "hash" TEXT NOT NULL,
     "title" TEXT NOT NULL,
     "title_key" TEXT NOT NULL DEFAULT '',
     "subtitle" TEXT,

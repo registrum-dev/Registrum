@@ -1,6 +1,7 @@
 // A shelf's files: the walk that finds them, and a look at one of them.
 
-import type { Dirent, Stats } from "node:fs";
+import { createHash } from "node:crypto";
+import { createReadStream, type Dirent, type Stats } from "node:fs";
 import { readdir, stat } from "node:fs/promises";
 import { join } from "node:path";
 
@@ -69,6 +70,13 @@ export async function walk(root: string): Promise<ScannedFile[]> {
 
 function scanned(path: string, info: Stats): ScannedFile {
 	return { path, size: info.size, mtime: Math.floor(info.mtimeMs) };
+}
+
+/** SHA-256 of a file's bytes, hex. */
+export async function hashFile(path: string): Promise<string> {
+	const hash = createHash("sha256");
+	for await (const chunk of createReadStream(path)) hash.update(chunk);
+	return hash.digest("hex");
 }
 
 /** Looks at one book file, the way the walk would have. */

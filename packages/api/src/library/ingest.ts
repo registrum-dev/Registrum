@@ -4,7 +4,7 @@ import { createId } from "@paralleldrive/cuid2";
 import { type Database, type Prisma, transaction } from "@registrum/db";
 
 import * as fold from "../lib/fold";
-import { fileName } from "../lib/paths";
+import { inside } from "../lib/paths";
 import { now } from "../lib/time";
 import type { ParsedBook } from "../parse";
 import { searchText } from "./book";
@@ -23,7 +23,7 @@ import {
 	inBatches,
 	recordsFor,
 } from "./record";
-import type { ScannedFile } from "./walk";
+import { hashFile, type ScannedFile } from "./walk";
 
 /** One book a run is going to read: which file, and which record it lands in.
  *  The id is settled here so that the thumbnail, which is named by it, can be
@@ -34,6 +34,8 @@ export interface Planned {
 	/** Whether a row with this id exists and is being read again: a book that
 	 *  moved, or one the reader asked to have read again. */
 	known: boolean;
+	/** The file's hash, when planning already worked it out. */
+	hash?: string;
 }
 
 /** One book read, waiting to be written down. */
@@ -42,6 +44,7 @@ export interface Ingested {
 	parsed: ParsedBook;
 	/** The thumbnail's name, already written. */
 	coverFile: string | null;
+	hash: string;
 }
 
 /** A book the reader asked to have read again, as far as the record can say
@@ -52,22 +55,17 @@ export interface Previous {
 	title: string;
 }
 
-/** What a file shows without being opened: its name, folded the way paths are,
- *  and its size. */
-function fileKey(path: string, size: number): string {
-	return `${fileName(fold.pathKey(path))}\u0000${size}`;
-}
-
 /** Brings the shelf in line with what the walk found, and says which books are
  *  worth opening -- and, for each, whether it is a record that moved. */
 export async function planScan(
 	db: Database,
 	shelfId: string,
+	root: string,
 	walked: ScannedFile[],
 ): Promise<Planned[]> {
 	const rows = await db.book.findMany({
 		where: { shelfId },
-		select: { id: true, path: true, size: true, missing: true },
+		select: { id: true, path: true, size: true, hash: true, missing: true },
 	});
 	const known = new Map(rows.map((row) => [fold.pathKey(row.path), row]));
 
@@ -88,27 +86,34 @@ export async function planScan(
 	}
 	await setMissing(db, found, [...gone]);
 
-	// The records whose file is not where it was, filed under what a moved
-	// file still shows from the outside: its name and its size.
+	// The records whose file is not where it was, filed under their contents.
 	const lost = new Map<string, string[]>();
+	const lostSizes = new Set<number>();
 	for (const book of known.values()) {
-		if (book.missing || gone.has(book.id)) {
-			const key = fileKey(book.path, Number(book.size));
-			const ids = lost.get(key);
-			if (ids) ids.push(book.id);
-			else lost.set(key, [book.id]);
-		}
+		if (!book.missing && !gone.has(book.id)) continue;
+		const ids = lost.get(book.hash);
+		if (ids) ids.push(book.id);
+		else lost.set(book.hash, [book.id]);
+		lostSizes.add(Number(book.size));
 	}
 
 	// One record is an answer; none or several is not. A record taken is out of
 	// the running, so two copies of a file cannot both land in it.
-	return queue.map((file) => {
-		const key = fileKey(file.path, file.size);
-		const ids = lost.get(key);
-		lost.delete(key);
-		if (ids?.length === 1 && ids[0]) return { file, id: ids[0], known: true };
-		return { file, id: createId(), known: false };
-	});
+	const planned: Planned[] = [];
+	for (const file of queue) {
+		// Only a file the size of a lost record can have its contents.
+		const hash = lostSizes.has(file.size)
+			? await hashFile(inside(root, file.path)).catch(() => undefined)
+			: undefined;
+		const ids = hash ? lost.get(hash) : undefined;
+		if (hash) lost.delete(hash);
+		planned.push(
+			ids?.length === 1 && ids[0]
+				? { file, id: ids[0], known: true, hash }
+				: { file, id: createId(), known: false, hash },
+		);
+	}
+	return planned;
 }
 
 /** The books the reader asked to have read again, as the record has them. */
@@ -188,7 +193,7 @@ export async function writeIngested(
 		const letGo: string[] = [];
 		let mayOrphanNames = false;
 
-		for (const { plan, parsed, coverFile } of batch) {
+		for (const { plan, parsed, coverFile, hash } of batch) {
 			const row = previous.get(plan.id);
 			const publisher = filled(parsed.publisher);
 			const series = filled(parsed.series);
@@ -214,6 +219,7 @@ export async function writeIngested(
 				layout: parsed.layout,
 				size: BigInt(plan.file.size),
 				mtime: BigInt(plan.file.mtime),
+				hash,
 				title: parsed.title,
 				titleKey: fold.sortKey(parsed.title),
 				subtitle: parsed.subtitle,
