@@ -19,7 +19,7 @@ import {
 	writeIngested,
 } from "./ingest";
 import type { OpenShelf } from "./shelf";
-import { statBook, walk } from "./walk";
+import { hashFile, statBook, walk } from "./walk";
 
 /** How many books are read at once. The reads are mostly waiting on the disk
  *  and on the image encoder, so a few more than the cores. */
@@ -72,7 +72,7 @@ export function scan(
 ): Promise<ScanReport> {
 	return running.run(shelf.id, async ({ signal }) => {
 		const walked = await walk(shelf.root);
-		const plan = await planScan(db, shelf.id, walked);
+		const plan = await planScan(db, shelf.id, shelf.root, walked);
 		return run(db, config, shelf, signal, plan, []);
 	});
 }
@@ -159,15 +159,16 @@ async function readPlanned(
 	shelf: OpenShelf,
 	planned: Planned,
 ): Promise<Ingested> {
-	const book = await readBook(
-		inside(shelf.root, planned.file.path),
-		planned.file.path,
-	);
+	const path = inside(shelf.root, planned.file.path);
+	const [book, hash] = await Promise.all([
+		readBook(path, planned.file.path),
+		planned.hash ?? failingAs("readBook", () => hashFile(path)),
+	]);
 	// A cover is a nicety: one that cannot be written leaves the book without.
 	const coverFile = book.cover
 		? await writeCover(config, planned.id, book.cover).catch(() => null)
 		: null;
-	return { plan: planned, parsed: book.parsed, coverFile };
+	return { plan: planned, parsed: book.parsed, coverFile, hash };
 }
 
 /** How far the run has got, told to the screen now and then rather than at

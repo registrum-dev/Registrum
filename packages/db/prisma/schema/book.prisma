@@ -11,6 +11,8 @@ model Book {
   size         BigInt        @default(0)
   /// Milliseconds since the epoch, or 0 when the file system would not say.
   mtime        BigInt        @default(0)
+  /// SHA-256 of the file's bytes, hex.
+  hash         String
   title        String
   titleKey     String        @default("") @map("title_key")
   subtitle     String?
