@@ -3,7 +3,7 @@
 
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-
+import { sendPositions } from "@/features/offline/pending-positions";
 import {
 	type ColumnSizing,
 	type ColumnVisibility,
@@ -32,6 +32,7 @@ import { t } from "@/i18n";
 import { api, trpc } from "@/lib/api";
 import { moveKey, preferences } from "@/lib/persist";
 import { queryClient } from "@/lib/query-client";
+import { isUnreachable } from "@/lib/reachability";
 import { reportFailure, showAlert } from "@/store/alert";
 
 const STORE_KEY = "shelf";
@@ -190,11 +191,16 @@ export const useShelfStore = create<ShelfState>()(
 						showAlert(t("error.noShelf"));
 						return;
 					}
+					// Before the shelf is asked for, so it shows where the reader got to
+					// while the server was away.
+					await sendPositions();
+					if (token !== attempt) return;
 					set({ opened: true });
 				} catch (error) {
 					if (token !== attempt) return;
 					set({ openFailed: true });
-					reportFailure(error, "loadShelf");
+					// The shelf says so itself, and offers what was saved here instead.
+					if (!isUnreachable(error)) reportFailure(error, "loadShelf");
 				} finally {
 					if (token === attempt) set({ busy: "idle" });
 				}
@@ -284,6 +290,12 @@ export const useShelfStore = create<ShelfState>()(
 		},
 	),
 );
+
+// A shelf that could not be opened is tried again once the network is back.
+window.addEventListener("online", () => {
+	const { openFailed, load } = useShelfStore.getState();
+	if (openFailed) void load();
+});
 
 /**
  * Makes whatever is running irrelevant, and tells the server to stop reading if

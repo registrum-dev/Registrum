@@ -5,6 +5,7 @@ import { Progress } from "@registrum/ui/components/progress";
 import { cn } from "@registrum/ui/lib/utils";
 import { BookOpenIcon, FileQuestionIcon, PencilIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { OfflineButton } from "@/features/offline/components/offline-button";
 import { BookCover, clothColor } from "@/features/shelf/components/book-cover";
 import {
 	FavoriteToggle,
@@ -139,6 +140,7 @@ export function BookDetailAside({
 					{t("detail.edit")}
 				</Button>
 				<div className="ml-auto flex items-center gap-1.5">
+					<OfflineButton book={book} />
 					{/* Pressed and written on the spot: not bibliography, so not the dialog. */}
 					<RatingPicker book={book} />
 					<FavoriteToggle

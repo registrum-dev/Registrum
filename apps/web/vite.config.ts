@@ -3,6 +3,7 @@ import { tanstackRouter } from "@tanstack/router-plugin/vite";
 import { varlockVitePlugin } from "@varlock/vite-integration";
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
+import { VitePWA } from "vite-plugin-pwa";
 import { pdfjs } from "./vite-plugin-pdfjs";
 
 /** Where the API server listens in development; the built app is served by it.
@@ -33,5 +34,50 @@ export default defineConfig({
 		}),
 		react(),
 		pdfjs(),
+		VitePWA({
+			registerType: "autoUpdate",
+			includeAssets: ["favicon.svg", "apple-touch-icon.png"],
+			manifest: {
+				name: "Registrum",
+				short_name: "Registrum",
+				start_url: "/",
+				display: "standalone",
+				background_color: "#edf0f4",
+				theme_color: "#edf0f4",
+				icons: [
+					{ src: "pwa-192x192.png", sizes: "192x192", type: "image/png" },
+					{ src: "pwa-512x512.png", sizes: "512x512", type: "image/png" },
+					{
+						src: "maskable-icon-512x512.png",
+						sizes: "512x512",
+						type: "image/png",
+						purpose: "maskable",
+					},
+				],
+			},
+			workbox: {
+				// The reader has to open offline, PDFs included, so foliate-js and
+				// pdf.js are kept whole rather than as they are first asked for.
+				globPatterns: [
+					"**/*.{js,mjs,css,html,svg,png,woff2}",
+					"foliate-js/vendor/pdfjs/{cmaps,standard_fonts}/*",
+				],
+				maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
+				navigateFallback: "/index.html",
+				navigateFallbackDenylist: [/^\/api\//, /^\/trpc\//],
+				runtimeCaching: [
+					{
+						// A cover's URL changes with its scan, so what is kept is never stale.
+						urlPattern: ({ url }) => url.pathname.startsWith("/api/covers/"),
+						handler: "CacheFirst",
+						options: {
+							cacheName: "covers",
+							cacheableResponse: { statuses: [200] },
+							expiration: { maxEntries: 2000 },
+						},
+					},
+				],
+			},
+		}),
 	],
 });

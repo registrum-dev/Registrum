@@ -10,6 +10,7 @@ A self-hosted multilingual web book reader. Reads EPUB, PDF, CBZ and ZIP, in hor
 - **Scanning** — books are imported only when you press Scan. Metadata and covers are read from the files.
 - **Reader** — powered by [foliate-js](https://github.com/johnfactotum/foliate-js): vertical/RTL text, ruby, two-page spreads, scrolling, adjustable font, margins and themes.
 - **Progress sync** — saved on close, on tab switch, and every 60 seconds.
+- **Offline reading** — install it as an app and save books on the device to read them without the server; the reading position is sent once it answers again. Needs HTTPS or `localhost`.
 - **Search & filters** — width- and kana-insensitive search; filter by status, series, author, tags, rating, format and more.
 - **Editing** — edit metadata per book or in bulk, merge authors and series, extract metadata from file paths with rules.
 - **AI (optional)** — with any OpenAI-compatible endpoint, generate summaries, character lists and relationship maps, or ask questions about chapters (EPUB only).

@@ -2,6 +2,7 @@
 
 import { MutationCache, QueryCache, QueryClient } from "@tanstack/react-query";
 
+import { isUnreachable } from "@/lib/reachability";
 import { asFailure, reportFailure, type Wording } from "@/store/alert";
 
 declare module "@tanstack/react-query" {
@@ -20,7 +21,8 @@ export const queryClient = new QueryClient({
 	queryCache: new QueryCache({
 		onError: (error, query) => {
 			const attempt = query.meta?.failure;
-			if (attempt) reportFailure(error, attempt);
+			// Without a server, the shelf shows what was saved here instead.
+			if (attempt && !isUnreachable(error)) reportFailure(error, attempt);
 		},
 	}),
 	mutationCache: new MutationCache({
