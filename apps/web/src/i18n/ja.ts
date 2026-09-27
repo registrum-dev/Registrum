@@ -656,6 +656,24 @@ export const ja = {
 		language: "言語",
 	},
 
+	offline: {
+		save: "オフラインで読めるよう端末に保存",
+		saving: "保存しています… {{percent}}%（押すと中止）",
+		savedHere: "この端末に保存済み",
+		update: "ファイルが変わりました。保存し直す",
+		saved: "「{{title}}」をこの端末に保存しました。",
+		saveFailed: "本を保存できませんでした: {{message}}",
+		remove: "削除",
+		removeTitle: "「{{title}}」をこの端末から削除しますか？",
+		removeDescription:
+			"オフライン用に保存したコピーを削除します。本棚の本はそのまま残ります。",
+		removeFailed: "保存したコピーを削除できませんでした: {{message}}",
+		notSaved: "サーバーに接続できず、この本はこの端末に保存されていません。",
+		shelfDescription:
+			"サーバーに接続できません。この端末に保存した本は読めます。",
+		retry: "再接続",
+	},
+
 	session: {
 		heading: "サインイン",
 		signInPrompt: "サーバーに設定したパスワードを入れてください。",

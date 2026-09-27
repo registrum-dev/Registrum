@@ -8,6 +8,7 @@ import { useTranslation } from "react-i18next";
 import { Presence } from "@/components/presence";
 import { useAiConfigured } from "@/features/ai/queries";
 import { hasBookText } from "@/features/ai/types";
+import { useKeepSavedRecord, useSavedBook } from "@/features/offline/queries";
 import { AiPanel } from "@/features/reader/components/ai-panel";
 import { BookPanel } from "@/features/reader/components/book-panel";
 import { ChromeBar } from "@/features/reader/components/chrome-bar";
@@ -46,17 +47,29 @@ export function ReaderPage({ id, file, from }: ReaderSearch) {
 	const settings = useReaderSettings((state) => state.settings);
 	const shelfId = useShelfStore((state) => state.shelfId);
 	const hydrated = useShelfStore((state) => state.hydrated);
+	const openFailed = useShelfStore((state) => state.openFailed);
 
 	// Asked of the shelf, not taken off the list on screen: a filter can be hiding it.
 	const lookup = useBook(id);
-	const book = lookup.data ?? undefined;
+	// Without the server, the record saved with the book stands in for it.
+	const saved = useSavedBook(id);
+	const offline = openFailed || lookup.isError;
+	const book = (offline ? saved.data?.record : lookup.data) ?? undefined;
 	/** Until the shelf has answered, "no book yet" is not "no such book". */
-	const looking = Boolean(id) && lookup.isPending;
+	const looking = Boolean(id) && (offline ? saved.isLoading : lookup.isPending);
+	useKeepSavedRecord(lookup.data, shelfId);
 
 	const bookId = book?.id ?? null;
-	/** A book on the shelf, fetched from the server. */
+	/** A book on the shelf, from this browser's copy or else the server. */
 	const shelved =
-		book && shelfId ? { id: book.id, name: baseName(book.path) } : null;
+		book && shelfId
+			? {
+					id: book.id,
+					name: baseName(book.path),
+					size: book.size,
+					mtime: book.mtime,
+				}
+			: null;
 	/** A file handed to the browser, which is what is opened when no book is. */
 	const handed = shelved ? null : (file ?? null);
 	/** What the title falls back to before the book has said its own. */
@@ -95,10 +108,11 @@ export function ReaderPage({ id, file, from }: ReaderSearch) {
 	// unknown.
 	useEffect(() => {
 		if (opening || (id && (!hydrated || looking))) return;
-		if (id) showAlert(translate("reader.notOnShelf"));
+		if (id)
+			showAlert(translate(offline ? "offline.notSaved" : "reader.notOnShelf"));
 		else if (file) showAlert(translate("reader.fileGone"));
 		void navigate({ to: "/", replace: true });
-	}, [opening, hydrated, looking, id, file, navigate]);
+	}, [opening, hydrated, looking, offline, id, file, navigate]);
 
 	// A file on its way is a book to wait for.
 	const [wasOpening, setWasOpening] = useState(opening);

@@ -1,9 +1,14 @@
 // What the reader writes to the shelf as a book is read.
 
+import {
+	dropPosition,
+	keepPosition,
+} from "@/features/offline/pending-positions";
 import { markShelfStale } from "@/features/shelf/cache";
 import { useShelfStore } from "@/features/shelf/store";
 import type { PositionInput } from "@/features/shelf/types";
 import { api } from "@/lib/api";
+import { isUnreachable } from "@/lib/reachability";
 import { reportFailure } from "@/store/alert";
 
 export async function markOpened(id: string): Promise<void> {
@@ -12,16 +17,19 @@ export async function markOpened(id: string): Promise<void> {
 		await write(shelfId, () => api.book.markOpened.mutate({ shelfId, id }));
 }
 
-/** The timestamp is the shelf's to write, so it is not asked for here. */
+/** The timestamp is the shelf's to write, so it is not asked for here. Kept
+ *  in this browser too, until the server is known to have it. */
 export async function savePosition(
 	id: string,
 	position: PositionInput,
 ): Promise<void> {
 	const { shelfId } = useShelfStore.getState();
-	if (shelfId)
-		await write(shelfId, () =>
-			api.book.setPosition.mutate({ shelfId, id, position }),
-		);
+	if (!shelfId) return;
+	const kept = keepPosition(shelfId, id, position);
+	await write(shelfId, async () => {
+		await api.book.setPosition.mutate({ shelfId, id, position });
+		dropPosition(id, kept);
+	});
 }
 
 /**
@@ -34,6 +42,9 @@ export function savePositionOnLeaving(
 ): void {
 	const { shelfId } = useShelfStore.getState();
 	if (!shelfId) return;
+	// Whether this lands is never heard, so it stays kept until the next
+	// `sendPositions` sees the server has it.
+	keepPosition(shelfId, id, position);
 	void fetch("/trpc/book.setPosition", {
 		method: "POST",
 		keepalive: true,
@@ -52,6 +63,8 @@ async function write(
 		await run();
 		markShelfStale(shelfId);
 	} catch (error) {
+		// Without the server, the position waits in this browser.
+		if (isUnreachable(error)) return;
 		console.warn("Could not write to the shelf.", error);
 		reportFailure(error, "save");
 	}

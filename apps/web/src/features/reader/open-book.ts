@@ -1,5 +1,6 @@
 // Handing a book file to foliate-js.
 
+import { savedCopy } from "@/features/offline/storage";
 import { type ComicBook, openComic } from "@/features/reader/comic-book";
 import type { FoliateBook } from "@/features/reader/foliate";
 import { BOOK_FORMATS, isComicFormat } from "@/features/shelf/types";
@@ -48,11 +49,24 @@ export function sourceFromFile(file: File): BookSource {
 	return { kind: "bytes", name: file.name, bytes: typed(file, file.name) };
 }
 
-/** A book on a shelf: the archive on the server for a comic, the bytes here otherwise. */
-export async function sourceFromShelf(
-	id: string,
-	name: string,
-): Promise<BookSource> {
+/** A book on a shelf, and which version of its file the shelf holds. */
+export interface ShelvedBook {
+	id: string;
+	name: string;
+	size: number;
+	mtime: number;
+}
+
+/** A book on a shelf: the copy saved in this browser when there is a current
+ *  one, else the archive on the server for a comic and the bytes otherwise. */
+export async function sourceFromShelf({
+	id,
+	name,
+	size,
+	mtime,
+}: ShelvedBook): Promise<BookSource> {
+	const saved = await savedCopy(id, { size, mtime });
+	if (saved) return { kind: "bytes", name, bytes: typed(saved, name) };
 	if (isComicFormat(extensionOf(name))) {
 		return { kind: "comic", name, comic: await openComic(id) };
 	}

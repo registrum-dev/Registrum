@@ -45,7 +45,8 @@ export function pdfjs(): Plugin {
 	return {
 		name: "registrum:pdfjs",
 		configResolved(config) {
-			// Vite also closes the bundle when the dev server stops.
+			// Copied on `writeBundle`, before vite-plugin-pwa lists the build for
+			// its precache on `closeBundle`.
 			if (config.command === "build") {
 				outDir = path.resolve(config.root, config.build.outDir);
 			}
@@ -66,7 +67,7 @@ export function pdfjs(): Plugin {
 				createReadStream(file).pipe(res);
 			});
 		},
-		async closeBundle() {
+		async writeBundle() {
 			if (!outDir) return;
 			const dest = path.join(outDir, BASE);
 			for (const [from, to] of Object.entries(FILES)) {

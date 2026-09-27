@@ -6,13 +6,11 @@ import { useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Presence } from "@/components/presence";
+import { OfflineShelf } from "@/features/offline/components/offline-shelf";
 import { BookPager } from "@/features/shelf/components/book-pager";
 import { BookTable } from "@/features/shelf/components/book-table";
 import { ScreenFrame } from "@/features/shelf/components/screen-frame";
-import {
-	ShelfEmpty,
-	ShelfUnopened,
-} from "@/features/shelf/components/shelf-empty";
+import { ShelfEmpty } from "@/features/shelf/components/shelf-empty";
 import { ShelfGrid } from "@/features/shelf/components/shelf-grid";
 import { ShelfSetup } from "@/features/shelf/components/shelf-setup";
 import { ShelfToolbar } from "@/features/shelf/components/shelf-toolbar";
@@ -24,6 +22,7 @@ import { useFacets, useShelfBooks } from "@/features/shelf/queries";
 import { useShelfStore } from "@/features/shelf/store";
 import { type BookRecord, NO_BOOKS } from "@/features/shelf/types";
 import { useWindowTitle } from "@/hooks/use-window-title";
+import { isUnreachable } from "@/lib/reachability";
 
 /** The shelf's frame in either view: the books, then the pager under them. */
 const FACE =
@@ -58,6 +57,8 @@ export function ShelfPage() {
 
 	const shelf = useShelfBooks();
 	const books = shelf.data?.books ?? NO_BOOKS;
+	/** The server is not there: what was saved in this browser is shown instead. */
+	const offline = openFailed || (shelf.isError && isUnreachable(shelf.error));
 	/** Everything the conditions let through, of which the shelf is one page. */
 	const total = shelf.data?.total ?? 0;
 	const last = lastPage(total, pageSize);
@@ -107,14 +108,12 @@ export function ShelfPage() {
 
 			<ScrollArea viewportRef={viewport} className="min-h-0 flex-1">
 				{/* Nothing yet is not "no books". */}
-				{shelf.isPending ? (
-					openFailed ? (
-						<ShelfUnopened onRetry={() => void load()} />
-					) : (
-						<div className="flex h-full min-h-100 items-center justify-center">
-							<Spinner aria-label={t("common.loading")} />
-						</div>
-					)
+				{offline ? (
+					<OfflineShelf className={FACE} onRetry={() => void load()} />
+				) : shelf.isPending ? (
+					<div className="flex h-full min-h-100 items-center justify-center">
+						<Spinner aria-label={t("common.loading")} />
+					</div>
 				) : (
 					<div className="h-full">
 						{/* Only the leaving side animates. */}

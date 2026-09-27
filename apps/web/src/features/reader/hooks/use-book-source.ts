@@ -5,14 +5,15 @@ import { closeComic } from "@/features/reader/comic-book";
 import { heldFile } from "@/features/reader/local-files";
 import {
 	type BookSource,
+	type ShelvedBook,
 	sourceFromFile,
 	sourceFromShelf,
 } from "@/features/reader/open-book";
 import { t } from "@/i18n";
 
 interface BookSourceProps {
-	/** A book on a shelf, and the name of its file. */
-	book: { id: string; name: string } | null;
+	/** A book on a shelf, the name of its file, and which version of it. */
+	book: ShelvedBook | null;
 	/** A file the reader handed to the browser, by the token its URL carries. */
 	file: string | null;
 }
@@ -33,6 +34,8 @@ export function useBookSource({ book, file }: BookSourceProps): OpenedBook {
 	const [failed, setFailed] = useState<unknown>(null);
 	const bookId = book?.id ?? null;
 	const bookName = book?.name ?? null;
+	const size = book?.size ?? 0;
+	const mtime = book?.mtime ?? 0;
 
 	useEffect(() => {
 		if (!bookId && !file) return;
@@ -41,7 +44,9 @@ export function useBookSource({ book, file }: BookSourceProps): OpenedBook {
 		let openedComic: string | null = null;
 
 		const opening = (async (): Promise<BookSource> => {
-			if (bookId && bookName) return sourceFromShelf(bookId, bookName);
+			if (bookId && bookName) {
+				return sourceFromShelf({ id: bookId, name: bookName, size, mtime });
+			}
 			const held = file ? heldFile(file) : undefined;
 			if (!held) throw new Error(t("reader.fileGone"));
 			return sourceFromFile(held);
@@ -64,7 +69,7 @@ export function useBookSource({ book, file }: BookSourceProps): OpenedBook {
 			cancelled = true;
 			if (openedComic) void closeComic(openedComic);
 		};
-	}, [bookId, bookName, file]);
+	}, [bookId, bookName, size, mtime, file]);
 
 	return { source, failed };
 }

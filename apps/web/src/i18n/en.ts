@@ -701,6 +701,25 @@ export const en = {
 		language: "Language",
 	},
 
+	offline: {
+		save: "Save on this device to read offline",
+		saving: "Saving… {{percent}}% (press to stop)",
+		savedHere: "Saved on this device",
+		update: "The file has changed. Save it again",
+		saved: "“{{title}}” is saved on this device.",
+		saveFailed: "Could not save the book: {{message}}",
+		remove: "Remove",
+		removeTitle: "Remove “{{title}}” from this device?",
+		removeDescription:
+			"The copy saved for offline reading is deleted. The book stays on the shelf.",
+		removeFailed: "Could not remove the saved copy: {{message}}",
+		notSaved:
+			"The server is not answering, and this book is not saved on this device.",
+		shelfDescription:
+			"The server is not answering. Books saved on this device can still be read.",
+		retry: "Try again",
+	},
+
 	session: {
 		heading: "Sign-in",
 		signInPrompt: "Enter the password set on the server.",
