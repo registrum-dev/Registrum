@@ -38,6 +38,63 @@ export function useRenameFacet() {
 	});
 }
 
+/** Puts a name on the shelf before any book carries it. */
+export function useAddFacet() {
+	const { shelfId } = useShelfId();
+
+	return useMutation({
+		mutationFn: (added: { kind: FacetKind; name: string }) =>
+			api.book.addFacet.mutate({ shelfId, ...added }),
+		onSuccess: () => invalidateShelf(shelfId),
+		meta: { failure: "save" },
+	});
+}
+
+/** Takes a name off every book carrying it, and off the shelf. */
+export function useRemoveFacet() {
+	const { shelfId } = useShelfId();
+
+	return useMutation({
+		mutationFn: (removed: { kind: FacetKind; name: string }) =>
+			api.book.removeFacet.mutate({ shelfId, ...removed }),
+		onSuccess: (_done, removed) => {
+			// A filter still asking for it would come back empty.
+			const { filter, setFilter } = useShelfStore.getState();
+			const asked = filter[removed.kind] ?? [];
+			if (asked.includes(removed.name)) {
+				setFilter({
+					[removed.kind]: asked.filter((name) => name !== removed.name),
+				} as BookFilter);
+			}
+			return invalidateShelf(shelfId);
+		},
+		meta: { failure: "save" },
+	});
+}
+
+/** Takes every name of one kind that no book carries off the shelf. */
+export function useRemoveUnused() {
+	const { shelfId } = useShelfId();
+
+	return useMutation({
+		mutationFn: (kind: FacetKind) =>
+			api.book.removeUnused.mutate({ shelfId, kind }),
+		onSuccess: (removed, kind) => {
+			// A filter still asking for one of them would come back empty.
+			const { filter, setFilter } = useShelfStore.getState();
+			const asked = filter[kind] ?? [];
+			const gone = new Set(removed);
+			if (asked.some((name) => gone.has(name))) {
+				setFilter({
+					[kind]: asked.filter((name) => !gone.has(name)),
+				} as BookFilter);
+			}
+			return invalidateShelf(shelfId);
+		},
+		meta: { failure: "save" },
+	});
+}
+
 /** One change, to one book or to a hundred, in a single transaction. */
 export interface Edit {
 	ids: string[];

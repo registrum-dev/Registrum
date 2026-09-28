@@ -15,7 +15,6 @@ import {
 	type Planned,
 	planRescan,
 	planScan,
-	removeOrphanNames,
 	writeIngested,
 } from "./ingest";
 import type { OpenShelf } from "./shelf";
@@ -116,7 +115,6 @@ async function run(
 	const reporter = new ProgressReporter(shelf.id, plan.length);
 	reporter.report();
 
-	let swept = false;
 	for (let at = 0; at < plan.length && !stopped.aborted; at += BATCH_BOOKS) {
 		const batch = plan.slice(at, at + BATCH_BOOKS);
 		const ingested: Ingested[] = [];
@@ -143,12 +141,9 @@ async function run(
 		await Promise.all(
 			Array.from({ length: Math.min(LANES, batch.length) }, lane),
 		);
-		swept =
-			(await failingAs("db", () => writeIngested(db, shelf.id, ingested))) ||
-			swept;
+		await failingAs("db", () => writeIngested(db, shelf.id, ingested));
 	}
 
-	if (swept) await removeOrphanNames(db, shelf.id);
 	return { failed };
 }
 

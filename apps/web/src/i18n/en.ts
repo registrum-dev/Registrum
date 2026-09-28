@@ -55,6 +55,7 @@ export const en = {
 		save: "Could not save: {{message}}",
 		emptyName: "A name cannot be empty.",
 		noName: "The shelf no longer has that name.",
+		nameTaken: "That name is already there.",
 		badId: "Not usable as a book id: {{message}}",
 		badPath: "Not usable as a book's location: {{message}}",
 		badPattern: "Not a regular expression: {{message}}",
@@ -548,7 +549,41 @@ export const en = {
 		merged: "“{{from}}” was joined into “{{to}}”.",
 		books: "Books under this name",
 		goneTitle: "This name is gone",
-		gone: "No book carries it any more, or it has been given another name.",
+		gone: "It has been removed, or given another name.",
+		noBooks: "No book carries this name yet.",
+	},
+
+	names: {
+		title: "Names",
+		open: "Manage authors, tags and more",
+		note: "Add, rename and remove authors, series, publishers, collections and tags in one list.",
+		kind: "Kind",
+		search: "Find or add a name",
+		add: "Add",
+		added: "“{{name}}” was added.",
+		unused: "Unused",
+		rename: "Rename “{{name}}”",
+		remove: "Remove “{{name}}”",
+		removeTitle: "Remove “{{name}}”?",
+		removeDescription_one:
+			"The name comes off {{count}} book and off the shelf. The book itself stays.",
+		removeDescription_other:
+			"The name comes off {{count}} books and off the shelf. The books themselves stay.",
+		removeUnused: "No book carries this name. It comes off the shelf.",
+		removed: "“{{name}}” was removed.",
+		unusedCount_one: "{{count}} unused",
+		unusedCount_other: "{{count}} unused",
+		removeUnusedAll: "Remove all unused",
+		removeUnusedTitle_one: "Remove {{count}} unused name ({{kind}})?",
+		removeUnusedTitle_other: "Remove {{count}} unused names ({{kind}})?",
+		removeUnusedDescription:
+			"The names no book carries come off the shelf. No book is changed.",
+		unusedRemoved_one: "{{count}} unused name was removed.",
+		unusedRemoved_other: "{{count}} unused names were removed.",
+		empty: "Nothing here yet",
+		emptyHint: "Type a name above to add one.",
+		noMatch: "No name matches",
+		noMatchHint: "You can add “{{name}}”.",
 	},
 
 	detail: {
@@ -706,6 +741,7 @@ export const en = {
 		noFolder: "None chosen yet",
 		leaveFolder: "Back to the first screen",
 		language: "Language",
+		names: "Names",
 	},
 
 	offline: {

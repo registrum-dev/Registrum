@@ -16,7 +16,6 @@ import {
 	fieldIds,
 	filled,
 	type NameList,
-	removeOrphans,
 	uniqueNames,
 	unlinkNames,
 } from "./names";
@@ -62,18 +61,6 @@ function touchesSearchText(patch: BookPatch): boolean {
 	);
 }
 
-/** A name can only have been left with nobody carrying it by a list or a field
- *  being replaced. A patch that moved a rating has orphaned nothing. */
-function movesNames(patch: BookPatch): boolean {
-	return (
-		patch.authors != null ||
-		patch.collections != null ||
-		patch.tags != null ||
-		patch.publisher !== undefined ||
-		patch.series !== undefined
-	);
-}
-
 function listOf(patch: BookPatch, kind: NameList): string[] | null {
 	switch (kind) {
 		case "author":
@@ -109,8 +96,6 @@ export async function updateEach(
 	await transaction(db, async (tx) => {
 		for (const batch of chunks(edits, BATCH))
 			await writeBatch(tx, shelfId, batch);
-		if (edits.some(([, patch]) => movesNames(patch)))
-			await removeOrphans(tx, shelfId);
 	});
 }
 

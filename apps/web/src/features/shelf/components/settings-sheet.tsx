@@ -5,7 +5,7 @@ import { Spinner } from "@registrum/ui/components/spinner";
 import { cn } from "@registrum/ui/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
-import { HouseIcon, LogOutIcon, RefreshCwIcon } from "lucide-react";
+import { HouseIcon, LogOutIcon, RefreshCwIcon, TagsIcon } from "lucide-react";
 import { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { LanguagePicker } from "@/components/language-picker";
@@ -66,7 +66,7 @@ export function SettingsSheet({
 	);
 }
 
-/** Six sections, read top to bottom. */
+/** Seven sections, read top to bottom. */
 function SettingsSections({ className }: { className?: string }) {
 	const { t } = useTranslation();
 	const navigate = useNavigate();
@@ -154,6 +154,23 @@ function SettingsSections({ className }: { className?: string }) {
 
 			<Section title={t("shelf.heading")}>
 				<ShelfSettings />
+			</Section>
+
+			<Section title={t("settings.names")}>
+				<div className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-xl border border-border bg-card px-4 py-3.5">
+					<p className="min-w-0 flex-1 text-muted-foreground text-xs leading-relaxed">
+						{t("names.note")}
+					</p>
+					<Button
+						variant="outline"
+						disabled={!shelfId}
+						onClick={() => void navigate({ to: "/names" })}
+						className="gap-2"
+					>
+						<TagsIcon />
+						{t("names.open")}
+					</Button>
+				</div>
 			</Section>
 
 			<Section title={t("settings.language")}>

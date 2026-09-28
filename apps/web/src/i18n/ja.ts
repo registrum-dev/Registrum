@@ -39,6 +39,7 @@ export const ja = {
 		save: "保存できませんでした: {{message}}",
 		emptyName: "名前を空にはできません。",
 		noName: "その名前は本棚にありません。",
+		nameTaken: "その名前はもうあります。",
 		badId: "本の ID として使えない文字列です: {{message}}",
 		badPath: "本の場所として使えない文字列です: {{message}}",
 		badPattern: "正規表現として読めません: {{message}}",
@@ -507,7 +508,36 @@ export const ja = {
 		merged: "「{{from}}」を「{{to}}」にまとめました。",
 		books: "この名前の本",
 		goneTitle: "この名前はもうありません",
-		gone: "この名前の本が 1 冊も無くなったか、別の名前に変わったのかもしれません。",
+		gone: "この名前は削除されたか、別の名前に変わったのかもしれません。",
+		noBooks: "この名前の本はまだありません。",
+	},
+
+	names: {
+		title: "名前の管理",
+		open: "著者・タグなどを管理",
+		note: "著者・シリーズ・出版社・コレクション・タグを一覧で追加・名前変更・削除できます。",
+		kind: "種類",
+		search: "探す・追加する名前",
+		add: "追加",
+		added: "「{{name}}」を追加しました。",
+		unused: "未使用",
+		rename: "「{{name}}」の名前を変更",
+		remove: "「{{name}}」を削除",
+		removeTitle: "「{{name}}」を削除しますか？",
+		removeDescription_other:
+			"{{count}} 冊の本からこの名前を外し、本棚から消します。本そのものは残ります。",
+		removeUnused: "どの本にも付いていない名前です。本棚から消します。",
+		removed: "「{{name}}」を削除しました。",
+		unusedCount_other: "未使用 {{count}} 件",
+		removeUnusedAll: "未使用をすべて削除",
+		removeUnusedTitle_other: "未使用の{{kind}} {{count}} 件を削除しますか？",
+		removeUnusedDescription:
+			"どの本にも付いていない名前を本棚から消します。本には影響しません。",
+		unusedRemoved_other: "未使用の名前を {{count}} 件削除しました。",
+		empty: "まだありません",
+		emptyHint: "上の欄に名前を入れて追加できます。",
+		noMatch: "一致する名前はありません",
+		noMatchHint: "「{{name}}」を追加できます。",
 	},
 
 	detail: {
@@ -660,6 +690,7 @@ export const ja = {
 		noFolder: "まだ選ばれていません",
 		leaveFolder: "最初の画面に戻る",
 		language: "言語",
+		names: "名前",
 	},
 
 	offline: {

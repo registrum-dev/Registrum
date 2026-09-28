@@ -15,15 +15,11 @@ import {
 	SheetHeader,
 	SheetLoading,
 } from "@/features/shelf/components/sheet-parts";
-import {
-	type BookFilter,
-	NO_CONDITIONS,
-	namesOf,
-} from "@/features/shelf/filter";
+import { type BookFilter, NO_CONDITIONS } from "@/features/shelf/filter";
 import { useRetainedValue } from "@/features/shelf/hooks/use-retained-value";
 import { nameKindLabel } from "@/features/shelf/labels";
 import { bookLink, readLink } from "@/features/shelf/links";
-import { useFacetBooks, useFacets } from "@/features/shelf/queries";
+import { useFacetBooks, useNames } from "@/features/shelf/queries";
 import { useShelfStore } from "@/features/shelf/store";
 import { type FacetKind, NO_BOOKS } from "@/features/shelf/types";
 import { useWindowTitle } from "@/hooks/use-window-title";
@@ -83,12 +79,13 @@ function NameDetail({
 	const shelfId = useShelfStore((state) => state.shelfId);
 	const hydrated = useShelfStore((state) => state.hydrated);
 	const setFilter = useShelfStore((state) => state.setFilter);
-	const facets = useFacets();
 
 	// The hooks are asked for whatever the address says; an address that names no
 	// name asks for nothing, and the sheet below says so.
 	const found = useFacetBooks(kind ?? "author", name ?? "");
 	const books = found.data ?? NO_BOOKS;
+	const listed = useNames(kind ?? "author");
+	const held = listed.data ?? [];
 
 	useWindowTitle(name ? `${name} — ${t("app.name")}` : t("app.name"));
 
@@ -103,9 +100,15 @@ function NameDetail({
 		return <SheetLoading />;
 	}
 
-	// A name exists because a book carries it, so a name with no books is a name
-	// the shelf no longer has -- renamed in another window, or edited away.
-	if (!kind || !name || (!found.isPending && books.length === 0)) {
+	// A name stays until it is removed or renamed, whether or not a book
+	// carries it.
+	if (
+		!kind ||
+		!name ||
+		(listed.isSuccess &&
+			!listed.isPlaceholderData &&
+			!held.some((entry) => entry.name === name))
+	) {
 		return (
 			<ScreenEmpty
 				className="w-full"
@@ -120,7 +123,6 @@ function NameDetail({
 		);
 	}
 
-	const held = namesOf(facets, kind);
 	// Every other name of this kind: typing one of them is a merge, and the field
 	// has to say so before the write rather than after it.
 	const taken = held
@@ -175,6 +177,10 @@ function NameDetail({
 							<div className="flex min-h-40 items-center justify-center">
 								<Spinner aria-label={t("common.loading")} />
 							</div>
+						) : books.length === 0 ? (
+							<p className="text-muted-foreground text-sm">
+								{t("facet.noBooks")}
+							</p>
 						) : (
 							<div className="grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] phone:grid-cols-[repeat(auto-fill,minmax(126px,1fr))] gap-x-5 phone:gap-x-3 gap-y-4 phone:gap-y-3">
 								{books.map((book, index) => (

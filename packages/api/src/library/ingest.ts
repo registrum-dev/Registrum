@@ -8,14 +8,7 @@ import { inside } from "../lib/paths";
 import { now } from "../lib/time";
 import type { ParsedBook } from "../parse";
 import { searchText } from "./book";
-import {
-	addLists,
-	fieldIds,
-	filled,
-	removeOrphans,
-	uniqueNames,
-	unlinkNames,
-} from "./names";
+import { addLists, fieldIds, filled, uniqueNames, unlinkNames } from "./names";
 import {
 	BATCH,
 	type BookRecord,
@@ -154,16 +147,15 @@ async function setMissing(
 
 /**
  * Writes a batch of books that have just been read, in one transaction: the
- * names first, then the rows, then the lists. Answers whether any record let go
- * of a name, which is the caller's cue to remove orphans once the run is over.
+ * names first, then the rows, then the lists.
  */
 export async function writeIngested(
 	db: Database,
 	shelfId: string,
 	batch: readonly Ingested[],
-): Promise<boolean> {
-	if (batch.length === 0) return false;
-	return transaction(db, async (tx) => {
+): Promise<void> {
+	if (batch.length === 0) return;
+	await transaction(db, async (tx) => {
 		const scannedAt = now();
 
 		// The records being read again, as they stand. A record a scan adopted
@@ -191,7 +183,6 @@ export async function writeIngested(
 
 		const authorsOf: [string, string[]][] = [];
 		const letGo: string[] = [];
-		let mayOrphanNames = false;
 
 		for (const { plan, parsed, coverFile, hash } of batch) {
 			const row = previous.get(plan.id);
@@ -199,15 +190,9 @@ export async function writeIngested(
 			const series = filled(parsed.series);
 			const authors = uniqueNames(parsed.authors);
 
-			// A book the shelf is seeing for the first time has let go of no
-			// name, so nothing can be orphaned by it.
 			const authorsMoved =
 				!row || authors.join("\u0000") !== row.authors.join("\u0000");
-			if (row) {
-				mayOrphanNames ||=
-					authorsMoved || row.publisher !== publisher || row.series !== series;
-				if (authorsMoved) letGo.push(plan.id);
-			}
+			if (row && authorsMoved) letGo.push(plan.id);
 			if (authorsMoved) authorsOf.push([plan.id, parsed.authors]);
 
 			// Every field the file speaks for is written, so a record read again is
@@ -258,15 +243,5 @@ export async function writeIngested(
 
 		await unlinkNames(tx, "author", letGo);
 		await addLists(tx, shelfId, "author", authorsOf);
-		return mayOrphanNames;
 	});
-}
-
-/** Removes the names no book carries any more. Once per run rather than per
- *  batch: it reads five whole tables. */
-export async function removeOrphanNames(
-	db: Database,
-	shelfId: string,
-): Promise<void> {
-	await transaction(db, (tx) => removeOrphans(tx, shelfId));
 }

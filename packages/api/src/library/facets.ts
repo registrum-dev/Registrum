@@ -9,8 +9,10 @@ import {
 	type BookCategory,
 	type BookFormat,
 	type BookStatus,
+	type FacetKind,
 	NONE,
 } from "../vocabulary";
+import { nameTable } from "./names";
 import { STATUS_WHERE } from "./record";
 
 export interface FacetEntry {
@@ -75,6 +77,29 @@ function counted(
 				nameKey: row.nameKey,
 				count: row._count.books,
 			})),
+	).map(({ name, count }) => ({ name, count }));
+}
+
+/** Every name of one kind the shelf holds, the ones no book carries included. */
+export async function names(
+	db: Client,
+	shelfId: string,
+	kind: FacetKind,
+): Promise<FacetEntry[]> {
+	const rows = await nameTable(db, kind).findMany<{
+		name: string;
+		nameKey: string;
+		_count: { books: number };
+	}>({
+		where: { shelfId },
+		select: { name: true, nameKey: true, _count: { select: { books: true } } },
+	});
+	return byUse(
+		rows.map((row) => ({
+			name: row.name,
+			nameKey: row.nameKey,
+			count: row._count.books,
+		})),
 	).map(({ name, count }) => ({ name, count }));
 }
 

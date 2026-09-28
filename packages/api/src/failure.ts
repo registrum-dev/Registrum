@@ -11,6 +11,7 @@ export const FAILURE_CODES = [
 	"save",
 	"emptyName",
 	"noName",
+	"nameTaken",
 	"badId",
 	"badPath",
 	"badPattern",
