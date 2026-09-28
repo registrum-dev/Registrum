@@ -8,8 +8,10 @@ import {
 	type FacetAddress,
 	FacetSheet,
 } from "@/features/shelf/components/facet-sheet";
+import { NamesSheet } from "@/features/shelf/components/names-sheet";
 import { SettingsSheet } from "@/features/shelf/components/settings-sheet";
 import { ShelfPage } from "@/features/shelf/components/shelf-page";
+import type { FacetKind } from "@/features/shelf/types";
 import { aboveStyle, useShelfAbove } from "@/lib/sheet-stack";
 
 /**
@@ -22,6 +24,7 @@ export function ShelfStack({
 	bookId,
 	facet,
 	settings,
+	names,
 	rule,
 	covered,
 	children,
@@ -33,6 +36,8 @@ export function ShelfStack({
 	facet: FacetAddress | undefined;
 	/** Whether the settings sheet is up. */
 	settings: boolean;
+	/** The kind of name the list is showing, when it is up. */
+	names: { kind?: FacetKind } | undefined;
 	/** Whether the path rule is up. */
 	rule: boolean;
 	/** A screen fills the window over the shelf. */
@@ -50,7 +55,14 @@ export function ShelfStack({
 	return (
 		<div className="relative isolate h-full w-full overflow-hidden bg-black">
 			<div
-				inert={book || Boolean(facet) || settings || rule || covered}
+				inert={
+					book ||
+					Boolean(facet) ||
+					settings ||
+					Boolean(names) ||
+					rule ||
+					covered
+				}
 				style={aboveStyle(above)}
 				className={cn(
 					"h-full w-full overflow-hidden bg-background",
@@ -70,6 +82,11 @@ export function ShelfStack({
 					appear={arrived.current}
 				/>
 				<SettingsSheet open={settings} appear={arrived.current} />
+				<NamesSheet
+					open={Boolean(names)}
+					kind={names?.kind}
+					appear={arrived.current}
+				/>
 				<RuleSheet open={rule} appear={arrived.current} />
 			</div>
 

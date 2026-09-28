@@ -3,7 +3,7 @@ import { z } from "zod";
 import { dbProcedure, publicProcedure, router } from "../index";
 import { findBook, removeBooks } from "../library/book";
 import { removeCovers } from "../library/covers";
-import { facets } from "../library/facets";
+import { facets, names } from "../library/facets";
 import { closeComic, openComic } from "../library/files";
 import { bookPatchSchema, update } from "../library/patch";
 import {
@@ -21,13 +21,22 @@ import {
 	SORT_KEYS,
 	SORT_ORDERS,
 } from "../library/query";
-import { renameFacet } from "../library/rename";
+import {
+	addFacet,
+	removeFacet,
+	removeUnused,
+	renameFacet,
+} from "../library/rename";
 import { onScanProgress, rescan, scan, stopScan } from "../library/scan";
 import { openShelf } from "../library/shelf";
 import { FACET_KINDS } from "../vocabulary";
 import { bookInput, shelfInput } from "./inputs";
 
 const booksInput = shelfInput.extend({ ids: z.array(z.string()) });
+const facetInput = shelfInput.extend({
+	kind: z.enum(FACET_KINDS),
+	name: z.string(),
+});
 
 export const bookRouter = router({
 	/** One page of the books on the shelf: the conditions applied, in the order
@@ -56,6 +65,12 @@ export const bookRouter = router({
 	facets: dbProcedure
 		.input(shelfInput)
 		.query(({ ctx, input }) => facets(ctx.db, input.shelfId)),
+
+	/** Every name of one kind on the shelf, with how many books carry it --
+	 *  the ones no book carries included. */
+	names: dbProcedure
+		.input(shelfInput.extend({ kind: z.enum(FACET_KINDS) }))
+		.query(({ ctx, input }) => names(ctx.db, input.shelfId, input.kind)),
 
 	/** The values of one list some book would still carry under the other
 	 *  conditions: what the filter can offer without leading to an empty shelf. */
@@ -132,6 +147,27 @@ export const bookRouter = router({
 		)
 		.mutation(({ ctx, input }) =>
 			renameFacet(ctx.db, input.shelfId, input.kind, input.from, input.to),
+		),
+
+	/** Puts a name on the shelf before any book carries it. */
+	addFacet: dbProcedure
+		.input(facetInput)
+		.mutation(({ ctx, input }) =>
+			addFacet(ctx.db, input.shelfId, input.kind, input.name),
+		),
+
+	/** Takes a name off every book carrying it, and off the shelf. */
+	removeFacet: dbProcedure
+		.input(facetInput)
+		.mutation(({ ctx, input }) =>
+			removeFacet(ctx.db, input.shelfId, input.kind, input.name),
+		),
+
+	/** Takes every name of one kind that no book carries off the shelf. */
+	removeUnused: dbProcedure
+		.input(shelfInput.extend({ kind: z.enum(FACET_KINDS) }))
+		.mutation(({ ctx, input }) =>
+			removeUnused(ctx.db, input.shelfId, input.kind),
 		),
 
 	setPosition: dbProcedure

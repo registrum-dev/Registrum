@@ -1,5 +1,5 @@
-// The names books are filed under, and what changing one does to the books
-// carrying it.
+// The names books are filed under, and what adding, changing or removing one
+// does to the books carrying it.
 
 import { type Database, type Transaction, transaction } from "@registrum/db";
 
@@ -7,7 +7,14 @@ import { Failure } from "../failure";
 import * as fold from "../lib/fold";
 import type { FacetKind } from "../vocabulary";
 import { refreshSearchText } from "./book";
-import { filled, isNameList, linkOf, nameTable, rowsNamed } from "./names";
+import {
+	ensureIds,
+	filled,
+	isNameList,
+	linkOf,
+	nameTable,
+	rowsNamed,
+} from "./names";
 
 /** What a rename did. A name typed onto one the shelf already holds is a merge:
  *  the books come together and one of the two names goes. */
@@ -15,6 +22,69 @@ export interface Renamed {
 	/** The name as it now stands, which is the one the screen goes on to show. */
 	name: string;
 	merged: boolean;
+}
+
+/** Puts a name on the shelf that no book carries yet. Answers it as it was
+ *  written down. */
+export async function addFacet(
+	db: Database,
+	shelfId: string,
+	kind: FacetKind,
+	name: string,
+): Promise<string> {
+	const spelled = filled(name);
+	if (spelled === null) throw Failure.bare("emptyName");
+
+	return transaction(db, async (tx) => {
+		const [held] = await rowsNamed(tx, shelfId, kind, [spelled]);
+		if (held) throw Failure.bare("nameTaken");
+		await ensureIds(tx, shelfId, kind, [spelled]);
+		return spelled;
+	});
+}
+
+/** Takes one of the shelf's names off every book that carries it, and lets
+ *  the name go. The books themselves stay. */
+export async function removeFacet(
+	db: Database,
+	shelfId: string,
+	kind: FacetKind,
+	name: string,
+): Promise<void> {
+	await transaction(db, async (tx) => {
+		const [row] = await rowsNamed(tx, shelfId, kind, [name]);
+		if (!row) throw Failure.bare("noName");
+		const books = await carriers(tx, kind, row.id);
+
+		const link = linkOf(tx, kind);
+		if (isNameList(kind))
+			await link.table.deleteMany({ where: { [link.name]: row.id } });
+		else
+			await link.table.updateMany({
+				where: { [link.name]: row.id },
+				data: { [link.name]: null },
+			});
+		await nameTable(tx, kind).delete({ where: { id: row.id } });
+		await refreshSearchText(tx, books);
+	});
+}
+
+/** Lets go of every name of one kind that no book carries. Answers the
+ *  names that went. */
+export async function removeUnused(
+	db: Database,
+	shelfId: string,
+	kind: FacetKind,
+): Promise<string[]> {
+	return transaction(db, async (tx) => {
+		const unused = { shelfId, books: { none: {} } };
+		const rows = await nameTable(tx, kind).findMany({
+			where: unused,
+			select: { name: true },
+		});
+		await nameTable(tx, kind).deleteMany({ where: unused });
+		return rows.map((row) => row.name);
+	});
 }
 
 /** Gives one of the shelf's names another spelling, taking every book that

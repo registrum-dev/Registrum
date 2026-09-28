@@ -17,8 +17,8 @@ export const Route = createFileRoute("/_shelf")({ component: ShelfLayout });
 /**
  * The shelf stays underneath: the book rises over it as a sheet, the reader
  * over that, and either can be pulled down to show what it was opened from.
- * The settings, the path rule and a name rise as sheets like the book, a name
- * over the book it was opened from.
+ * The settings, the path rule, the list of names and a name rise as sheets like
+ * the book, a name over the book it was opened from.
  */
 function ShelfLayout() {
 	const book = useMatch({ from: "/_shelf/book", shouldThrow: false });
@@ -26,6 +26,7 @@ function ShelfLayout() {
 	const settings = useMatch({ from: "/_shelf/settings", shouldThrow: false });
 	const facet = useMatch({ from: "/_shelf/facet", shouldThrow: false });
 	const rule = useMatch({ from: "/_shelf/rule", shouldThrow: false });
+	const names = useMatch({ from: "/_shelf/names", shouldThrow: false });
 
 	// A link to a book opens on the book's own shelf.
 	useSwitchToBookShelf(book?.search.id ?? read?.search.id);
@@ -50,6 +51,7 @@ function ShelfLayout() {
 			bookId={book ? book.search.id : under}
 			facet={facet?.search}
 			settings={Boolean(settings)}
+			names={names ? { kind: names.search.kind } : undefined}
 			rule={Boolean(rule) && shelved}
 			covered={Boolean(read)}
 		>

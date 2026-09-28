@@ -3,7 +3,6 @@
 import { type Client, type Database, transaction } from "@registrum/db";
 
 import * as fold from "../lib/fold";
-import { removeOrphans } from "./names";
 import {
 	BATCH,
 	type BookRecord,
@@ -31,7 +30,6 @@ export async function removeBooks(
 		for (const batch of chunks(ids, BATCH)) {
 			await tx.book.deleteMany({ where: { shelfId, id: { in: batch } } });
 		}
-		await removeOrphans(tx, shelfId);
 	});
 }
 

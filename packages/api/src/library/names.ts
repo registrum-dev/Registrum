@@ -1,11 +1,11 @@
-// The rows behind a book's names, and dropping the ones nobody carries any
-// more. Every name belongs to one shelf.
+// The rows behind a book's names. Every name belongs to one shelf, and stays
+// until it is removed by hand, whether or not a book carries it.
 
 import { createId } from "@paralleldrive/cuid2";
 import type { Client, Prisma } from "@registrum/db";
 
 import * as fold from "../lib/fold";
-import { FACET_KINDS, type FacetKind } from "../vocabulary";
+import type { FacetKind } from "../vocabulary";
 import { BATCH, chunks } from "./record";
 
 /** The three names a book reaches through a junction, each an ordered list. */
@@ -29,10 +29,10 @@ interface NewName extends NameRow {
  * they all accept, taken on trust in `nameTable` alone.
  */
 interface NameTable {
-	findMany(args: {
+	findMany<Row = NameRow>(args: {
 		where: object;
-		select: { id: true; name: true };
-	}): Promise<NameRow[]>;
+		select: object;
+	}): Promise<Row[]>;
 	createMany(args: { data: NewName[] }): Promise<unknown>;
 	update(args: {
 		where: { id: string };
@@ -205,14 +205,4 @@ export async function addLists(
 	}
 	for (const batch of chunks(rows, BATCH))
 		await link.table.createMany({ data: batch });
-}
-
-/** Removes the names no book on this shelf carries any more. */
-export async function removeOrphans(
-	db: Client,
-	shelfId: string,
-): Promise<void> {
-	const unused = { shelfId, books: { none: {} } };
-	for (const kind of FACET_KINDS)
-		await nameTable(db, kind).deleteMany({ where: unused });
 }

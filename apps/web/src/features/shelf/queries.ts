@@ -80,6 +80,23 @@ export function useFacetsQuery() {
 	);
 }
 
+/** Every name of one kind on the shelf, the ones no book carries included,
+ *  most-used first. */
+export function useNames(kind: FacetKind) {
+	const { shelfId, asking } = useShelfId();
+
+	return useQuery(
+		trpc.book.names.queryOptions(
+			{ shelfId, kind },
+			{
+				enabled: asking,
+				meta: ASKS_THE_SHELF,
+				placeholderData: keepPreviousData,
+			},
+		),
+	);
+}
+
 /** The counts themselves, for the many places that only draw them. */
 export function useFacets(): ShelfFacets {
 	return useFacetsQuery().data ?? NO_FACETS;
