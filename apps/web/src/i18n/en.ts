@@ -626,6 +626,13 @@ export const en = {
 		fullscreen: "Full screen (F11)",
 		toc: "Contents",
 		search: "Search",
+		bookmarks: "Bookmarks",
+		markPage: "Bookmark this page (B)",
+		unmarkPage: "Remove the bookmark from this page (B)",
+		removeBookmark: "Remove this bookmark",
+		noBookmarksTitle: "No bookmarks yet",
+		noBookmarks:
+			"Mark the page you are on with the bookmark button above, or press B.",
 		closePanel: "Close the panel (Esc)",
 		noTocTitle: "No contents",
 		noToc: "This book carries no table of contents.",

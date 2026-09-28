@@ -1,6 +1,7 @@
 import { cn } from "@registrum/ui/lib/utils";
 import {
 	ALargeSmallIcon,
+	BookmarkIcon,
 	ChevronDownIcon,
 	ListIcon,
 	SearchIcon,
@@ -8,7 +9,12 @@ import {
 } from "lucide-react";
 import type { ReactElement } from "react";
 import { useTranslation } from "react-i18next";
-import type { OpenPanel, ReaderPanel } from "@/features/reader/panels";
+import {
+	type BookTab,
+	isBookTab,
+	type OpenPanel,
+	type ReaderPanel,
+} from "@/features/reader/panels";
 
 interface ChromeBarProps {
 	title: string;
@@ -18,6 +24,11 @@ interface ChromeBarProps {
 	/** Whether this book can be asked about at all: an EPUB on the shelf, with an
 	 *  endpoint named. */
 	canAsk: boolean;
+	/** Whether this book has somewhere to keep bookmarks: one on the shelf. */
+	canBookmark: boolean;
+	/** Whether the page shown carries one. */
+	bookmarked: boolean;
+	onToggleBookmark: () => void;
 	/** Which one is open, since only one of them can be. */
 	panel: ReaderPanel;
 	/** How far in the book is, shown in the middle of the bottom row; pressing it opens the rail. */
@@ -27,8 +38,14 @@ interface ChromeBarProps {
 	onCloseBook: () => void;
 }
 
+const BOOK_ICONS: Record<BookTab, ReactElement> = {
+	toc: <ListIcon />,
+	search: <SearchIcon />,
+	bookmarks: <BookmarkIcon />,
+};
+
 /**
- * The way out and the title across the top. Along the bottom, the percentage
+ * The way out, the title and the bookmark across the top. Along the bottom, the percentage
  * in the middle, which opens the rail, and what the thumb reaches for in a row
  * on the right.
  * The book leaves downward, so the way out says so.
@@ -39,17 +56,20 @@ export function ChromeBar({
 	hasToc,
 	canSearch,
 	canAsk,
+	canBookmark,
+	bookmarked,
 	panel,
 	fraction,
 	onTogglePanel,
+	onToggleBookmark,
 	onCloseBook,
 }: ChromeBarProps) {
 	const { t } = useTranslation();
 	const top = visible ? "chrome-enter" : "chrome-leave chrome-leave-up";
 	const bottom = visible ? "chrome-enter" : "chrome-leave chrome-leave-down";
-	// Contents and search are one sheet with two tabs; a book with no contents
-	// opens it on the search. A comic has neither, and no button for it.
-	const book: OpenPanel = !hasToc && canSearch ? "search" : "toc";
+	// Contents, search and bookmarks are one sheet of tabs, opened on the first
+	// the book has. A comic from a dropped file has none, and no button for it.
+	const book: BookTab = hasToc ? "toc" : canSearch ? "search" : "bookmarks";
 
 	return (
 		<>
@@ -73,6 +93,20 @@ export function ChromeBar({
 							{title}
 						</h1>
 					</div>
+					{canBookmark && (
+						<button
+							type="button"
+							aria-pressed={bookmarked}
+							aria-label={t(
+								bookmarked ? "reader.unmarkPage" : "reader.markPage",
+							)}
+							title={t(bookmarked ? "reader.unmarkPage" : "reader.markPage")}
+							onClick={onToggleBookmark}
+							className="chrome-surface pointer-events-auto flex size-10 shrink-0 items-center justify-center rounded-full transition-colors hover:bg-muted [&_svg]:size-4.5"
+						>
+							<BookmarkIcon className={cn(bookmarked && "fill-current")} />
+						</button>
+					)}
 				</div>
 			</header>
 
@@ -94,12 +128,12 @@ export function ChromeBar({
 					{Math.round(fraction * 100)}%
 				</button>
 				<div className="chrome-surface pointer-events-auto col-start-3 flex gap-0.5 justify-self-end rounded-full p-1">
-					{(hasToc || canSearch) && (
+					{(hasToc || canSearch || canBookmark) && (
 						<ChromeAction
-							pressed={panel === "toc" || panel === "search"}
+							pressed={isBookTab(panel)}
 							onClick={() => onTogglePanel(book)}
-							icon={book === "toc" ? <ListIcon /> : <SearchIcon />}
-							label={book === "toc" ? t("reader.toc") : t("reader.search")}
+							icon={BOOK_ICONS[book]}
+							label={t(`reader.${book}`)}
 						/>
 					)}
 					<ChromeAction
