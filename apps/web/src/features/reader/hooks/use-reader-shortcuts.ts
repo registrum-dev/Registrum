@@ -21,11 +21,13 @@ type PageKey =
 	| "start"
 	| "end"
 	| "toc"
+	| "bookmark"
 	| "fullscreen";
 
 export interface ReaderActions extends ReaderNavigation {
 	setPanel: (panel: ReaderPanel) => void;
 	togglePanel: (panel: OpenPanel) => void;
+	toggleBookmark: () => void;
 }
 
 export interface ReaderShortcuts {
@@ -85,9 +87,9 @@ export function useReaderShortcuts({
 
 		const key = pageKey(event);
 		if (!key) return;
-		// The contents key is a letter; the others are keys the page would
-		// otherwise scroll on.
-		if (key !== "toc") event.preventDefault();
+		// The contents and bookmark keys are letters; the others are keys the
+		// page would otherwise scroll on.
+		if (key !== "toc" && key !== "bookmark") event.preventDefault();
 
 		switch (key) {
 			case "left":
@@ -110,6 +112,9 @@ export function useReaderShortcuts({
 				break;
 			case "toc":
 				if (hasToc) actions.togglePanel("toc");
+				break;
+			case "bookmark":
+				actions.toggleBookmark();
 				break;
 			case "fullscreen":
 				void toggleFullscreen();
@@ -161,6 +166,9 @@ function pageKey(event: KeyboardEvent): PageKey | null {
 		case "t":
 		case "T":
 			return "toc";
+		case "b":
+		case "B":
+			return "bookmark";
 		case "F11":
 			return "fullscreen";
 		default:

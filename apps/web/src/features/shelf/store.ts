@@ -4,6 +4,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { sendPositions } from "@/features/offline/pending-positions";
+import { sendBookmarks } from "@/features/reader/bookmarks";
 import {
 	type ColumnSizing,
 	type ColumnVisibility,
@@ -194,6 +195,7 @@ export const useShelfStore = create<ShelfState>()(
 					// Before the shelf is asked for, so it shows where the reader got to
 					// while the server was away.
 					await sendPositions();
+					await sendBookmarks();
 					if (token !== attempt) return;
 					set({ opened: true });
 				} catch (error) {

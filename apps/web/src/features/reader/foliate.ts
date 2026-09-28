@@ -151,3 +151,11 @@ export interface FoliateModule {
 	makeBook: (file: Blob) => Promise<FoliateBook>;
 	UnsupportedTypeError: ErrorConstructor;
 }
+
+/** The parts of `epubcfi.js` the bookmarks compare places with. */
+export interface CfiModule {
+	/** Negative, zero or positive, as `a` comes before, at or after `b`. */
+	compare: (a: string, b: string) => number;
+	/** A range's start, or with `toEnd` its end; a point is itself. */
+	collapse: (cfi: string, toEnd?: boolean) => string;
+}

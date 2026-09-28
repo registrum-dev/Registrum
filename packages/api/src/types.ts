@@ -11,6 +11,7 @@ export type { PatternDraft, PatternExample } from "./ai/pattern";
 export type { Locale, Speaker, Turn } from "./ai/prompt";
 export type { AiSettings } from "./ai/settings";
 export { FAILURE_CODES, type FailureCode, type FailureShape } from "./failure";
+export type { Bookmark, BookmarkInput } from "./library/bookmark";
 export type { Character, Relation, SavedAi } from "./library/character";
 export type { FacetEntry, SeriesFacet, ShelfFacets } from "./library/facets";
 export type { ComicBook } from "./library/files";

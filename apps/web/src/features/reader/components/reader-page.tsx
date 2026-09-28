@@ -19,6 +19,7 @@ import { LTR_DIRECTION, type PageDirection } from "@/features/reader/direction";
 import type { FoliateView, RelocateDetail } from "@/features/reader/foliate";
 import { toggleFullscreen } from "@/features/reader/fullscreen";
 import { useBookSource } from "@/features/reader/hooks/use-book-source";
+import { useBookmarks } from "@/features/reader/hooks/use-bookmarks";
 import { useChromeVisibility } from "@/features/reader/hooks/use-chrome-visibility";
 import { useLeaveReader } from "@/features/reader/hooks/use-leave-reader";
 import { useOpenWatchdog } from "@/features/reader/hooks/use-open-watchdog";
@@ -27,7 +28,11 @@ import { useReaderShortcuts } from "@/features/reader/hooks/use-reader-shortcuts
 import { useReadingPosition } from "@/features/reader/hooks/use-reading-position";
 import { heldFile } from "@/features/reader/local-files";
 import type { BookInfo } from "@/features/reader/open-view";
-import type { OpenPanel, ReaderPanel } from "@/features/reader/panels";
+import {
+	isBookTab,
+	type OpenPanel,
+	type ReaderPanel,
+} from "@/features/reader/panels";
 import { useReaderSettings } from "@/features/reader/store";
 import { PALETTES } from "@/features/reader/themes";
 import { baseName } from "@/features/shelf/paths";
@@ -93,6 +98,7 @@ export function ReaderPage({ id, file, from }: ReaderSearch) {
 
 	const { source, failed } = useBookSource({ book: shelved, file: handed });
 	const { record, lastCfi } = useReadingPosition(bookId);
+	const bookmarks = useBookmarks(shelfId, bookId, relocation);
 
 	const { visible: chromeVisible, toggle: toggleChrome } = useChromeVisibility(
 		panel !== "none" || !source || loading,
@@ -156,7 +162,12 @@ export function ReaderPage({ id, file, from }: ReaderSearch) {
 		canSearch,
 		hasToc,
 		panel,
-		actions: { ...navigation, setPanel, togglePanel },
+		actions: {
+			...navigation,
+			setPanel,
+			togglePanel,
+			toggleBookmark: bookmarks.toggle,
+		},
 	});
 
 	// Everything foliate-js can only read while a book is opened: which book it
@@ -259,20 +270,25 @@ export function ReaderPage({ id, file, from }: ReaderSearch) {
 					hasToc={hasToc}
 					canSearch={canSearch}
 					canAsk={canAsk}
+					canBookmark={bookmarks.enabled}
+					bookmarked={bookmarks.marked}
 					panel={panel}
 					fraction={relocation?.fraction ?? 0}
 					onTogglePanel={togglePanel}
+					onToggleBookmark={bookmarks.toggle}
 					onCloseBook={() => leave()}
 				/>
 
 				<BookPanel
-					open={panel === "toc" || panel === "search"}
-					tab={panel === "search" ? "search" : "toc"}
+					open={isBookTab(panel)}
+					tab={isBookTab(panel) ? panel : "toc"}
 					onTabChange={setPanel}
 					toc={info?.toc ?? []}
 					activeLabel={relocation?.tocItem?.label}
 					hasToc={hasToc}
 					canSearch={canSearch}
+					bookmarks={bookmarks.enabled ? bookmarks.marks : null}
+					onRemoveBookmark={bookmarks.remove}
 					view={view}
 					onNavigate={(target) => void view?.goTo(target)}
 					onClose={() => setPanel("none")}

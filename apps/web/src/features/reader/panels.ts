@@ -1,11 +1,12 @@
 // What the reader can have open over the page.
 
-/** The contents and search tabs share one slab; the progress rail, the display
- *  settings and the AI's questions each have their own. */
+/** The contents, search and bookmarks tabs share one slab; the progress rail,
+ *  the display settings and the AI's questions each have their own. */
 export type ReaderPanel =
 	| "none"
 	| "toc"
 	| "search"
+	| "bookmarks"
 	| "progress"
 	| "settings"
 	| "ai";
@@ -13,5 +14,9 @@ export type ReaderPanel =
 /** One that is actually open. */
 export type OpenPanel = Exclude<ReaderPanel, "none">;
 
-/** The two the book panel holds as tabs. */
-export type BookTab = Extract<ReaderPanel, "toc" | "search">;
+/** The ones the book panel holds as tabs. */
+export type BookTab = Extract<ReaderPanel, "toc" | "search" | "bookmarks">;
+
+export function isBookTab(panel: ReaderPanel): panel is BookTab {
+	return panel === "toc" || panel === "search" || panel === "bookmarks";
+}

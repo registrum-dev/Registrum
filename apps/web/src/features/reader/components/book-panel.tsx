@@ -1,3 +1,4 @@
+import type { Bookmark } from "@registrum/api/types";
 import { ScrollArea } from "@registrum/ui/components/scroll-area";
 import {
 	Tabs,
@@ -7,6 +8,7 @@ import {
 } from "@registrum/ui/components/tabs";
 import { useRef } from "react";
 import { useTranslation } from "react-i18next";
+import { BookmarkList } from "@/features/reader/components/bookmark-list";
 import {
 	ChromePanel,
 	ChromePanelHeader,
@@ -24,12 +26,21 @@ interface BookPanelProps {
 	activeLabel?: string;
 	hasToc: boolean;
 	canSearch: boolean;
+	/** Null for a book with nowhere to keep them. */
+	bookmarks: Bookmark[] | null;
+	onRemoveBookmark: (id: string) => void;
 	view: FoliateView | null;
 	onNavigate: (target: string) => void;
 	onClose: () => void;
 }
 
-/** Contents and search, one panel with two tabs. */
+const LABELS = {
+	toc: "reader.toc",
+	search: "reader.search",
+	bookmarks: "reader.bookmarks",
+} as const;
+
+/** Contents, search and bookmarks, one panel with a tab each. */
 export function BookPanel({
 	open,
 	tab,
@@ -38,6 +49,8 @@ export function BookPanel({
 	activeLabel,
 	hasToc,
 	canSearch,
+	bookmarks,
+	onRemoveBookmark,
 	view,
 	onNavigate,
 	onClose,
@@ -53,7 +66,7 @@ export function BookPanel({
 		<ChromePanel
 			open={open}
 			sheet="half"
-			label={shown === "search" ? t("reader.search") : t("reader.toc")}
+			label={t(LABELS[shown])}
 			onClose={onClose}
 		>
 			<Tabs
@@ -74,6 +87,11 @@ export function BookPanel({
 						{canSearch && (
 							<TabsTrigger value="search" className="rounded-lg text-[13px]">
 								{t("reader.search")}
+							</TabsTrigger>
+						)}
+						{bookmarks && (
+							<TabsTrigger value="bookmarks" className="rounded-lg text-[13px]">
+								{t("reader.bookmarks")}
 							</TabsTrigger>
 						)}
 					</TabsList>
@@ -102,6 +120,21 @@ export function BookPanel({
 							active={shown === "search"}
 							onNavigate={onNavigate}
 						/>
+					</TabsContent>
+				)}
+
+				{bookmarks && (
+					<TabsContent
+						value="bookmarks"
+						className="min-h-0 flex-1 overflow-hidden"
+					>
+						<ScrollArea className="h-full">
+							<BookmarkList
+								marks={bookmarks}
+								onNavigate={onNavigate}
+								onRemove={onRemoveBookmark}
+							/>
+						</ScrollArea>
 					</TabsContent>
 				)}
 			</Tabs>
