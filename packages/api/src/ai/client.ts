@@ -1,7 +1,13 @@
 // The call itself, through TanStack AI, to any endpoint that speaks OpenAI's
 // Chat Completions.
 
-import { type ChatMiddleware, chat, type ModelMessage } from "@tanstack/ai";
+import {
+	type AnyServerTool,
+	type ChatMiddleware,
+	chat,
+	type ModelMessage,
+	maxIterations,
+} from "@tanstack/ai";
 import { openaiCompatibleText } from "@tanstack/ai-openai/compatible";
 import type { z } from "zod";
 
@@ -156,5 +162,29 @@ export function askForShape<T>(
 		prompt,
 		controller,
 		async (common) => (await chat({ ...common, outputSchema: schema })) as T,
+	);
+}
+
+/** Several turns, calling `tools` as the model asks, then an answer in the
+ *  shape of a schema. `turns` caps the model's turns, not the calls. */
+export function askWithTools<T>(
+	connection: Connection,
+	prompt: Prompt,
+	schema: z.ZodType<T>,
+	tools: AnyServerTool[],
+	turns: number,
+	controller: AbortController,
+): Promise<Answered<T>> {
+	return call(
+		connection,
+		prompt,
+		controller,
+		async (common) =>
+			(await chat({
+				...common,
+				tools,
+				agentLoopStrategy: maxIterations(turns),
+				outputSchema: schema,
+			})) as T,
 	);
 }

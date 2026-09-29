@@ -33,6 +33,7 @@ services:
       AI_BASE_URL: ${AI_BASE_URL:-}
       AI_API_KEY: ${AI_API_KEY:-}
       AI_MODEL: ${AI_MODEL:-}
+      GOOGLE_BOOKS_API_KEY: ${GOOGLE_BOOKS_API_KEY:-}
     volumes:
       - ./data:/data          # database and covers
       - ./books:/books:ro     # your books
@@ -84,6 +85,7 @@ docker compose up -d --build
 | `AI_BASE_URL` | (empty) | OpenAI-compatible endpoint, without `/chat/completions` (e.g. `https://openrouter.ai/api/v1`). Empty disables AI |
 | `AI_MODEL` | (empty) | Model name as the endpoint spells it (e.g. `google/gemini-2.5-pro`). Pick one with a long context |
 | `AI_API_KEY` | (empty) | Key for the endpoint. Leave empty for one that wants none, such as Ollama |
+| `GOOGLE_BOOKS_API_KEY` | (empty) | Google Books API key for looking up a book's details. Without one, Google's shared keyless quota is used, which is often spent |
 | `CORS_ORIGIN` | (empty) | Only needed when serving the web UI from another origin |
 
 Registrum does not terminate TLS. For access outside your home network, use the Tailscale setup above or put it behind a reverse proxy such as Caddy or Traefik.

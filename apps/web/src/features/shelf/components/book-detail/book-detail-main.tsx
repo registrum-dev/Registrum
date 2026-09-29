@@ -2,10 +2,16 @@
 
 import { Button } from "@registrum/ui/components/button";
 import { cn } from "@registrum/ui/lib/utils";
-import { EraserIcon, SparklesIcon, Trash2Icon } from "lucide-react";
+import {
+	BookSearchIcon,
+	EraserIcon,
+	SparklesIcon,
+	Trash2Icon,
+} from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { BookAiSections } from "@/features/ai/components/book-ai-sections";
+import { LookupDialog } from "@/features/ai/components/lookup-dialog";
 import { SynopsisDialog } from "@/features/ai/components/synopsis-dialog";
 import { useAiConfigured } from "@/features/ai/queries";
 import { hasBookText } from "@/features/ai/types";
@@ -82,7 +88,10 @@ export function BookDetailMain({
 				<BookHistory book={book} />
 			</DetailSection>
 
-			<DetailSection title={t("record.bibliography")}>
+			<DetailSection
+				title={t("record.bibliography")}
+				action={<LookupButton book={book} shelfId={shelfId} />}
+			>
 				<div className="grid grid-cols-1">
 					<DetailRow
 						label={t("field.series")}
@@ -241,6 +250,42 @@ function DescriptionSection({
 				/>
 			)}
 		</DetailSection>
+	);
+}
+
+/** Fills the record from Google Books. Only there when the AI is: it is the AI
+ *  that searches. */
+function LookupButton({
+	book,
+	shelfId,
+}: {
+	book: BookRecord;
+	shelfId: string;
+}) {
+	const { t } = useTranslation();
+	const ready = useAiConfigured();
+	const [open, setOpen] = useState(false);
+
+	if (!ready) return null;
+
+	return (
+		<>
+			<Button
+				variant="ghost"
+				size="sm"
+				onClick={() => setOpen(true)}
+				className="ml-auto h-8 gap-1.5 rounded-lg"
+			>
+				<BookSearchIcon />
+				{t("lookup.button")}
+			</Button>
+			<LookupDialog
+				open={open}
+				onOpenChange={setOpen}
+				shelfId={shelfId}
+				books={[book]}
+			/>
+		</>
 	);
 }
 

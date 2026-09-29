@@ -30,6 +30,7 @@ export const FAILURE_CODES = [
 	"aiUnreadable",
 	"aiEmpty",
 	"aiStopped",
+	"lookupCall",
 ] as const;
 
 /** The reasons a call can fail. */

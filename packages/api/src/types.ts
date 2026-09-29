@@ -7,6 +7,7 @@ export type { Generated, Usage } from "./ai/client";
 export type { SentNotice } from "./ai/generations";
 export type { Asked } from "./ai/index";
 export { MAX_EXAMPLES, MAX_QUESTION } from "./ai/limits";
+export type { Lookup } from "./ai/lookup";
 export type { PatternDraft, PatternExample } from "./ai/pattern";
 export type { Locale, Speaker, Turn } from "./ai/prompt";
 export type { AiSettings } from "./ai/settings";
@@ -43,4 +44,5 @@ export type {
 } from "./library/rule";
 export type { ScanProgress, ScanReport } from "./library/scan";
 export type { Folder, Listing, Shelf } from "./library/shelf";
+export type { FoundVolume } from "./lookup/google-books";
 export * from "./vocabulary";

@@ -61,3 +61,15 @@ export const ruleAnswerSchema = z.object({
 		}),
 });
 export type RuleAnswer = z.infer<typeof ruleAnswerSchema>;
+
+export const lookupAnswerSchema = z.object({
+	volumeId: z.string().nullable().meta({
+		description:
+			"The id of the search result that is this very book: the same work, and the same volume of it. null when no result is.",
+	}),
+	reason: z.string().meta({
+		description:
+			"One short sentence: why that result is this book, or why none of them is.",
+	}),
+});
+export type LookupAnswer = z.infer<typeof lookupAnswerSchema>;
