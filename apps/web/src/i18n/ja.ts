@@ -58,6 +58,8 @@ export const ja = {
 		aiUnreadable: "AI の返事を読み取れませんでした: {{message}}",
 		aiEmpty: "AI が何も返しませんでした。",
 		aiStopped: "AI への問い合わせを中止しました。",
+		lookupCall:
+			"Google Books を検索できませんでした: {{message}}。サーバーに GOOGLE_BOOKS_API_KEY を設定すると専用の枠で問い合わせます。",
 		loadShelf: "本棚を読み込めませんでした: {{message}}",
 		chooseFile: "ファイルを選択できませんでした: {{message}}",
 		removeRecord: "メタデータを削除できませんでした: {{message}}",
@@ -464,6 +466,26 @@ export const ja = {
 		volumeOf: "「{{title}}」の巻",
 		makeFavorite: "お気に入りにする",
 		clearFavorite: "お気に入りから外す",
+		apply_other: "{{count}} 冊に適用",
+	},
+
+	lookup: {
+		button: "Google Books から取得",
+		title_other: "{{count}} 冊を Google Books から取得",
+		description:
+			"本ごとに、AI がタイトル・著者・ファイルのパスで Google Books を検索し、同じ本を選びます。値は Google Books のものをそのまま使います。適用するまで何も書き込みません。",
+		fields: "書き込む項目",
+		onlyEmpty: "空欄の項目だけ埋める",
+		progress: "{{done}} / {{total}} 冊を検索済み",
+		continue: "続きを検索",
+		waiting: "待機中",
+		searching: "検索中…",
+		found: "見つかりました",
+		notFound: "見つかりません",
+		failed: "失敗",
+		noChanges: "Google Books の値と違うところはありません。",
+		open: "Google Books で見る",
+		include: "「{{title}}」に書き込む",
 		apply_other: "{{count}} 冊に適用",
 	},
 

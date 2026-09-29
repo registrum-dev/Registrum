@@ -32,6 +32,8 @@ export const bookPatchSchema = z.object({
 	authors: z.array(z.string()).nullish(),
 	publisher: z.string().nullable().optional(),
 	published: z.string().nullable().optional(),
+	identifier: z.string().nullable().optional(),
+	language: z.string().nullable().optional(),
 	series: z.string().nullable().optional(),
 	seriesIndex: z.number().nullable().optional(),
 	description: z.string().nullable().optional(),
@@ -178,6 +180,10 @@ async function writeBatch(
 		// An empty date is no date: the shelf sorts books with none last.
 		if (patch.published !== undefined)
 			data.published = patch.published?.trim() || null;
+		if (patch.identifier !== undefined)
+			data.identifier = patch.identifier?.trim() || null;
+		if (patch.language !== undefined)
+			data.language = patch.language?.trim() || null;
 		if (patch.seriesIndex !== undefined) data.seriesIndex = patch.seriesIndex;
 		if (patch.description !== undefined) data.description = description;
 		if (patch.publisher !== undefined) {

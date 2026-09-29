@@ -9,6 +9,7 @@ import {
 	generateSynopsis,
 } from "../ai";
 import { sentNotices, stopGeneration } from "../ai/generations";
+import { lookupBook } from "../ai/lookup";
 import { LOCALES } from "../ai/prompt";
 import { aiSettingsOf } from "../ai/settings";
 import type { Context } from "../context";
@@ -24,7 +25,13 @@ const generationInput = bookInput.extend({
 
 /** A call's input, with the context it runs against. */
 function withContext<T>(ctx: Context, input: T): T & Context {
-	return { ...input, db: ctx.db, config: ctx.config, ai: ctx.ai };
+	return {
+		...input,
+		db: ctx.db,
+		config: ctx.config,
+		ai: ctx.ai,
+		googleBooksKey: ctx.googleBooksKey,
+	};
 }
 
 export const aiRouter = router({
@@ -62,6 +69,12 @@ export const aiRouter = router({
 	generateRelations: publicProcedure
 		.input(generationInput)
 		.mutation(({ ctx, input }) => generateRelations(withContext(ctx, input))),
+
+	/** The book found in Google Books, and its details there. Nothing is
+	 *  written down. */
+	lookup: publicProcedure
+		.input(generationInput)
+		.mutation(({ ctx, input }) => lookupBook(withContext(ctx, input))),
 
 	/** One question about the chapters the reader picked. Nothing is written down. */
 	ask: publicProcedure

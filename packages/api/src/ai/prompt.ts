@@ -140,6 +140,30 @@ const RULE_EN = `You are an assistant that writes regular expressions reading a 
 - The volume is read as a number. Leading zeros and full-width digits are fine.
 - The category is one of novel, manga, doujinshi, academic, practical or other.`;
 
+const LOOKUP_JA = `あなたは手元の本を Google Books の中から探し出すアシスタントです。
+- 手元の本について分かっていることは <book> にあります。ファイルのパスにも題名や巻数が含まれていることがあります。
+- searchGoogleBooks で検索してください。検索は多くても 5 回までです。
+- 検索語には Google Books の演算子が使えます: isbn:、intitle:、inauthor:、inpublisher:。
+  identifier が ISBN なら、まず isbn: で探してください。
+  見つからなければ、題名と著者で探し、語を減らしたり表記を変えたりして探し直してください。
+- 同じ本とみなすのは、同じ作品で、同じ巻のものだけです。シリーズの別の巻・別の作品・解説書は選ばないでください。
+  版や判型の違いは同じ本とみなして構いません。
+- 確かでないときは選ばずに null を返してください。違う本を選ぶより、選ばないほうがましです。
+- volumeId には検索結果の id をそのまま書いてください。
+- reason は日本語で書いてください。`;
+
+const LOOKUP_EN = `You are an assistant that finds the reader's book in Google Books.
+- What is known about the book is in <book>. Its file path may hold the title or the volume number as well.
+- Search with searchGoogleBooks, at most 5 times.
+- A query can use Google Books operators: isbn:, intitle:, inauthor:, inpublisher:.
+  When the identifier is an ISBN, search by isbn: first.
+  If that finds nothing, search by title and author, then again with fewer words or other spellings.
+- A result is this book only if it is the same work and the same volume. Do not pick another volume of the series, another work, or a guide to it.
+  A different edition or format of the same volume counts as the same book.
+- When you are not sure, pick nothing and answer null. Picking no book is better than picking the wrong one.
+- Write the result's id verbatim as volumeId.
+- Write reason in English.`;
+
 const TASKS = {
 	rule: {
 		ja: "例の本で各項目がこの値になる正規表現と、項目ごとのテンプレートを出してください。",
@@ -148,6 +172,10 @@ const TASKS = {
 	retryRule: {
 		ja: "その答えをこちらで試したところ、次のとおり合いませんでした。直した答えを出してください。",
 		en: "That answer was tried here and did not fit, as follows. Give a corrected answer.",
+	},
+	lookup: {
+		ja: "この本を Google Books で探し、同じ本の検索結果の id を答えてください。",
+		en: "Find this book in Google Books and give the id of the result that is the same book.",
 	},
 	synopsis: {
 		ja: "この本のあらすじを書いてください。",
@@ -233,6 +261,29 @@ export function askPrompt(
 		system: pick(locale, ASK_JA, ASK_EN),
 		history: said,
 		user: `<question>${escapeXml(question)}</question>`,
+	};
+}
+
+/** Finding the book in Google Books: what the shelf knows of it, and the job. */
+export function lookupPrompt(book: BookRecord, locale: Locale): Prompt {
+	const known = [
+		["title", book.title],
+		["subtitle", book.subtitle ?? ""],
+		["authors", book.authors.join(", ")],
+		["publisher", book.publisher ?? ""],
+		["published", book.published ?? ""],
+		["identifier", book.identifier ?? ""],
+		["series", book.series ?? ""],
+		["volume", book.seriesIndex === null ? "" : String(book.seriesIndex)],
+		["language", book.language ?? ""],
+		["path", book.path],
+	]
+		.filter(([, value]) => value !== "")
+		.map(([name, value]) => `${name}="${escapeXml(value ?? "")}"`);
+	return {
+		system: pick(locale, LOOKUP_JA, LOOKUP_EN),
+		history: [],
+		user: `<book ${known.join(" ")} />\n<task>${escapeXml(TASKS.lookup[locale])}</task>`,
 	};
 }
 

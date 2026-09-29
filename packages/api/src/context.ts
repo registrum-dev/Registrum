@@ -15,4 +15,6 @@ export type Context = {
 	config: PathsConfig;
 	/** The AI endpoint, as the server was told on start. */
 	ai: Connection;
+	/** Google Books' key. Empty asks on the quota every keyless caller shares. */
+	googleBooksKey: string;
 };

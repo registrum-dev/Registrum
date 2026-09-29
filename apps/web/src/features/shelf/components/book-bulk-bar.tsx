@@ -6,9 +6,12 @@ import { XIcon } from "lucide-react";
 import { type ComponentProps, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Confirm } from "@/components/confirm";
+import { LookupDialog } from "@/features/ai/components/lookup-dialog";
+import { useAiConfigured } from "@/features/ai/queries";
 import { useOpenRule } from "@/features/rule/use-open-rule";
 import { useRetainedValue } from "@/features/shelf/hooks/use-retained-value";
 import { useClearPosition, useRemoveBooks } from "@/features/shelf/mutations";
+import { useShelfId } from "@/features/shelf/queries";
 import { useShelfStore } from "@/features/shelf/store";
 import type { BookRecord } from "@/features/shelf/types";
 import { BookBulkEditDialog } from "./book-bulk-edit-dialog";
@@ -36,6 +39,9 @@ export function BookBulkBar({
 	const clearPosition = useClearPosition();
 	const openRule = useOpenRule();
 	const [editing, setEditing] = useState(false);
+	const [lookingUp, setLookingUp] = useState(false);
+	const { shelfId } = useShelfId();
+	const aiReady = useAiConfigured();
 	const [confirming, setConfirming] = useState<Asked | null>(null);
 	const shown = useRetainedValue(confirming !== null, confirming);
 
@@ -95,6 +101,11 @@ export function BookBulkBar({
 				{/* One filled button and no others: with a single strong shape there is
             nothing to work out about which one is the way on. */}
 				<Button onClick={() => setEditing(true)}>{t("bulk.edit")}</Button>
+				{aiReady && (
+					<Button variant="outline" onClick={() => setLookingUp(true)}>
+						{t("lookup.button")}
+					</Button>
+				)}
 				<Button variant="outline" onClick={() => openRule(ids)}>
 					{t("rule.fromSelection")}
 				</Button>
@@ -131,6 +142,14 @@ export function BookBulkBar({
 				books={books}
 				open={editing}
 				onOpenChange={setEditing}
+				onDone={onClear}
+			/>
+
+			<LookupDialog
+				open={lookingUp}
+				onOpenChange={setLookingUp}
+				shelfId={shelfId}
+				books={books}
 				onDone={onClear}
 			/>
 
