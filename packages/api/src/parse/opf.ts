@@ -3,7 +3,7 @@
 import { posix } from "node:path";
 
 import { Failure } from "../failure";
-import { hasToken } from "../lib/text";
+import { hasToken } from "../util/text";
 import type { Archive } from "./archive";
 import {
 	type Attributes,

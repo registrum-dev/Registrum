@@ -2,11 +2,10 @@
 
 import { createId } from "@paralleldrive/cuid2";
 import { type Database, type Prisma, transaction } from "@registrum/db";
-
-import * as fold from "../lib/fold";
-import { inside } from "../lib/paths";
-import { now } from "../lib/time";
 import type { ParsedBook } from "../parse";
+import * as fold from "../util/fold";
+import { inside } from "../util/paths";
+import { now } from "../util/time";
 import { searchText } from "./book";
 import { addLists, fieldIds, filled, uniqueNames, unlinkNames } from "./names";
 import {

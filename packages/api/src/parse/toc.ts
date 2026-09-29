@@ -1,6 +1,6 @@
 // A book's chapter names, by the document each one starts at.
 
-import { hasToken } from "../lib/text";
+import { hasToken } from "../util/text";
 import type { Archive } from "./archive";
 import { type Opf, parentOf, resolve } from "./opf";
 import { Line, tag } from "./plain";

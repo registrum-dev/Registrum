@@ -2,7 +2,7 @@
 
 import type { Client } from "@registrum/db";
 
-import { compare } from "../lib/text";
+import { compare } from "../util/text";
 import {
 	BOOK_CATEGORIES,
 	BOOK_FORMATS,

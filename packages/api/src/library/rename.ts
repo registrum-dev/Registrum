@@ -4,7 +4,7 @@
 import { type Database, type Transaction, transaction } from "@registrum/db";
 
 import { Failure } from "../failure";
-import * as fold from "../lib/fold";
+import * as fold from "../util/fold";
 import type { FacetKind } from "../vocabulary";
 import { refreshSearchText } from "./book";
 import {

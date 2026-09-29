@@ -2,7 +2,7 @@
 
 import { type Client, type Database, transaction } from "@registrum/db";
 
-import * as fold from "../lib/fold";
+import * as fold from "../util/fold";
 import {
 	BATCH,
 	type BookRecord,

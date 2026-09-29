@@ -2,7 +2,7 @@
 // narrowed as the reader types. The server's own folding, so the screen and
 // the shelf read `ｶﾀｶﾅ` and `カタカナ` the same way.
 
-import { fold } from "@registrum/api/lib/fold";
+import { fold } from "@registrum/api/util/fold";
 
 export { fold as foldText };
 

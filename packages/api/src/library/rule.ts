@@ -5,8 +5,8 @@ import type { Database } from "@registrum/db";
 import { z } from "zod";
 
 import { Failure, failingAs } from "../failure";
-import * as fold from "../lib/fold";
-import { unique } from "../lib/text";
+import * as fold from "../util/fold";
+import { unique } from "../util/text";
 import {
 	BOOK_CATEGORIES,
 	type BookCategory,

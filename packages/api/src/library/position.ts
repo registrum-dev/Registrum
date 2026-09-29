@@ -3,7 +3,7 @@
 import { type Database, transaction } from "@registrum/db";
 import { z } from "zod";
 
-import { now } from "../lib/time";
+import { now } from "../util/time";
 import { BATCH, chunks, clampFraction } from "./record";
 
 /** Where the reader stopped, as the reader screen reports it. */

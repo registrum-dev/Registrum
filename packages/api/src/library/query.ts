@@ -3,8 +3,8 @@
 import type { Client, Prisma } from "@registrum/db";
 import { z } from "zod";
 
-import * as fold from "../lib/fold";
-import { compare } from "../lib/text";
+import * as fold from "../util/fold";
+import { compare } from "../util/text";
 import {
 	BOOK_CATEGORIES,
 	BOOK_FORMATS,
