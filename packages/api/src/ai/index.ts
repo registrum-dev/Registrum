@@ -6,7 +6,6 @@ import { z } from "zod";
 
 import type { PathsConfig } from "../context";
 import { Failure, failingAs } from "../failure";
-import { firstChars } from "../lib/text";
 import { findBook } from "../library/book";
 import {
 	type Character,
@@ -19,6 +18,7 @@ import { bookFile } from "../library/files";
 import type { BookRecord } from "../library/record";
 import type { RuleTarget } from "../library/rule";
 import { type BookText, readText } from "../parse/text";
+import { firstChars } from "../util/text";
 import { type Chapters, group, pick, readSoFar, spineIndex } from "./chapters";
 import { askForShape, askForText, type Generated } from "./client";
 import { announce, stoppable } from "./generations";

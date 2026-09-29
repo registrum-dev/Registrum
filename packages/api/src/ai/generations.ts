@@ -2,7 +2,7 @@
 // answers: how much of the book went.
 
 import { Failure } from "../failure";
-import { Channel, Jobs } from "../lib/jobs";
+import { Channel, Jobs } from "../util/jobs";
 
 /** Said once per generation, the moment the book has been read and before the
  *  endpoint is asked anything. */

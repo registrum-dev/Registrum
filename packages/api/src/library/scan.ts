@@ -6,9 +6,9 @@ import type { Database } from "@registrum/db";
 
 import type { PathsConfig } from "../context";
 import { Failure, failingAs } from "../failure";
-import { Channel, Jobs } from "../lib/jobs";
-import { fileStem, inside } from "../lib/paths";
 import { readBook } from "../parse";
+import { Channel, Jobs } from "../util/jobs";
+import { fileStem, inside } from "../util/paths";
 import { writeCover } from "./covers";
 import {
 	type Ingested,

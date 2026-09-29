@@ -4,7 +4,7 @@
 import { z } from "zod";
 
 import { Failure } from "../failure";
-import { clip } from "../lib/text";
+import { clip } from "../util/text";
 
 const BASE = "https://www.googleapis.com/books/v1/volumes";
 

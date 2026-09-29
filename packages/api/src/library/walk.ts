@@ -6,8 +6,8 @@ import { readdir, stat } from "node:fs/promises";
 import { join } from "node:path";
 
 import { Failure } from "../failure";
-import { inside, joinRelative, safeRelative } from "../lib/paths";
-import { compare } from "../lib/text";
+import { inside, joinRelative, safeRelative } from "../util/paths";
+import { compare } from "../util/text";
 import { formatOfName } from "../vocabulary";
 
 export interface ScannedFile {

@@ -8,7 +8,7 @@ import {
 } from "@registrum/db";
 import { z } from "zod";
 
-import * as fold from "../lib/fold";
+import * as fold from "../util/fold";
 import { BOOK_CATEGORIES, validRating } from "../vocabulary";
 import { searchText } from "./book";
 import {

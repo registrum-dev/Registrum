@@ -1,7 +1,7 @@
 // Trimming, clipping and de-duplicating an answer.
 
-import { clip } from "../lib/text";
 import type { Character, Relation } from "../library/character";
+import { clip } from "../util/text";
 import type { CharacterAnswer, RelationAnswer } from "./schema";
 
 /** The most people a map can hold and still be read. The prompt asks for the

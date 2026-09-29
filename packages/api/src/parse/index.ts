@@ -3,7 +3,7 @@
 import { readFile } from "node:fs/promises";
 
 import { Failure } from "../failure";
-import { fileStem } from "../lib/paths";
+import { fileStem } from "../util/paths";
 import { formatOfName } from "../vocabulary";
 import { withArchive } from "./archive";
 import type { BookRead } from "./book";

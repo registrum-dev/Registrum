@@ -3,7 +3,7 @@
 import { createId } from "@paralleldrive/cuid2";
 import { type Client, type Database, transaction } from "@registrum/db";
 
-import * as fold from "../lib/fold";
+import * as fold from "../util/fold";
 import { type CharacterRole, readRole } from "../vocabulary";
 
 /** One person, as a card shows them. */

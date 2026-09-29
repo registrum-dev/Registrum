@@ -1,6 +1,6 @@
 // An EPUB's own words, flattened for what is sent to a model.
 
-import { charCount } from "../lib/text";
+import { charCount } from "../util/text";
 import { withArchive } from "./archive";
 import { readOpf, resolve } from "./opf";
 import { plainText } from "./plain";

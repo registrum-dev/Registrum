@@ -4,7 +4,7 @@
 import { createId } from "@paralleldrive/cuid2";
 import type { Client, Prisma } from "@registrum/db";
 
-import * as fold from "../lib/fold";
+import * as fold from "../util/fold";
 import type { FacetKind } from "../vocabulary";
 import { BATCH, chunks } from "./record";
 

@@ -1,8 +1,8 @@
 // Which chapters a question may be asked about, and the text the picked ones
 // send.
 
-import { charCount } from "../lib/text";
 import type { BookText, Section } from "../parse/text";
+import { charCount } from "../util/text";
 
 /** One choice in the picker. A chapter that runs across several spine items is
  *  still one choice: the reader picks chapters, not spine items. */

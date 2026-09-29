@@ -6,7 +6,6 @@ import type { Database } from "@registrum/db";
 import { z } from "zod";
 
 import { Failure } from "../failure";
-import { charCount } from "../lib/text";
 import {
 	compile,
 	evaluateTemplate,
@@ -16,6 +15,7 @@ import {
 	type RuleValue,
 	readAs,
 } from "../library/rule";
+import { charCount } from "../util/text";
 import { RULE_FIELDS, type RuleField } from "../vocabulary";
 import { askForShape, type Generated, type Usage } from "./client";
 import { MAX_EXAMPLES } from "./limits";

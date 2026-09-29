@@ -6,9 +6,9 @@ import type { Database } from "@registrum/db";
 
 import type { PathsConfig } from "../context";
 import { Failure, failingAs } from "../failure";
-import { fileName, inside } from "../lib/paths";
 import { Archive } from "../parse/archive";
 import { mediaType, pages } from "../parse/comic";
+import { fileName, inside } from "../util/paths";
 import { type BookFormat, readFormat } from "../vocabulary";
 
 /** A book's file, where it is on disk. */

@@ -8,9 +8,9 @@ import type { Database } from "@registrum/db";
 
 import type { PathsConfig } from "../context";
 import { Failure, failingAs } from "../failure";
-import { inside, joinRelative, safeRelative } from "../lib/paths";
-import { charCount } from "../lib/text";
-import { now } from "../lib/time";
+import { inside, joinRelative, safeRelative } from "../util/paths";
+import { charCount } from "../util/text";
+import { now } from "../util/time";
 import { removeCovers } from "./covers";
 
 /** The longest name a shelf may be given. */
