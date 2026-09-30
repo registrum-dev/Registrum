@@ -675,6 +675,9 @@ export const en = {
 			"A collection groups books; a tag is something you can say about a book. Add as many as you like.",
 		notePlaceholder: "For yourself, next time",
 		rescanTitle: "Read this book from its file again?",
+		identifierValue: "Value",
+		addIdentifier: "Add an identifier",
+		removeIdentifier: "Remove this identifier",
 	},
 
 	reader: {

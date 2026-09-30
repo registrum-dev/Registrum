@@ -123,6 +123,7 @@ const NEVER_NULL: Record<NeverNull, true> = {
 	favorite: true,
 	collections: true,
 	tags: true,
+	identifiers: true,
 };
 
 /** A record as it will read once the patch has landed. */

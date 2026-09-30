@@ -144,7 +144,7 @@ const LOOKUP_JA = `あなたは手元の本を Google Books の中から探し�
 - 手元の本について分かっていることは <book> にあります。ファイルのパスにも題名や巻数が含まれていることがあります。
 - searchGoogleBooks で検索してください。検索は多くても 5 回までです。
 - 検索語には Google Books の演算子が使えます: isbn:、intitle:、inauthor:、inpublisher:。
-  identifier が ISBN なら、まず isbn: で探してください。
+  identifiers に ISBN があれば、まず isbn: で探してください。
   見つからなければ、題名と著者で探し、語を減らしたり表記を変えたりして探し直してください。
 - 同じ本とみなすのは、同じ作品で、同じ巻のものだけです。シリーズの別の巻・別の作品・解説書は選ばないでください。
   版や判型の違いは同じ本とみなして構いません。
@@ -156,7 +156,7 @@ const LOOKUP_EN = `You are an assistant that finds the reader's book in Google B
 - What is known about the book is in <book>. Its file path may hold the title or the volume number as well.
 - Search with searchGoogleBooks, at most 5 times.
 - A query can use Google Books operators: isbn:, intitle:, inauthor:, inpublisher:.
-  When the identifier is an ISBN, search by isbn: first.
+  When identifiers holds an ISBN, search by isbn: first.
   If that finds nothing, search by title and author, then again with fewer words or other spellings.
 - A result is this book only if it is the same work and the same volume. Do not pick another volume of the series, another work, or a guide to it.
   A different edition or format of the same volume counts as the same book.
@@ -272,7 +272,12 @@ export function lookupPrompt(book: BookRecord, locale: Locale): Prompt {
 		["authors", book.authors.join(", ")],
 		["publisher", book.publisher ?? ""],
 		["published", book.published ?? ""],
-		["identifier", book.identifier ?? ""],
+		[
+			"identifiers",
+			book.identifiers
+				.map(({ scheme, value }) => (scheme ? `${scheme}:${value}` : value))
+				.join(", "),
+		],
 		["series", book.series ?? ""],
 		["volume", book.seriesIndex === null ? "" : String(book.seriesIndex)],
 		["language", book.language ?? ""],

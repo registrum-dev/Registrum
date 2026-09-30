@@ -2,6 +2,7 @@
 
 import type { Client, Prisma } from "@registrum/db";
 
+import type { BookIdentifier } from "../util/identifier";
 import {
 	type BookCategory,
 	type BookFormat,
@@ -41,7 +42,7 @@ export interface BookRecord {
 	published: string | null;
 	/** `published` as a calendar day, `YYYY-MM-DD`, when it names one. */
 	publishedDay: string | null;
-	identifier: string | null;
+	identifiers: BookIdentifier[];
 	series: string | null;
 	seriesIndex: number | null;
 	description: string | null;
@@ -70,11 +71,12 @@ export interface BookRecord {
 const byPosition = { orderBy: { position: "asc" } } as const;
 
 /** Everything a record is made of: the row, the two names it points at, the
- *  three lists it carries in order, and the reading position. */
+ *  lists it carries in order, and the reading position. */
 export const BOOK_INCLUDE = {
 	publisher: { select: { name: true } },
 	series: { select: { name: true } },
 	position: true,
+	identifiers: { ...byPosition, select: { scheme: true, value: true } },
 	authors: { ...byPosition, select: { author: { select: { name: true } } } },
 	collections: {
 		...byPosition,
@@ -144,7 +146,7 @@ export function recordOf(row: BookRow): BookRecord | null {
 		language: row.language,
 		published: row.published,
 		publishedDay: row.published ? publishedDay(row.published) : null,
-		identifier: row.identifier,
+		identifiers: row.identifiers,
 		series: row.series?.name ?? null,
 		seriesIndex: row.seriesIndex,
 		description: row.description,

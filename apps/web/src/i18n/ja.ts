@@ -625,6 +625,9 @@ export const ja = {
 			"コレクションは本をまとめるもの、タグは本について言えること。いくつ付けても構いません。",
 		notePlaceholder: "次に読むときの自分へ",
 		rescanTitle: "ファイルから読み直しますか？",
+		identifierValue: "値",
+		addIdentifier: "識別子を追加",
+		removeIdentifier: "この識別子を削除",
 	},
 
 	reader: {

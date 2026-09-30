@@ -45,4 +45,5 @@ export type {
 export type { ScanProgress, ScanReport } from "./library/scan";
 export type { Folder, Listing, Shelf } from "./library/shelf";
 export type { FoundVolume } from "./lookup/google-books";
+export type { BookIdentifier } from "./util/identifier";
 export * from "./vocabulary";
