@@ -6,6 +6,7 @@ import { type FilterField, NONE } from "./filter";
 import type {
 	BookCategory,
 	BookFormat,
+	BookIdentifier,
 	BookLayout,
 	BookRating,
 	BookRecord,
@@ -21,6 +22,20 @@ export function categoryName(category: BookCategory): string {
 /** A book nobody has filed has no category, so it shows the same dash as any other empty field. */
 export function categoryLabel(category: BookCategory | null): string {
 	return category === null ? t("common.empty") : categoryName(category);
+}
+
+/** What an identifier is called: its scheme, or the field's own name for one
+ *  nobody named. */
+export function identifierSchemeLabel(scheme: string): string {
+	return scheme ? scheme.toUpperCase() : t("record.identifier");
+}
+
+export function identifiersLabel(identifiers: BookIdentifier[]): string {
+	return identifiers
+		.map(({ scheme, value }) =>
+			scheme ? `${scheme.toUpperCase()} ${value}` : value,
+		)
+		.join(", ");
 }
 
 /** What a kind of name is called: the same wording the record's own fields are

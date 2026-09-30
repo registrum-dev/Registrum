@@ -20,6 +20,9 @@ export const BOOK_CATEGORIES = [
 /** What kind of book this is, as the reader filed it. */
 export type BookCategory = (typeof BOOK_CATEGORIES)[number];
 
+/** The identifier schemes the shelf knows by name. A record may hold others. */
+export const IDENTIFIER_SCHEMES = ["isbn", "asin", "uuid", "doi"] as const;
+
 export const BOOK_STATUSES = ["unread", "reading", "finished"] as const;
 /** Worked out from the reading position, never stored. */
 export type BookStatus = (typeof BOOK_STATUSES)[number];

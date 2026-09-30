@@ -1,5 +1,6 @@
 // What a book's file says about itself.
 
+import type { BookIdentifier } from "../util/identifier";
 import type { BookFormat, BookLayout } from "../vocabulary";
 
 export interface ParsedBook {
@@ -9,7 +10,7 @@ export interface ParsedBook {
 	publisher: string | null;
 	language: string | null;
 	published: string | null;
-	identifier: string | null;
+	identifiers: BookIdentifier[];
 	series: string | null;
 	seriesIndex: number | null;
 	description: string | null;
@@ -35,7 +36,7 @@ export function bareBook(title: string, format: BookFormat): ParsedBook {
 		publisher: null,
 		language: null,
 		published: null,
-		identifier: null,
+		identifiers: [],
 		series: null,
 		seriesIndex: null,
 		description: null,

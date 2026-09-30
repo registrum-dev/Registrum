@@ -9,8 +9,10 @@ import {
 import { z } from "zod";
 
 import * as fold from "../util/fold";
+import { uniqueIdentifiers } from "../util/identifier";
 import { BOOK_CATEGORIES, validRating } from "../vocabulary";
 import { searchText } from "./book";
+import { writeIdentifiers } from "./identifiers";
 import {
 	addLists,
 	fieldIds,
@@ -32,7 +34,9 @@ export const bookPatchSchema = z.object({
 	authors: z.array(z.string()).nullish(),
 	publisher: z.string().nullable().optional(),
 	published: z.string().nullable().optional(),
-	identifier: z.string().nullable().optional(),
+	identifiers: z
+		.array(z.object({ scheme: z.string(), value: z.string() }))
+		.nullish(),
 	language: z.string().nullable().optional(),
 	series: z.string().nullable().optional(),
 	seriesIndex: z.number().nullable().optional(),
@@ -134,6 +138,15 @@ async function writeBatch(
 		await addLists(db, shelfId, kind, lists);
 	}
 
+	await writeIdentifiers(
+		db,
+		known.flatMap(([id, patch]) =>
+			patch.identifiers
+				? [[id, uniqueIdentifiers(patch.identifiers)] as const]
+				: [],
+		),
+	);
+
 	const ids = await fieldIds(
 		db,
 		shelfId,
@@ -180,8 +193,6 @@ async function writeBatch(
 		// An empty date is no date: the shelf sorts books with none last.
 		if (patch.published !== undefined)
 			data.published = patch.published?.trim() || null;
-		if (patch.identifier !== undefined)
-			data.identifier = patch.identifier?.trim() || null;
 		if (patch.language !== undefined)
 			data.language = patch.language?.trim() || null;
 		if (patch.seriesIndex !== undefined) data.seriesIndex = patch.seriesIndex;

@@ -19,7 +19,6 @@ model Book {
   publisherId  String?       @map("publisher_id")
   language     String?
   published    String?
-  identifier   String?
   seriesId     String?       @map("series_id")
   seriesIndex  Float?        @map("series_index")
   description  String?
@@ -41,6 +40,7 @@ model Book {
   series       Series?       @relation(fields: [seriesId], references: [id])
   position     ReadingPosition?
   bookmarks    Bookmark[]
+  identifiers  BookIdentifier[]
   authors      BookAuthor[]
   collections  BookCollection[]
   tags         BookTag[]
@@ -84,6 +84,20 @@ model Bookmark {
 
   @@index([bookId])
   @@map("bookmark")
+}
+
+/// The numbers a book goes by -- ISBN, ASIN, UUID and the like -- in the order
+/// they were given. The scheme is lower-case, and empty when nobody named one.
+model BookIdentifier {
+  bookId   String @map("book_id")
+  scheme   String
+  value    String
+  position Int
+  book     Book   @relation(fields: [bookId], references: [id], onDelete: Cascade)
+
+  @@id([bookId, scheme, value])
+  @@index([scheme, value])
+  @@map("book_identifier")
 }
 
 /// The five tables that hold nothing but a name, each one per shelf.

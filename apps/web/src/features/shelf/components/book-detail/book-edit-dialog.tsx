@@ -30,6 +30,8 @@ import { ConfirmButton } from "@/features/shelf/components/confirm-button";
 import {
 	AuthorsInput,
 	CollectionsInput,
+	IdentifiersInput,
+	identifierRow,
 	PublisherInput,
 	SeriesInput,
 	TagsInput,
@@ -63,6 +65,7 @@ export function BookEditDialog({
 		seriesIndex: useId(),
 		collections: useId(),
 		tags: useId(),
+		identifiers: useId(),
 		category: useId(),
 		description: useId(),
 		note: useId(),
@@ -93,6 +96,9 @@ export function BookEditDialog({
 			collections: form.collections,
 			tags: form.tags,
 			category: form.category,
+			identifiers: form.identifiers.flatMap(({ scheme, value }) =>
+				value.trim() ? [{ scheme: scheme.trim(), value: value.trim() }] : [],
+			),
 			description: textOrNull(form.description),
 			note: textOrNull(form.note),
 		};
@@ -229,6 +235,13 @@ export function BookEditDialog({
 					</Field>
 
 					<Field>
+						<FieldLabel htmlFor={ids.identifiers}>
+							{t("record.identifier")}
+						</FieldLabel>
+						<IdentifiersInput id={ids.identifiers} {...field("identifiers")} />
+					</Field>
+
+					<Field>
 						<FieldLabel htmlFor={ids.description}>
 							{t("record.description")}
 						</FieldLabel>
@@ -280,6 +293,9 @@ function toForm(book: BookRecord) {
 		collections: book.collections,
 		tags: book.tags,
 		category: book.category,
+		identifiers: book.identifiers.map(({ scheme, value }) =>
+			identifierRow(scheme.toUpperCase(), value),
+		),
 		description: book.description ?? "",
 		note: book.note ?? "",
 	};

@@ -36,7 +36,7 @@ function metadata(opf: Opf, stem: string): ParsedBook {
 	parsed.publisher = textOf(opf.dc("publisher")[0]);
 	parsed.language = textOf(opf.dc("language")[0]);
 	parsed.published = opf.published();
-	parsed.identifier = opf.identifier();
+	parsed.identifiers = opf.identifiers();
 	parsed.description = textOf(opf.dc("description")[0]);
 
 	const series = opf.series();

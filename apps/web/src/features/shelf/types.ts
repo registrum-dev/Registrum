@@ -6,6 +6,7 @@ import type { BookRecord, ReadingPosition } from "@registrum/api/types";
 export type {
 	BookCategory,
 	BookFormat,
+	BookIdentifier,
 	BookLayout,
 	BookPage,
 	BookPatch,
@@ -25,6 +26,7 @@ export {
 	BOOK_RATINGS,
 	BOOK_STATUSES,
 	FACET_KINDS,
+	IDENTIFIER_SCHEMES,
 	isComicFormat,
 } from "@registrum/api/types";
 

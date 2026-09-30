@@ -7,6 +7,7 @@ import * as fold from "../util/fold";
 import { inside } from "../util/paths";
 import { now } from "../util/time";
 import { searchText } from "./book";
+import { writeIdentifiers } from "./identifiers";
 import { addLists, fieldIds, filled, uniqueNames, unlinkNames } from "./names";
 import {
 	BATCH,
@@ -210,7 +211,6 @@ export async function writeIngested(
 				publisherId: publisher ? (ids.publisher.get(publisher) ?? null) : null,
 				language: parsed.language,
 				published: parsed.published,
-				identifier: parsed.identifier,
 				seriesId: series ? (ids.series.get(series) ?? null) : null,
 				seriesIndex: parsed.seriesIndex,
 				description: parsed.description,
@@ -240,6 +240,10 @@ export async function writeIngested(
 			});
 		}
 
+		await writeIdentifiers(
+			tx,
+			batch.map(({ plan, parsed }) => [plan.id, parsed.identifiers] as const),
+		);
 		await unlinkNames(tx, "author", letGo);
 		await addLists(tx, shelfId, "author", authorsOf);
 	});

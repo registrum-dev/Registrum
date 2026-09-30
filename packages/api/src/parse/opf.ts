@@ -3,6 +3,7 @@
 import { posix } from "node:path";
 
 import { Failure } from "../failure";
+import { type BookIdentifier, uniqueIdentifiers } from "../util/identifier";
 import { hasToken } from "../util/text";
 import type { Archive } from "./archive";
 import {
@@ -27,6 +28,14 @@ const RELATORS: Record<string, string> = {
 	nrt: "narrator",
 	trl: "translator",
 	pbl: "publisher",
+};
+
+/** The ONIX codes EPUB 3 names an identifier's type with, as far as a shelf
+ *  has a name for them. */
+const ONIX_SCHEMES: Record<string, string> = {
+	"02": "isbn",
+	"06": "doi",
+	"15": "isbn",
 };
 
 interface Element {
@@ -262,14 +271,20 @@ export class Opf {
 		);
 	}
 
-	/** The identifier the package points at, which is the one that names the
-	 *  book; the others are alternates. */
-	identifier(): string | null {
-		const identifiers = this.dc("identifier");
+	/** Every identifier, the one the package points at first. The scheme is
+	 *  EPUB 2's attribute, EPUB 3's refinement, or else the value's prefix. */
+	identifiers(): BookIdentifier[] {
+		const all = this.dc("identifier");
 		const wanted = this.uniqueIdentifier;
-		return textOf(
-			(wanted ? identifiers.find((el) => el.id === wanted) : undefined) ??
-				identifiers[0],
+		const main = wanted ? all.find((el) => el.id === wanted) : undefined;
+		const ordered = main ? [main, ...all.filter((el) => el !== main)] : all;
+		return uniqueIdentifiers(
+			ordered.map((el) => ({
+				scheme:
+					el.attrs.get("scheme") ??
+					ONIX_SCHEMES[this.refined(el, "identifier-type") ?? ""],
+				value: el.text,
+			})),
 		);
 	}
 

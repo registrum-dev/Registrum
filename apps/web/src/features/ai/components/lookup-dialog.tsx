@@ -33,7 +33,7 @@ const FIELD_LABELS = {
 	publisher: "field.publisher",
 	published: "field.published",
 	description: "record.description",
-	identifier: "record.identifier",
+	identifiers: "record.identifier",
 	language: "record.language",
 } as const satisfies Record<LookupField, string>;
 

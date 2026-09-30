@@ -27,6 +27,7 @@ import {
 	fileSizeLabel,
 	folderLabel,
 	formatLabel,
+	identifierSchemeLabel,
 	isoDate,
 	plainText,
 	publishedLabel,
@@ -126,11 +127,18 @@ export function BookDetailMain({
 						numeric
 					/>
 					<DetailRow label={t("record.language")} value={book.language} />
-					<DetailRow
-						label={t("record.identifier")}
-						value={book.identifier}
-						numeric
-					/>
+					{book.identifiers.length ? (
+						book.identifiers.map(({ scheme, value }) => (
+							<DetailRow
+								key={`${scheme}\u0000${value}`}
+								label={identifierSchemeLabel(scheme)}
+								value={value}
+								numeric
+							/>
+						))
+					) : (
+						<DetailRow label={t("record.identifier")} value={null} />
+					)}
 				</div>
 
 				<div className="mt-4 flex flex-col gap-3">

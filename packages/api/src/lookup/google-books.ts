@@ -4,6 +4,7 @@
 import { z } from "zod";
 
 import { Failure } from "../failure";
+import { type BookIdentifier, identifierOf } from "../util/identifier";
 import { clip } from "../util/text";
 
 const BASE = "https://www.googleapis.com/books/v1/volumes";
@@ -67,7 +68,7 @@ export interface FoundVolume {
 	publisher: string | null;
 	published: string | null;
 	description: string | null;
-	identifier: string | null;
+	identifiers: BookIdentifier[];
 	language: string | null;
 }
 
@@ -126,6 +127,12 @@ function isbnOf(volume: Volume): string | null {
 	);
 }
 
+function identifiersOf(volume: Volume): BookIdentifier[] {
+	const isbn = isbnOf(volume);
+	const identifier = isbn ? identifierOf("isbn", isbn) : null;
+	return identifier ? [identifier] : [];
+}
+
 /** Up to ten volumes for a query in Google's own syntax. */
 export async function searchVolumes(
 	query: string,
@@ -174,7 +181,7 @@ export async function getVolume(
 		publisher: text(info.publisher),
 		published: text(info.publishedDate),
 		description: text(info.description),
-		identifier: isbnOf(volume),
+		identifiers: identifiersOf(volume),
 		language: text(info.language),
 	};
 }
