@@ -38,7 +38,12 @@ export const api = createTRPCClient<AppRouter>({
 			false: splitLink({
 				condition: (op) => op.type === "mutation",
 				true: httpLink({ url: URL, fetch: signedIn }),
-				false: httpBatchLink({ url: URL, fetch: signedIn }),
+				// Sent as POST: a question can carry more than a URL holds.
+				false: httpBatchLink({
+					url: URL,
+					fetch: signedIn,
+					methodOverride: "POST",
+				}),
 			}),
 		}),
 	],

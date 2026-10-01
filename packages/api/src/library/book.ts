@@ -65,7 +65,13 @@ export function searchText(
 	const parts: string[] = [title, path];
 	for (const field of fields) if (field != null) parts.push(field);
 	for (const list of lists) parts.push(...list);
-	return fold.fold(parts.join("\n"));
+	return searchable(parts.join("\n"));
+}
+
+/** Text folded for the search, with `%` and `_` swapped for characters a
+ *  SQLite `LIKE` -- which is what `contains` asks -- takes as themselves. */
+export function searchable(text: string): string {
+	return fold.fold(text).replaceAll("%", "\uE000").replaceAll("_", "\uE001");
 }
 
 /** The search text of a record as it stands. */

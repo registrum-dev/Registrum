@@ -17,7 +17,16 @@ import {
 	ChevronRightIcon,
 	SearchIcon,
 } from "lucide-react";
-import { useEffect, useId, useMemo, useRef, useState } from "react";
+import {
+	memo,
+	useCallback,
+	useDeferredValue,
+	useEffect,
+	useId,
+	useMemo,
+	useRef,
+	useState,
+} from "react";
 import { useTranslation } from "react-i18next";
 import {
 	PhoneSheet,
@@ -25,6 +34,7 @@ import {
 	SheetBarButton,
 	SheetBody,
 } from "@/components/phone-sheet";
+import { ShowMore, useShownCount } from "@/components/show-more";
 import {
 	type FilterField,
 	listPatch,
@@ -32,16 +42,18 @@ import {
 	NONE,
 } from "@/features/shelf/filter";
 import {
-	byName,
 	type FilterOption,
 	filterOptions,
+	foldOption,
 	isNameField,
 	optionMatches,
+	sortByName,
 } from "@/features/shelf/filter-options";
 import { useActiveOption } from "@/features/shelf/hooks/use-active-option";
 import { useFacets, useFilterOptions } from "@/features/shelf/queries";
 import { useShelfStore } from "@/features/shelf/store";
 import { useFormFactor } from "@/hooks/use-form-factor";
+import { foldText } from "@/lib/fold";
 import { clothColor } from "./book-cover";
 
 /** The sheet one list is chosen from. It keeps the last list through its way out. */
@@ -57,7 +69,10 @@ export function FilterSheet({
 	const { t } = useTranslation();
 	const filter = useShelfStore((state) => state.filter);
 	const setFilter = useShelfStore((state) => state.setFilter);
-	const chosen = field ? listValues(filter, field) : [];
+	const chosen = useMemo(
+		() => (field ? listValues(filter, field) : []),
+		[filter, field],
+	);
 	const title = field ? t(`filter.fields.${field}`) : t("filter.title");
 
 	return (
@@ -86,6 +101,9 @@ export function FilterSheet({
 	);
 }
 
+/** How many values a list draws at a time; a shelf can hold thousands of names. */
+const OPTIONS_STEP = 200;
+
 function FilterChoices({
 	field,
 	chosen,
@@ -93,7 +111,7 @@ function FilterChoices({
 	field: FilterField;
 	chosen: string[];
 }) {
-	const { t } = useTranslation();
+	const { t, i18n } = useTranslation();
 	const facets = useFacets();
 	const setFilter = useShelfStore((state) => state.setFilter);
 	const reach = useFilterOptions(field).data;
@@ -109,33 +127,53 @@ function FilterChoices({
 	const chips = field === "tag";
 
 	const options = useMemo(() => filterOptions(facets, field), [facets, field]);
+	const pressed = useMemo(() => new Set(chosen), [chosen]);
+	// The list catches up with the typing, rather than holding each key back.
+	const sought = foldText(useDeferredValue(typed).trim());
 
-	const toggle = (value: string) => {
-		const on = chosen.includes(value);
-		setFilter(
-			listPatch(
-				field,
-				on ? chosen.filter((kept) => kept !== value) : [...chosen, value],
-			),
-		);
-	};
+	const toggle = useCallback(
+		(value: string) => {
+			setFilter(
+				listPatch(
+					field,
+					chosen.includes(value)
+						? chosen.filter((kept) => kept !== value)
+						: [...chosen, value],
+				),
+			);
+		},
+		[field, chosen, setFilter],
+	);
 
-	const reached = (option: FilterOption) => !reach || reach.has(option.value);
+	const reached = useCallback(
+		(option: FilterOption) => !reach || reach.has(option.value),
+		[reach],
+	);
 
-	// Worked out each render: `chosen` is a new list every time anyway.
-	const groups = (() => {
-		if (!named) return [{ id: "all", options, dim: false }];
+	// Sorted once for what the shelf holds, not again at each key.
+	const sorted = useMemo(
+		() =>
+			named ? sortByName(options.map(foldOption), i18n.language) : undefined,
+		[named, options, i18n.language],
+	);
+
+	const groups = useMemo(() => {
+		if (!sorted) return [{ id: "all", options, dim: false }];
 		// A value asked for stays in the list even once no book carries it, or it
 		// could not be taken off.
 		const known = new Set(options.map((option) => option.value));
 		const gone = chosen
 			.filter((value) => !known.has(value))
-			.map((value) => ({ value, label: value, count: 0, note: null }));
-		const all = [...options, ...gone]
-			.sort(byName)
-			.filter((option) => optionMatches(option, typed));
+			.map((value) =>
+				foldOption({ value, label: value, count: 0, note: null }),
+			);
+		const all = (
+			gone.length ? sortByName([...sorted, ...gone], i18n.language) : sorted
+		)
+			.filter((entry) => optionMatches(entry, sought))
+			.map((entry) => entry.option);
 		const kept = (option: FilterOption) =>
-			reached(option) || chosen.includes(option.value);
+			reached(option) || pressed.has(option.value);
 		return [
 			{ id: "all", options: all.filter(kept), dim: false },
 			{
@@ -144,11 +182,16 @@ function FilterChoices({
 				dim: true,
 			},
 		];
-	})();
+	}, [sorted, options, chosen, pressed, reached, sought, i18n.language]);
+
+	const [limit, more] = useShownCount(OPTIONS_STEP, sought);
+	const [unreachedLimit, moreUnreached] = useShownCount(OPTIONS_STEP, sought);
+	const drawn = (group: (typeof groups)[number]) =>
+		group.options.slice(0, group.id === "unreached" ? unreachedLimit : limit);
 
 	const unreached = groups.find((group) => group.id === "unreached");
 	const shown = groups.flatMap((group) =>
-		group.id === "unreached" && !showUnreached ? [] : group.options,
+		group.id === "unreached" && !showUnreached ? [] : drawn(group),
 	);
 	const optionId = (value: string) => `${ids}-${encodeURIComponent(value)}`;
 
@@ -184,38 +227,53 @@ function FilterChoices({
 	);
 	const activeValue = shown[rows.active]?.value;
 
-	const renderOptions = (list: FilterOption[], dim: boolean) =>
-		chips ? (
-			<div className="flex flex-wrap gap-1.5 px-1 pt-0.5 pb-1">
-				{list.map((option) => (
-					<ChoiceChip
-						key={option.value}
-						id={optionId(option.value)}
-						option={option}
-						pressed={chosen.includes(option.value)}
-						active={option.value === activeValue}
-						dim={dim}
-						onClick={() => toggle(option.value)}
-					/>
-				))}
-			</div>
-		) : (
-			list.map((option) => (
-				<ChoiceRow
-					key={option.value}
-					id={optionId(option.value)}
-					option={option}
-					swatch={named && option.value !== NONE}
-					pressed={chosen.includes(option.value)}
-					active={named && option.value === activeValue}
-					dim={
-						dim ||
-						(!named && !reached(option) && !chosen.includes(option.value))
-					}
-					onClick={() => toggle(option.value)}
-				/>
-			))
+	const renderOptions = (group: (typeof groups)[number]) => {
+		const list = drawn(group);
+		const rest = group.options.length - list.length;
+		return (
+			<>
+				{chips ? (
+					<div className="flex flex-wrap gap-1.5 px-1 pt-0.5 pb-1">
+						{list.map((option) => (
+							<ChoiceChip
+								key={option.value}
+								id={optionId(option.value)}
+								option={option}
+								pressed={pressed.has(option.value)}
+								active={option.value === activeValue}
+								dim={group.dim}
+								onToggle={toggle}
+							/>
+						))}
+					</div>
+				) : (
+					list.map((option) => (
+						<ChoiceRow
+							key={option.value}
+							id={optionId(option.value)}
+							option={option}
+							swatch={named && option.value !== NONE}
+							pressed={pressed.has(option.value)}
+							active={named && option.value === activeValue}
+							dim={
+								group.dim ||
+								(!named && !reached(option) && !pressed.has(option.value))
+							}
+							onToggle={toggle}
+						/>
+					))
+				)}
+				{rest > 0 && (
+					<div className="flex justify-center py-1">
+						<ShowMore
+							count={Math.min(rest, OPTIONS_STEP)}
+							onClick={group.id === "unreached" ? moreUnreached : more}
+						/>
+					</div>
+				)}
+			</>
 		);
+	};
 
 	return (
 		<>
@@ -277,13 +335,11 @@ function FilterChoices({
 									)}
 									{t("filter.unreached", { count: group.options.length })}
 								</CollapsibleTrigger>
-								<CollapsibleContent>
-									{renderOptions(group.options, true)}
-								</CollapsibleContent>
+								<CollapsibleContent>{renderOptions(group)}</CollapsibleContent>
 							</Collapsible>
 						) : (
 							<div key={group.id} className="pt-1">
-								{renderOptions(group.options, group.dim)}
+								{renderOptions(group)}
 							</div>
 						),
 					)
@@ -294,14 +350,14 @@ function FilterChoices({
 }
 
 /** One value, as a row: a check, a colour, its name, and how many books carry it. */
-function ChoiceRow({
+const ChoiceRow = memo(function ChoiceRow({
 	id,
 	option,
 	swatch,
 	pressed,
 	active,
 	dim,
-	onClick,
+	onToggle,
 }: {
 	id: string;
 	option: FilterOption;
@@ -309,7 +365,7 @@ function ChoiceRow({
 	pressed: boolean;
 	active: boolean;
 	dim: boolean;
-	onClick: () => void;
+	onToggle: (value: string) => void;
 }) {
 	return (
 		<button
@@ -317,7 +373,7 @@ function ChoiceRow({
 			id={id}
 			aria-pressed={pressed}
 			data-active={active || undefined}
-			onClick={onClick}
+			onClick={() => onToggle(option.value)}
 			className="flex min-h-10 phone:min-h-12 w-full items-center gap-3 rounded-lg px-2.5 py-1 text-start text-sm transition-colors hover:bg-muted data-active:bg-muted"
 		>
 			<span
@@ -354,31 +410,31 @@ function ChoiceRow({
 			</span>
 		</button>
 	);
-}
+});
 
 /** One tag, as a chip: there are as many as the reader made, and a hundred
  *  chips read at a glance where a hundred rows do not. */
-function ChoiceChip({
+const ChoiceChip = memo(function ChoiceChip({
 	id,
 	option,
 	pressed,
 	active,
 	dim,
-	onClick,
+	onToggle,
 }: {
 	id: string;
 	option: FilterOption;
 	pressed: boolean;
 	active: boolean;
 	dim: boolean;
-	onClick: () => void;
+	onToggle: (value: string) => void;
 }) {
 	return (
 		<button
 			type="button"
 			id={id}
 			aria-pressed={pressed}
-			onClick={onClick}
+			onClick={() => onToggle(option.value)}
 			className={cn(
 				"inline-flex h-8 items-center gap-1.5 rounded-full border border-border bg-card px-3 text-[13px] transition-colors hover:bg-muted",
 				pressed &&
@@ -398,4 +454,4 @@ function ChoiceChip({
 			</span>
 		</button>
 	);
-}
+});

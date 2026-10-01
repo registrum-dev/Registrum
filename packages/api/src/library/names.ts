@@ -89,14 +89,6 @@ export function linkOf(db: Client, kind: FacetKind): Link {
 	return { table: table as Link["table"], book, name };
 }
 
-/** The condition on a name's `books` that a book meeting `where` carries it. */
-export function carriedBy(
-	kind: FacetKind,
-	where: Prisma.BookWhereInput,
-): object {
-	return isNameList(kind) ? { some: { book: where } } : { some: where };
-}
-
 /**
  * A name in the spelling it is written down in (`fold.name`), trimmed. A name
  * with nothing in it is no name at all, and `null` in gives `null` out -- a

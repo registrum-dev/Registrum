@@ -13,7 +13,7 @@ import {
 	Trash2Icon,
 	XIcon,
 } from "lucide-react";
-import { useCallback, useState } from "react";
+import { memo, useCallback, useDeferredValue, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ChoiceGroup } from "@/components/choice-group";
 import { Confirm } from "@/components/confirm";
@@ -24,6 +24,7 @@ import {
 	SheetSurface,
 } from "@/components/phone-sheet";
 import { ScreenEmpty } from "@/components/screen-empty";
+import { ShowMore, useShownCount } from "@/components/show-more";
 import { SheetLoading } from "@/features/shelf/components/sheet-parts";
 import type { FacetEntry } from "@/features/shelf/filter";
 import { useRetainedValue } from "@/features/shelf/hooks/use-retained-value";
@@ -39,10 +40,13 @@ import { useShelfStore } from "@/features/shelf/store";
 import { FACET_KINDS, type FacetKind } from "@/features/shelf/types";
 import { useEnterToSend } from "@/hooks/use-enter-to-send";
 import { useWindowTitle } from "@/hooks/use-window-title";
-import { foldIncludes } from "@/lib/fold";
+import { foldText } from "@/lib/fold";
 import { showNotice } from "@/store/alert";
 
 const NO_ENTRIES: FacetEntry[] = [];
+
+/** How many rows are drawn at a time; a shelf can hold thousands of names. */
+const ROWS_STEP = 100;
 
 /** The list, risen over the shelf like the settings. The router owns its coming and going. */
 export function NamesSheet({
@@ -99,9 +103,18 @@ function NameList({ kind }: { kind: FacetKind }) {
 
 	const wanted = typed.trim();
 	const held = entries.some((entry) => entry.name === wanted);
-	const shown = wanted
-		? entries.filter((entry) => foldIncludes(entry.name, wanted))
-		: entries;
+	// The list catches up with the typing, rather than holding each key back.
+	const sought = useDeferredValue(wanted);
+	const folded = useMemo(
+		() => entries.map((entry) => foldText(entry.name)),
+		[entries],
+	);
+	const shown = useMemo(() => {
+		if (!sought) return entries;
+		const text = foldText(sought);
+		return entries.filter((_, at) => folded[at]?.includes(text));
+	}, [entries, folded, sought]);
+	const [limit, more] = useShownCount(ROWS_STEP, `${kind}:${sought}`);
 
 	const submit = () => {
 		if (wanted === "" || held || add.isPending) return;
@@ -214,16 +227,25 @@ function NameList({ kind }: { kind: FacetKind }) {
 						}
 					/>
 				) : (
-					<ul className="divide-y divide-border">
-						{shown.map((entry) => (
-							<NameRow
-								key={`${kind}:${entry.name}`}
-								kind={kind}
-								entry={entry}
-								entries={entries}
+					<div className="flex flex-col pb-3">
+						<ul className="divide-y divide-border">
+							{shown.slice(0, limit).map((entry) => (
+								<NameRow
+									key={`${kind}:${entry.name}`}
+									kind={kind}
+									entry={entry}
+									entries={entries}
+								/>
+							))}
+						</ul>
+						{shown.length > limit && (
+							<ShowMore
+								count={Math.min(shown.length - limit, ROWS_STEP)}
+								onClick={more}
+								className="mt-3"
 							/>
-						))}
-					</ul>
+						)}
+					</div>
 				)}
 			</SheetBody>
 		</>
@@ -231,7 +253,7 @@ function NameList({ kind }: { kind: FacetKind }) {
 }
 
 /** One name: how many books carry it, and the two things that can be done to it. */
-function NameRow({
+const NameRow = memo(function NameRow({
 	kind,
 	entry,
 	entries,
@@ -378,4 +400,4 @@ function NameRow({
 			/>
 		</li>
 	);
-}
+});

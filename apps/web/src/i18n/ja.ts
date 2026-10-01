@@ -22,6 +22,7 @@ export const ja = {
 		dotSeparator: "　·　",
 		unknownAuthor: "著者不明",
 		notRated: "未評価",
+		showMore_other: "さらに {{count}} 件を表示",
 		dropToOpen: "ドロップして開く",
 		unsupportedDrop:
 			"対応していない形式です。EPUB / PDF / CBZ / ZIP をドロップしてください。",

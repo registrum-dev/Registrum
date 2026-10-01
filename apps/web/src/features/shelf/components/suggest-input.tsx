@@ -25,6 +25,9 @@ const freshName = (typed: string, ...known: string[][]) =>
 		? typed
 		: null;
 
+/** A shelf can hold thousands of names; past this many it is left to typing. */
+const SUGGEST_LIMIT = 50;
+
 /** One name: picked from the shelf's own, or written fresh. */
 export function NameInput({
 	id,
@@ -51,6 +54,7 @@ export function NameInput({
 			onInputValueChange={onChange}
 			// Typing `ｶﾀｶﾅ` has to find `カタカナ`, the same as in the search box.
 			filter={foldIncludes}
+			limit={SUGGEST_LIMIT}
 		>
 			<ComboboxInput id={id} className="w-full" />
 			<ComboboxContent>
@@ -103,6 +107,7 @@ export function TokenInput({
 			onInputValueChange={setDraft}
 			// Typing `ｶﾀｶﾅ` has to find `カタカナ`, the same as in the search box.
 			filter={foldIncludes}
+			limit={SUGGEST_LIMIT}
 		>
 			<ComboboxChips ref={anchor} className="min-h-9">
 				<ComboboxValue>
