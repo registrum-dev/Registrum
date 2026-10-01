@@ -2,7 +2,7 @@
 // until it is removed by hand, whether or not a book carries it.
 
 import { createId } from "@paralleldrive/cuid2";
-import type { Client, Prisma } from "@registrum/db";
+import { type Client, Prisma } from "@registrum/db";
 
 import * as fold from "../util/fold";
 import type { FacetKind } from "../vocabulary";
@@ -205,4 +205,34 @@ export async function addLists(
 	}
 	for (const batch of chunks(rows, BATCH))
 		await link.table.createMany({ data: batch });
+}
+
+/** Writes down what these books sort on by name: the first of each list, and
+ *  the publisher and the series. Run after anything that changes either. */
+export async function refreshSortKeys(
+	db: Client,
+	bookIds: readonly string[],
+): Promise<void> {
+	for (const batch of chunks(bookIds, BATCH)) {
+		await db.$executeRaw`
+			UPDATE book SET
+				author_key = (
+					SELECT NULLIF(n.name_key, '') FROM book_author l
+					JOIN author n ON n.id = l.author_id
+					WHERE l.book_id = book.id ORDER BY l.position LIMIT 1),
+				collection_key = (
+					SELECT NULLIF(n.name_key, '') FROM book_collection l
+					JOIN collection n ON n.id = l.collection_id
+					WHERE l.book_id = book.id ORDER BY l.position LIMIT 1),
+				tag_key = (
+					SELECT NULLIF(n.name_key, '') FROM book_tag l
+					JOIN tag n ON n.id = l.tag_id
+					WHERE l.book_id = book.id ORDER BY l.position LIMIT 1),
+				publisher_key = (
+					SELECT NULLIF(name_key, '') FROM publisher
+					WHERE id = book.publisher_id),
+				series_key = (
+					SELECT NULLIF(name_key, '') FROM series WHERE id = book.series_id)
+			WHERE id IN (${Prisma.join(batch)})`;
+	}
 }

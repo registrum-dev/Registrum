@@ -4,16 +4,14 @@ import type { Client, Prisma } from "@registrum/db";
 import { z } from "zod";
 
 import * as fold from "../util/fold";
-import { compare } from "../util/text";
 import {
 	BOOK_CATEGORIES,
 	BOOK_FORMATS,
 	BOOK_STATUSES,
-	type BookStatus,
 	NONE,
 } from "../vocabulary";
 import { carriedBy, nameTable } from "./names";
-import { type BookRecord, findRecords, STATUS_WHERE, statusOf } from "./record";
+import { type BookRecord, findRecords, STATUS_WHERE } from "./record";
 
 /**
  * The conditions the shelf is asked for. A field that is absent is not a
@@ -166,22 +164,29 @@ export async function whereOf(
 	return { AND: all };
 }
 
-/** The keys a book's own row sorts on, which the database orders directly.
- *  A book with nothing there goes last whichever way round the column is
- *  read: a book with no series is not the first volume of anything. */
+/** The column each key sorts on. A book with nothing there goes last whichever
+ *  way round the column is read: a book with no series is not the first
+ *  volume of anything. */
 interface ColumnOrder {
 	column: keyof Prisma.BookOrderByWithRelationInput;
 	nullable: boolean;
 }
 
-const COLUMN_ORDER: Partial<Record<SortKey, ColumnOrder>> = {
+const COLUMN_ORDER: Record<SortKey, ColumnOrder> = {
 	title: { column: "titleKey", nullable: false },
+	author: { column: "authorKey", nullable: true },
+	series: { column: "seriesKey", nullable: true },
 	seriesIndex: { column: "seriesIndex", nullable: true },
+	collection: { column: "collectionKey", nullable: true },
+	tag: { column: "tagKey", nullable: true },
+	publisher: { column: "publisherKey", nullable: true },
 	published: { column: "published", nullable: true },
 	category: { column: "category", nullable: true },
 	format: { column: "format", nullable: false },
+	status: { column: "statusRank", nullable: false },
 	favorite: { column: "favorite", nullable: false },
 	rating: { column: "rating", nullable: true },
+	progress: { column: "progress", nullable: true },
 	lastOpened: { column: "lastOpenedAt", nullable: true },
 	added: { column: "addedAt", nullable: false },
 	size: { column: "size", nullable: false },
@@ -205,10 +210,7 @@ function columnOrder(
 }
 
 /** The order the shelf sorts in by path, ascending. */
-export const PATH_ORDER = columnOrder(
-	{ column: "path", nullable: false },
-	"asc",
-);
+export const PATH_ORDER = columnOrder(COLUMN_ORDER.path, "asc");
 
 /** The same order as `PATH_ORDER`, for records already read. The columns are
  *  compared the way SQLite compares text by default: byte by byte in UTF-8.
@@ -223,92 +225,6 @@ export function comparePathOrder(a: BookRecord, b: BookRecord): number {
 	);
 }
 
-/** What a book sorts on for the keys that lie outside its row -- the first
- *  name of a list, a name it points at, its reading position -- read for every
- *  book the conditions let through and ordered here. */
-const OUTSIDE_SELECT = {
-	id: true,
-	addedAt: true,
-	titleKey: true,
-	publisher: { select: { nameKey: true } },
-	series: { select: { nameKey: true } },
-	position: { select: { fraction: true } },
-	authors: {
-		orderBy: { position: "asc" },
-		take: 1,
-		select: { author: { select: { nameKey: true } } },
-	},
-	collections: {
-		orderBy: { position: "asc" },
-		take: 1,
-		select: { collection: { select: { nameKey: true } } },
-	},
-	tags: {
-		orderBy: { position: "asc" },
-		take: 1,
-		select: { tag: { select: { nameKey: true } } },
-	},
-} satisfies Prisma.BookSelect;
-
-type Outside = Prisma.BookGetPayload<{ select: typeof OUTSIDE_SELECT }>;
-
-function outsideValue(book: Outside, sort: SortKey): string | number | null {
-	switch (sort) {
-		case "author":
-			return book.authors[0]?.author.nameKey ?? null;
-		case "collection":
-			return book.collections[0]?.collection.nameKey ?? null;
-		case "tag":
-			return book.tags[0]?.tag.nameKey ?? null;
-		case "series":
-			return book.series?.nameKey ?? null;
-		case "publisher":
-			return book.publisher?.nameKey ?? null;
-		case "progress":
-			return book.position?.fraction ?? null;
-		case "status":
-			return STATUS_RANK[statusOf(book.position)];
-		default:
-			return null;
-	}
-}
-
-/** Reading first, then unread, then done -- the order the shelf is used in. */
-const STATUS_RANK: Record<BookStatus, number> = {
-	reading: 0,
-	unread: 1,
-	finished: 2,
-};
-
-/** The ids of every book the conditions let through, in order. */
-async function orderedOutside(
-	db: Client,
-	where: Prisma.BookWhereInput,
-	sort: SortKey,
-	order: SortOrder,
-): Promise<string[]> {
-	const books = await db.book.findMany({ where, select: OUTSIDE_SELECT });
-	const flip = order === "desc" ? -1 : 1;
-	return books
-		.map((book) => ({ book, value: outsideValue(book, sort) }))
-		.sort((x, y) => {
-			const xEmpty = x.value === null || x.value === "";
-			const yEmpty = y.value === null || y.value === "";
-			if (xEmpty !== yEmpty) return xEmpty ? 1 : -1;
-			if (!xEmpty && !yEmpty) {
-				const by =
-					compare(x.value as string | number, y.value as string | number) *
-					flip;
-				if (by !== 0) return by;
-			}
-			return (
-				compare(y.book.addedAt, x.book.addedAt) ||
-				compare(x.book.titleKey, y.book.titleKey)
-			);
-		})
-		.map(({ book }) => book.id);
-}
-
 /** One page of the books on the shelf, in the order the shelf is sorted by. */
 export async function listBooks(
 	db: Client,
@@ -319,28 +235,13 @@ export async function listBooks(
 	paging: Paging | null,
 ): Promise<BookPage> {
 	const where = await whereOf(db, shelfId, filter);
-	const column = COLUMN_ORDER[sort];
-
-	if (column) {
-		const found = await findRecords(db, {
-			where,
-			orderBy: columnOrder(column, order),
-			...(paging ? { skip: paging.page * paging.size, take: paging.size } : {}),
-		});
-		const total = paging ? await db.book.count({ where }) : found.length;
-		return { books: found, total };
-	}
-
-	const ids = await orderedOutside(db, where, sort, order);
-	const wanted = paging
-		? ids.slice(paging.page * paging.size, (paging.page + 1) * paging.size)
-		: ids;
-	const found = await findRecords(db, { where: { id: { in: wanted } } });
-	const byId = new Map(found.map((book) => [book.id, book]));
-	return {
-		books: wanted.flatMap((id) => byId.get(id) ?? []),
-		total: ids.length,
-	};
+	const found = await findRecords(db, {
+		where,
+		orderBy: columnOrder(COLUMN_ORDER[sort], order),
+		...(paging ? { skip: paging.page * paging.size, take: paging.size } : {}),
+	});
+	const total = paging ? await db.book.count({ where }) : found.length;
+	return { books: found, total };
 }
 
 /** The same question with one of its lists taken off. */

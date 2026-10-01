@@ -18,6 +18,7 @@ import {
 	fieldIds,
 	filled,
 	type NameList,
+	refreshSortKeys,
 	uniqueNames,
 	unlinkNames,
 } from "./names";
@@ -59,6 +60,17 @@ function touchesSearchText(patch: BookPatch): boolean {
 		patch.subtitle !== undefined ||
 		patch.description !== undefined ||
 		patch.note !== undefined ||
+		patch.publisher !== undefined ||
+		patch.series !== undefined ||
+		patch.authors != null ||
+		patch.collections != null ||
+		patch.tags != null
+	);
+}
+
+/** The fields the shelf sorts on by name. */
+function touchesSortKeys(patch: BookPatch): boolean {
+	return (
 		patch.publisher !== undefined ||
 		patch.series !== undefined ||
 		patch.authors != null ||
@@ -214,4 +226,9 @@ async function writeBatch(
 		if (Object.keys(data).length === 0) continue;
 		await db.book.update({ where: { id }, data });
 	}
+
+	await refreshSortKeys(
+		db,
+		known.flatMap(([id, patch]) => (touchesSortKeys(patch) ? [id] : [])),
+	);
 }
