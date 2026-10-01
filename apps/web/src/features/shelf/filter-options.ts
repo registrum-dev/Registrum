@@ -1,6 +1,5 @@
 // What each of the filter's lists offers, as values rather than as screen.
 
-import i18n from "@/i18n";
 import { foldIncludes, foldText } from "@/lib/fold";
 import { type FilterField, NONE, namesOf, type ShelfFacets } from "./filter";
 import { filterValueLabel } from "./labels";
@@ -77,34 +76,40 @@ export function filterOptions(
 	}
 }
 
-/** Whether what the reader typed is in the option's name, or under it. */
-export function optionMatches(option: FilterOption, typed: string): boolean {
-	const wanted = typed.trim();
-	return (
-		foldIncludes(option.label, wanted) ||
-		(option.note !== null && foldIncludes(option.note, wanted))
-	);
+/** An option with its text folded once, so a list of thousands is sorted
+ *  and searched without folding each name again at every comparison. */
+export interface FoldedOption {
+	option: FilterOption;
+	label: string;
+	note: string | null;
 }
 
-let collator: { language: string; compare: Intl.Collator } | null = null;
-
-/** Names are put in the order the reader's language puts them. */
-function compareNames(a: string, b: string): number {
-	if (collator?.language !== i18n.language) {
-		collator = {
-			language: i18n.language,
-			compare: new Intl.Collator(i18n.language),
-		};
-	}
-	return collator.compare.compare(foldText(a), foldText(b));
+export function foldOption(option: FilterOption): FoldedOption {
+	return {
+		option,
+		label: foldText(option.label),
+		note: option.note === null ? null : foldText(option.note),
+	};
 }
 
-/** Name order, with "no series" ahead of every name. */
-export function byName(a: FilterOption, b: FilterOption): number {
-	if (a.value === NONE || b.value === NONE) {
-		return Number(b.value === NONE) - Number(a.value === NONE);
-	}
-	return compareNames(a.label, b.label);
+/** Whether the typed text, already folded, is in the option's name, or under it. */
+export function optionMatches(entry: FoldedOption, folded: string): boolean {
+	return entry.label.includes(folded) || Boolean(entry.note?.includes(folded));
+}
+
+/** Names in the order the reader's language puts them, with "no series"
+ *  ahead of every name. Sorts in place. */
+export function sortByName(
+	entries: FoldedOption[],
+	language: string,
+): FoldedOption[] {
+	const collator = new Intl.Collator(language);
+	return entries.sort((a, b) => {
+		if (a.option.value === NONE || b.option.value === NONE) {
+			return Number(b.option.value === NONE) - Number(a.option.value === NONE);
+		}
+		return collator.compare(a.label, b.label);
+	});
 }
 
 /** A name from the shelf that holds the typed text: what the search box

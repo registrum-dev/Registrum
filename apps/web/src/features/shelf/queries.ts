@@ -1,7 +1,13 @@
 // Every question a shelf is asked; mutations.ts writes, folder-queries.ts asks
 // about the shelves themselves.
 
-import { hashKey, keepPreviousData, useQuery } from "@tanstack/react-query";
+import {
+	hashKey,
+	keepPreviousData,
+	type UseQueryResult,
+	useQueries,
+	useQuery,
+} from "@tanstack/react-query";
 import { useEffect } from "react";
 import { trpc } from "@/lib/api";
 
@@ -14,7 +20,7 @@ import {
 	type ShelfFacets,
 } from "./filter";
 import { useShelfStore } from "./store";
-import type { FacetKind } from "./types";
+import type { BookPage, BookRecord, FacetKind } from "./types";
 
 /** What a question that could not be asked says, unless it draws its own answer. */
 const ASKS_THE_SHELF = { failure: "loadShelf" } as const;
@@ -102,6 +108,9 @@ export function useFacets(): ShelfFacets {
 	return useFacetsQuery().data ?? NO_FACETS;
 }
 
+/** Kept outside the hook: a new `select` each render is run each render. */
+const toSet = (values: string[]) => new Set(values);
+
 /**
  * The values of one list some book still carries under the rest of the
  * question. The list's own values are left out of the question here too, so
@@ -118,7 +127,7 @@ export function useFilterOptions(field: FilterField | null) {
 			{
 				enabled: asking && field !== null,
 				meta: ASKS_THE_SHELF,
-				select: (values) => new Set(values),
+				select: toSet,
 			},
 		),
 	);
@@ -166,8 +175,46 @@ export function useBook(id: string | undefined) {
 	);
 }
 
-/** The books filed under one of the shelf's names. */
-export function useFacetBooks(kind: FacetKind, name: string) {
+/** How many of a name's books are asked for at a time. */
+export const FACET_PAGE = 100;
+
+interface FacetBooks {
+	books: BookRecord[];
+	/** How many books carry the name; undefined until the first page is in. */
+	total: number | undefined;
+	isPending: boolean;
+	/** A page past the first is still on its way. */
+	isFetchingMore: boolean;
+}
+
+/** The pages, as one list. A write between two answers can move a book from
+ *  one page to the next, so it is listed once. */
+function joinPages(
+	results: Pick<UseQueryResult<BookPage, unknown>, "data" | "isPending">[],
+): FacetBooks {
+	const seen = new Set<string>();
+	const books: BookRecord[] = [];
+	for (const result of results) {
+		for (const book of result.data?.books ?? []) {
+			if (seen.has(book.id)) continue;
+			seen.add(book.id);
+			books.push(book);
+		}
+	}
+	return {
+		books,
+		total: results[0]?.data?.total,
+		isPending: results[0]?.isPending ?? true,
+		isFetchingMore: results.slice(1).some((result) => result.isPending),
+	};
+}
+
+/**
+ * The first `pages` pages of the books filed under one of the shelf's names.
+ * Each page is a page of the shelf's own question, so a write is laid over it
+ * and makes it stale the same way.
+ */
+export function useFacetBooks(kind: FacetKind, name: string, pages = 1) {
 	const { shelfId, asking } = useShelfId();
 	// A kind of name is spelled the same as the condition that asks for it
 	// (`FacetFieldContract`), so the question is the shelf's own question.
@@ -175,20 +222,25 @@ export function useFacetBooks(kind: FacetKind, name: string) {
 	// A set is read in volume order; every other name is read by title.
 	const sort: SortKey = kind === "series" ? "seriesIndex" : "title";
 
-	return useQuery(
-		trpc.book.list.queryOptions(
-			{ shelfId, filter, sort, order: "asc", paging: null },
-			{
-				enabled: asking && name !== "",
-				meta: ASKS_THE_SHELF,
-				select: (page) => page.books,
-			},
+	return useQueries({
+		queries: Array.from({ length: pages }, (_, page) =>
+			trpc.book.list.queryOptions(
+				{
+					shelfId,
+					filter,
+					sort,
+					order: "asc",
+					paging: { page, size: FACET_PAGE },
+				},
+				{ enabled: asking && name !== "", meta: ASKS_THE_SHELF },
+			),
 		),
-	);
+		combine: joinPages,
+	});
 }
 
-/** The rest of the set, when there is one: the same question as the series'
- *  own sheet, so the two share one answer. */
+/** The rest of the set, when there is one: the first page of the series' own
+ *  sheet, so the two share one answer. */
 export function useSeriesVolumes(series: string | null) {
-	return useFacetBooks("series", series ?? "");
+	return useFacetBooks("series", series ?? "").books;
 }

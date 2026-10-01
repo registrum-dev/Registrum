@@ -38,6 +38,8 @@ export const en = {
 		dotSeparator: " · ",
 		unknownAuthor: "Unknown author",
 		notRated: "Not rated",
+		showMore_one: "Show {{count}} more",
+		showMore_other: "Show {{count}} more",
 		dropToOpen: "Drop to open",
 		unsupportedDrop:
 			"That format is not supported. Drop an EPUB, PDF, CBZ or ZIP.",

@@ -21,6 +21,7 @@ import {
 	comparePathOrder,
 	listBooks,
 	PATH_ORDER,
+	whereOf,
 } from "./query";
 import { BATCH, type BookRecord, chunks, findRecords } from "./record";
 
@@ -209,9 +210,18 @@ export async function pathsOf(
 	shelfId: string,
 	target: RuleTarget,
 ): Promise<string[]> {
-	return (await booksOf(db, shelfId, target)).map((book) =>
-		book.path.replaceAll("\\", "/"),
-	);
+	// The whole shelf is read for its paths alone.
+	const found =
+		target.kind === "shelf"
+			? await failingAs("db", () =>
+					db.book.findMany({
+						where: whereOf(shelfId, target.filter),
+						orderBy: PATH_ORDER,
+						select: { path: true },
+					}),
+				)
+			: await booksOf(db, shelfId, target);
+	return found.map((book) => book.path.replaceAll("\\", "/"));
 }
 
 /** The books a rule is run over, in the order the shelf sorts them by path --

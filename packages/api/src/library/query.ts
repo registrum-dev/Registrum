@@ -8,10 +8,12 @@ import {
 	BOOK_CATEGORIES,
 	BOOK_FORMATS,
 	BOOK_STATUSES,
+	type FacetKind,
 	NONE,
 } from "../vocabulary";
-import { carriedBy, nameTable } from "./names";
-import { type BookRecord, findRecords, STATUS_WHERE } from "./record";
+import { searchable } from "./book";
+import { nameTable } from "./names";
+import { type BookRecord, recordsFor, STATUS_WHERE } from "./record";
 
 /**
  * The conditions the shelf is asked for. A field that is absent is not a
@@ -92,31 +94,17 @@ export interface BookPage {
 }
 
 /** The conditions, as the `where` of a book query. */
-export async function whereOf(
-	db: Client,
+export function whereOf(
 	shelfId: string,
 	filter: BookFilter,
-): Promise<Prisma.BookWhereInput> {
+): Prisma.BookWhereInput {
 	const all: Prisma.BookWhereInput[] = [{ shelfId }];
 
 	// Space-separated terms, each of which must appear somewhere in the book.
 	const terms = filter.q
-		? fold.fold(filter.q).split(/\s+/).filter(Boolean)
+		? searchable(filter.q).split(/\s+/).filter(Boolean)
 		: [];
 	for (const term of terms) all.push({ searchText: { contains: term } });
-	// On SQLite `contains` reads `%` and `_` as wildcards, and the reader is
-	// typing a title, not a pattern: a term holding either is checked again
-	// here, against the search text itself.
-	if (terms.some((term) => /[%_]/.test(term))) {
-		const candidates = await db.book.findMany({
-			where: { AND: [...all] },
-			select: { id: true, searchText: true },
-		});
-		const kept = candidates.filter((book) =>
-			terms.every((term) => book.searchText.includes(term)),
-		);
-		all.push({ id: { in: kept.map((book) => book.id) } });
-	}
 
 	// Derived from the reading position rather than stored.
 	if (filter.status) all.push(STATUS_WHERE[filter.status]);
@@ -234,14 +222,22 @@ export async function listBooks(
 	order: SortOrder,
 	paging: Paging | null,
 ): Promise<BookPage> {
-	const where = await whereOf(db, shelfId, filter);
-	const found = await findRecords(db, {
-		where,
-		orderBy: columnOrder(COLUMN_ORDER[sort], order),
-		...(paging ? { skip: paging.page * paging.size, take: paging.size } : {}),
-	});
-	const total = paging ? await db.book.count({ where }) : found.length;
-	return { books: found, total };
+	const where = whereOf(shelfId, filter);
+	// The order is read first, as ids alone: a record's lists cannot be read
+	// for more than a batch of books at once.
+	const ids = (
+		await db.book.findMany({
+			where,
+			orderBy: columnOrder(COLUMN_ORDER[sort], order),
+			select: { id: true },
+			...(paging ? { skip: paging.page * paging.size, take: paging.size } : {}),
+		})
+	).map((row) => row.id);
+	const byId = new Map(
+		(await recordsFor(db, ids)).map((book) => [book.id, book]),
+	);
+	const total = paging ? await db.book.count({ where }) : ids.length;
+	return { books: ids.flatMap((id) => byId.get(id) ?? []), total };
 }
 
 /** The same question with one of its lists taken off. */
@@ -257,7 +253,7 @@ export async function filterOptions(
 	filter: BookFilter,
 	field: FilterField,
 ): Promise<string[]> {
-	const where = await whereOf(db, shelfId, without(filter, field));
+	const where = whereOf(shelfId, without(filter, field));
 
 	switch (field) {
 		case "author":
@@ -265,17 +261,16 @@ export async function filterOptions(
 		case "tag":
 		case "publisher":
 		case "series": {
+			const carried = await carriedIds(db, field, where);
 			const found = (
 				await nameTable(db, field).findMany({
-					where: { shelfId, books: carriedBy(field, where) },
+					where: { id: { in: carried.filter((id) => id !== null) } },
 					select: { id: true, name: true },
 				})
 			).map((row) => row.name);
-			if (field !== "series") return found;
-			const loose = await db.book.count({
-				where: { AND: [where, { seriesId: null }] },
-			});
-			return loose > 0 ? [...found, NONE] : found;
+			return field === "series" && carried.includes(null)
+				? [...found, NONE]
+				: found;
 		}
 		case "category": {
 			const rows = await db.book.groupBy({
@@ -291,6 +286,43 @@ export async function filterOptions(
 		case "rating":
 			return (await db.book.groupBy({ by: ["rating"], where })).map((row) =>
 				row.rating === null ? NONE : String(row.rating),
+			);
+	}
+}
+
+/** The ids of the names of one kind that the books meeting `where` carry,
+ *  counted from the books' side; `null` for a book with no publisher or series. */
+async function carriedIds(
+	db: Client,
+	kind: FacetKind,
+	where: Prisma.BookWhereInput,
+): Promise<(string | null)[]> {
+	switch (kind) {
+		case "author":
+			return (
+				await db.bookAuthor.groupBy({
+					by: ["authorId"],
+					where: { book: where },
+				})
+			).map((row) => row.authorId);
+		case "collection":
+			return (
+				await db.bookCollection.groupBy({
+					by: ["collectionId"],
+					where: { book: where },
+				})
+			).map((row) => row.collectionId);
+		case "tag":
+			return (
+				await db.bookTag.groupBy({ by: ["tagId"], where: { book: where } })
+			).map((row) => row.tagId);
+		case "publisher":
+			return (await db.book.groupBy({ by: ["publisherId"], where })).map(
+				(row) => row.publisherId,
+			);
+		case "series":
+			return (await db.book.groupBy({ by: ["seriesId"], where })).map(
+				(row) => row.seriesId,
 			);
 	}
 }

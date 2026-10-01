@@ -345,7 +345,7 @@ function SeriesSection({
 }) {
 	const { t } = useTranslation();
 	// Nothing while it is asked for: the section may turn out not to exist.
-	const volumes = useSeriesVolumes(book.series).data ?? [];
+	const volumes = useSeriesVolumes(book.series);
 
 	if (volumes.length < 2) return null;
 

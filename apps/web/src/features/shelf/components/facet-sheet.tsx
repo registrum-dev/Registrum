@@ -9,6 +9,7 @@ import { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { SheetSurface } from "@/components/phone-sheet";
 import { ScreenEmpty } from "@/components/screen-empty";
+import { ShowMore, useShownCount } from "@/components/show-more";
 import { BookCard } from "@/features/shelf/components/book-card";
 import { FacetRename } from "@/features/shelf/components/facet-rename";
 import {
@@ -19,9 +20,9 @@ import { type BookFilter, NO_CONDITIONS } from "@/features/shelf/filter";
 import { useRetainedValue } from "@/features/shelf/hooks/use-retained-value";
 import { nameKindLabel } from "@/features/shelf/labels";
 import { bookLink, readLink } from "@/features/shelf/links";
-import { useFacetBooks, useNames } from "@/features/shelf/queries";
+import { FACET_PAGE, useFacetBooks, useNames } from "@/features/shelf/queries";
 import { useShelfStore } from "@/features/shelf/store";
-import { type FacetKind, NO_BOOKS } from "@/features/shelf/types";
+import type { FacetKind } from "@/features/shelf/types";
 import { useWindowTitle } from "@/hooks/use-window-title";
 
 export interface FacetAddress {
@@ -82,8 +83,10 @@ function NameDetail({
 
 	// The hooks are asked for whatever the address says; an address that names no
 	// name asks for nothing, and the sheet below says so.
-	const found = useFacetBooks(kind ?? "author", name ?? "");
-	const books = found.data ?? NO_BOOKS;
+	const [pages, more] = useShownCount(1, `${kind}:${name}`);
+	const found = useFacetBooks(kind ?? "author", name ?? "", pages);
+	const { books, total = 0 } = found;
+	const rest = total - pages * FACET_PAGE;
 	const listed = useNames(kind ?? "author");
 	const held = listed.data ?? [];
 
@@ -165,7 +168,7 @@ function NameDetail({
 						name={name}
 						from={from}
 						taken={taken}
-						count={counted ?? books.length}
+						count={counted ?? total}
 					/>
 
 					<section className="flex flex-col gap-2.5">
@@ -182,17 +185,33 @@ function NameDetail({
 								{t("facet.noBooks")}
 							</p>
 						) : (
-							<div className="grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] phone:grid-cols-[repeat(auto-fill,minmax(126px,1fr))] gap-x-5 phone:gap-x-3 gap-y-4 phone:gap-y-3">
-								{books.map((book, index) => (
-									<BookCard
-										key={book.id}
-										book={book}
-										at={index}
-										onOpen={() => void navigate(bookLink(book.id))}
-										onRead={() => void navigate(readLink(book.id))}
+							<>
+								<div className="grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] phone:grid-cols-[repeat(auto-fill,minmax(126px,1fr))] gap-x-5 phone:gap-x-3 gap-y-4 phone:gap-y-3">
+									{books.map((book, index) => (
+										<BookCard
+											key={book.id}
+											book={book}
+											// A page shown later arrives in its own turn, not after the ones above.
+											at={index % FACET_PAGE}
+											onOpen={() => void navigate(bookLink(book.id))}
+											onRead={() => void navigate(readLink(book.id))}
+										/>
+									))}
+								</div>
+								{found.isFetchingMore ? (
+									<Spinner
+										aria-label={t("common.loading")}
+										className="self-center"
 									/>
-								))}
-							</div>
+								) : (
+									rest > 0 && (
+										<ShowMore
+											count={Math.min(rest, FACET_PAGE)}
+											onClick={more}
+										/>
+									)
+								)}
+							</>
 						)}
 					</section>
 				</div>
