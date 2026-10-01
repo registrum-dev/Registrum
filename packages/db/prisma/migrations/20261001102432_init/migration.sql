@@ -15,7 +15,6 @@ CREATE TABLE "book" (
     "publisher_id" TEXT,
     "language" TEXT,
     "published" TEXT,
-    "identifier" TEXT,
     "series_id" TEXT,
     "series_index" REAL,
     "description" TEXT,
@@ -30,6 +29,13 @@ CREATE TABLE "book" (
     "added_at" TEXT NOT NULL,
     "scanned_at" TEXT NOT NULL,
     "last_opened_at" TEXT,
+    "author_key" TEXT,
+    "collection_key" TEXT,
+    "tag_key" TEXT,
+    "series_key" TEXT,
+    "publisher_key" TEXT,
+    "progress" REAL,
+    "status_rank" INTEGER NOT NULL DEFAULT 1,
     CONSTRAINT "book_shelf_id_fkey" FOREIGN KEY ("shelf_id") REFERENCES "shelf" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
     CONSTRAINT "book_publisher_id_fkey" FOREIGN KEY ("publisher_id") REFERENCES "publisher" ("id") ON DELETE SET NULL ON UPDATE CASCADE,
     CONSTRAINT "book_series_id_fkey" FOREIGN KEY ("series_id") REFERENCES "series" ("id") ON DELETE SET NULL ON UPDATE CASCADE
@@ -43,6 +49,28 @@ CREATE TABLE "reading_position" (
     "label" TEXT,
     "updated_at" TEXT NOT NULL,
     CONSTRAINT "reading_position_book_id_fkey" FOREIGN KEY ("book_id") REFERENCES "book" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+-- CreateTable
+CREATE TABLE "bookmark" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "book_id" TEXT NOT NULL,
+    "cfi" TEXT NOT NULL,
+    "fraction" REAL NOT NULL DEFAULT 0,
+    "label" TEXT,
+    "created_at" TEXT NOT NULL,
+    CONSTRAINT "bookmark_book_id_fkey" FOREIGN KEY ("book_id") REFERENCES "book" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+-- CreateTable
+CREATE TABLE "book_identifier" (
+    "book_id" TEXT NOT NULL,
+    "scheme" TEXT NOT NULL,
+    "value" TEXT NOT NULL,
+    "position" INTEGER NOT NULL,
+
+    PRIMARY KEY ("book_id", "scheme", "value"),
+    CONSTRAINT "book_identifier_book_id_fkey" FOREIGN KEY ("book_id") REFERENCES "book" ("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 -- CreateTable
@@ -195,6 +223,51 @@ CREATE INDEX "book_shelf_id_rating_idx" ON "book"("shelf_id", "rating");
 CREATE INDEX "book_shelf_id_title_key_idx" ON "book"("shelf_id", "title_key");
 
 -- CreateIndex
+CREATE INDEX "book_shelf_id_series_index_idx" ON "book"("shelf_id", "series_index");
+
+-- CreateIndex
+CREATE INDEX "book_shelf_id_published_idx" ON "book"("shelf_id", "published");
+
+-- CreateIndex
+CREATE INDEX "book_shelf_id_favorite_idx" ON "book"("shelf_id", "favorite");
+
+-- CreateIndex
+CREATE INDEX "book_shelf_id_last_opened_at_idx" ON "book"("shelf_id", "last_opened_at");
+
+-- CreateIndex
+CREATE INDEX "book_shelf_id_added_at_idx" ON "book"("shelf_id", "added_at");
+
+-- CreateIndex
+CREATE INDEX "book_shelf_id_size_idx" ON "book"("shelf_id", "size");
+
+-- CreateIndex
+CREATE INDEX "book_shelf_id_path_idx" ON "book"("shelf_id", "path");
+
+-- CreateIndex
+CREATE INDEX "book_shelf_id_missing_idx" ON "book"("shelf_id", "missing");
+
+-- CreateIndex
+CREATE INDEX "book_shelf_id_author_key_idx" ON "book"("shelf_id", "author_key");
+
+-- CreateIndex
+CREATE INDEX "book_shelf_id_collection_key_idx" ON "book"("shelf_id", "collection_key");
+
+-- CreateIndex
+CREATE INDEX "book_shelf_id_tag_key_idx" ON "book"("shelf_id", "tag_key");
+
+-- CreateIndex
+CREATE INDEX "book_shelf_id_series_key_idx" ON "book"("shelf_id", "series_key");
+
+-- CreateIndex
+CREATE INDEX "book_shelf_id_publisher_key_idx" ON "book"("shelf_id", "publisher_key");
+
+-- CreateIndex
+CREATE INDEX "book_shelf_id_progress_idx" ON "book"("shelf_id", "progress");
+
+-- CreateIndex
+CREATE INDEX "book_shelf_id_status_rank_idx" ON "book"("shelf_id", "status_rank");
+
+-- CreateIndex
 CREATE INDEX "book_publisher_id_idx" ON "book"("publisher_id");
 
 -- CreateIndex
@@ -202,6 +275,12 @@ CREATE INDEX "book_series_id_series_index_idx" ON "book"("series_id", "series_in
 
 -- CreateIndex
 CREATE UNIQUE INDEX "book_shelf_id_path_key_key" ON "book"("shelf_id", "path_key");
+
+-- CreateIndex
+CREATE INDEX "bookmark_book_id_idx" ON "bookmark"("book_id");
+
+-- CreateIndex
+CREATE INDEX "book_identifier_scheme_value_idx" ON "book_identifier"("scheme", "value");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "author_shelf_id_name_key" ON "author"("shelf_id", "name");

@@ -4,7 +4,7 @@ import { type Database, transaction } from "@registrum/db";
 import { z } from "zod";
 
 import { now } from "../util/time";
-import { BATCH, chunks, clampFraction } from "./record";
+import { BATCH, chunks, clampFraction, STATUS_RANK, statusOf } from "./record";
 
 /** Where the reader stopped, as the reader screen reports it. */
 export const positionSchema = z.object({
@@ -37,10 +37,19 @@ export async function setPosition(
 		label: position.label ?? null,
 		updatedAt: now(),
 	};
-	await db.readingPosition.upsert({
-		where: { bookId: id },
-		create: { bookId: id, ...state },
-		update: state,
+	await transaction(db, async (tx) => {
+		await tx.readingPosition.upsert({
+			where: { bookId: id },
+			create: { bookId: id, ...state },
+			update: state,
+		});
+		await tx.book.update({
+			where: { id },
+			data: {
+				progress: state.fraction,
+				statusRank: STATUS_RANK[statusOf(state)],
+			},
+		});
 	});
 }
 
@@ -68,7 +77,11 @@ export async function clearPosition(
 			await tx.readingPosition.deleteMany({ where: { book: onShelf } });
 			await tx.book.updateMany({
 				where: onShelf,
-				data: { lastOpenedAt: null },
+				data: {
+					lastOpenedAt: null,
+					progress: null,
+					statusRank: STATUS_RANK.unread,
+				},
 			});
 		}
 	});

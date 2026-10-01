@@ -188,11 +188,18 @@ export function statusOf(position: { fraction: number } | null): BookStatus {
 	return position.fraction >= FINISHED ? "finished" : "reading";
 }
 
+/** Reading first, then unread, then done -- the order the shelf is used in. */
+export const STATUS_RANK: Record<BookStatus, number> = {
+	reading: 0,
+	unread: 1,
+	finished: 2,
+};
+
 /** `statusOf`, as the `where` of a book query. */
 export const STATUS_WHERE: Record<BookStatus, Prisma.BookWhereInput> = {
-	unread: { position: { is: null } },
-	reading: { position: { is: { fraction: { lt: FINISHED } } } },
-	finished: { position: { is: { fraction: { gte: FINISHED } } } },
+	unread: { statusRank: STATUS_RANK.unread },
+	reading: { statusRank: STATUS_RANK.reading },
+	finished: { statusRank: STATUS_RANK.finished },
 };
 
 /** The day at the head of a publication date, if it is a real one:

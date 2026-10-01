@@ -1,6 +1,6 @@
 import { PrismaLibSql } from "@prisma/adapter-libsql";
 
-import { type Prisma, PrismaClient } from "../prisma/generated/client";
+import { Prisma, PrismaClient } from "../prisma/generated/client";
 import type { DatabaseConfig } from "./config";
 
 export function createPrismaClient(env: DatabaseConfig) {
@@ -19,7 +19,7 @@ export type Transaction = Prisma.TransactionClient;
 /** What a query can run on: the client itself, or a transaction. */
 export type Client = Database | Transaction;
 
-export type { Prisma };
+export { Prisma };
 
 /**
  * One transaction. The waits are long because a scan writes in batches while

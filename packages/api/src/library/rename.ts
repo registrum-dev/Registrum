@@ -13,6 +13,7 @@ import {
 	isNameList,
 	linkOf,
 	nameTable,
+	refreshSortKeys,
 	rowsNamed,
 } from "./names";
 
@@ -66,6 +67,7 @@ export async function removeFacet(
 			});
 		await nameTable(tx, kind).delete({ where: { id: row.id } });
 		await refreshSearchText(tx, books);
+		await refreshSortKeys(tx, books);
 	});
 }
 
@@ -121,6 +123,7 @@ export async function renameFacet(
 		// The search text holds these names as text, so every book that carried
 		// this one is searchable under a spelling nobody is going to type again.
 		await refreshSearchText(tx, books);
+		await refreshSortKeys(tx, books);
 		return renamed;
 	});
 }

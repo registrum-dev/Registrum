@@ -13,7 +13,7 @@ import {
 	NONE,
 } from "../vocabulary";
 import { nameTable } from "./names";
-import { STATUS_WHERE } from "./record";
+import { STATUS_RANK } from "./record";
 
 export interface FacetEntry {
 	name: string;
@@ -115,16 +115,29 @@ export async function facets(
 		_count: { select: { books: true } },
 	} as const;
 
-	const [total, unread, finished, favorite, missing, noSeries, newest] =
-		await Promise.all([
-			db.book.count({ where: shelf }),
-			db.book.count({ where: { ...shelf, ...STATUS_WHERE.unread } }),
-			db.book.count({ where: { ...shelf, ...STATUS_WHERE.finished } }),
-			db.book.count({ where: { ...shelf, favorite: true } }),
-			db.book.count({ where: { ...shelf, missing: true } }),
-			db.book.count({ where: { ...shelf, seriesId: null } }),
-			db.book.aggregate({ where: shelf, _max: { scannedAt: true } }),
-		]);
+	const [sums] = await db.$queryRaw<
+		{
+			total: number;
+			unread: number;
+			finished: number;
+			favorite: number;
+			missing: number;
+			noSeries: number;
+			newest: string | null;
+		}[]
+	>`
+		SELECT
+			COUNT(*) AS total,
+			COALESCE(SUM(status_rank = ${STATUS_RANK.unread}), 0) AS unread,
+			COALESCE(SUM(status_rank = ${STATUS_RANK.finished}), 0) AS finished,
+			COALESCE(SUM(favorite), 0) AS favorite,
+			COALESCE(SUM(missing), 0) AS missing,
+			COALESCE(SUM(series_id IS NULL), 0) AS noSeries,
+			MAX(scanned_at) AS newest
+		FROM book WHERE shelf_id = ${shelfId}`;
+	const total = Number(sums?.total ?? 0);
+	const unread = Number(sums?.unread ?? 0);
+	const finished = Number(sums?.finished ?? 0);
 
 	const [categories, formats, ratings] = await Promise.all([
 		db.book.groupBy({
@@ -164,15 +177,15 @@ export async function facets(
 				]),
 			),
 		),
-		favorite,
-		missing,
-		noSeries,
-		lastScannedAt: newest._max.scannedAt,
+		favorite: Number(sums?.favorite ?? 0),
+		missing: Number(sums?.missing ?? 0),
+		noSeries: Number(sums?.noSeries ?? 0),
+		lastScannedAt: sums?.newest ?? null,
 		authors: counted(authors),
 		publishers: counted(publishers),
 		collections: counted(collections),
 		tags: counted(tags),
-		series: await withAuthors(db, series),
+		series: await withAuthors(db, shelfId, series),
 	};
 }
 
@@ -180,6 +193,7 @@ export async function facets(
  *  books, then the one listed earliest, then the first by spelling. */
 async function withAuthors(
 	db: Client,
+	shelfId: string,
 	series: {
 		id: string;
 		name: string;
@@ -187,42 +201,34 @@ async function withAuthors(
 		_count: { books: number };
 	}[],
 ): Promise<SeriesFacet[]> {
-	const listed = await db.bookAuthor.findMany({
-		where: { book: { seriesId: { in: series.map((each) => each.id) } } },
-		select: {
-			position: true,
-			book: { select: { seriesId: true } },
-			author: { select: { id: true, name: true, nameKey: true } },
-		},
-	});
+	const tallies = await db.$queryRaw<
+		{
+			seriesId: string;
+			name: string;
+			nameKey: string;
+			count: number;
+			first: number;
+		}[]
+	>`
+		SELECT b.series_id AS seriesId, a.name AS name, a.name_key AS nameKey,
+			COUNT(*) AS count, MIN(l.position) AS first
+		FROM book_author l
+		JOIN book b ON b.id = l.book_id
+		JOIN author a ON a.id = l.author_id
+		WHERE b.shelf_id = ${shelfId} AND b.series_id IS NOT NULL
+		GROUP BY b.series_id, a.id`;
 
-	const tallies = new Map<
-		string,
-		Map<string, { name: string; nameKey: string; count: number; first: number }>
-	>();
-	for (const row of listed) {
-		const seriesId = row.book.seriesId;
-		if (!seriesId) continue;
-		const tally = tallies.get(seriesId) ?? new Map();
-		tallies.set(seriesId, tally);
-		const held = tally.get(row.author.id);
-		if (held) {
-			held.count += 1;
-			held.first = Math.min(held.first, row.position);
-		} else {
-			tally.set(row.author.id, {
-				name: row.author.name,
-				nameKey: row.author.nameKey,
-				count: 1,
-				first: row.position,
-			});
-		}
+	const leaders = new Map<string, (typeof tallies)[number]>();
+	for (const row of tallies) {
+		const held = leaders.get(row.seriesId);
+		if (
+			!held ||
+			(Number(row.count) - Number(held.count) ||
+				Number(held.first) - Number(row.first) ||
+				compare(held.nameKey, row.nameKey)) > 0
+		)
+			leaders.set(row.seriesId, row);
 	}
-	const leader = (seriesId: string) =>
-		[...(tallies.get(seriesId)?.values() ?? [])].sort(
-			(a, b) =>
-				b.count - a.count || a.first - b.first || compare(a.nameKey, b.nameKey),
-		)[0]?.name ?? null;
 
 	return byUse(
 		series
@@ -236,6 +242,6 @@ async function withAuthors(
 	).map((each) => ({
 		name: each.name,
 		count: each.count,
-		author: leader(each.id),
+		author: leaders.get(each.id)?.name ?? null,
 	}));
 }

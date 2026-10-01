@@ -8,7 +8,14 @@ import { inside } from "../util/paths";
 import { now } from "../util/time";
 import { searchText } from "./book";
 import { writeIdentifiers } from "./identifiers";
-import { addLists, fieldIds, filled, uniqueNames, unlinkNames } from "./names";
+import {
+	addLists,
+	fieldIds,
+	filled,
+	refreshSortKeys,
+	uniqueNames,
+	unlinkNames,
+} from "./names";
 import {
 	BATCH,
 	type BookRecord,
@@ -246,5 +253,9 @@ export async function writeIngested(
 		);
 		await unlinkNames(tx, "author", letGo);
 		await addLists(tx, shelfId, "author", authorsOf);
+		await refreshSortKeys(
+			tx,
+			batch.map((ingested) => ingested.plan.id),
+		);
 	});
 }
