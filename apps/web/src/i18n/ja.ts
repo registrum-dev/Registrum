@@ -276,6 +276,13 @@ export const ja = {
 		again: "再スキャン",
 		progress: "スキャンの進み具合",
 		start: "スキャンを開始",
+		missingCount_other: "{{count}} 冊のファイルが見つかりません",
+		removeMissing: "見つからない本を削除",
+		removeMissingTitle_other:
+			"ファイルが見つからない {{count}} 冊を削除しますか？",
+		removeMissingDescription:
+			"編集した内容・評価・メモ・読書位置が削除されます。あとでファイルが戻ってきた場合は、次のスキャンで新しい本として読み込みます。",
+		missingRemoved_other: "{{count}} 冊を削除しました。",
 	},
 
 	shelfEmpty: {

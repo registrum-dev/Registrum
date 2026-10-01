@@ -298,6 +298,15 @@ export const en = {
 		again: "Scan again",
 		progress: "Scan progress",
 		start: "Start a scan",
+		missingCount_one: "{{count}} book's file could not be found",
+		missingCount_other: "{{count}} books' files could not be found",
+		removeMissing: "Delete missing",
+		removeMissingTitle_one: "Delete {{count}} book whose file is missing?",
+		removeMissingTitle_other: "Delete {{count}} books whose files are missing?",
+		removeMissingDescription:
+			"Their edits, ratings, notes and reading positions are deleted. If a file comes back later, the next scan reads it as a new book.",
+		missingRemoved_one: "{{count}} book was deleted.",
+		missingRemoved_other: "{{count}} books were deleted.",
 	},
 
 	shelfEmpty: {
