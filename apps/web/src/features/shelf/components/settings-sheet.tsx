@@ -5,9 +5,16 @@ import { Spinner } from "@registrum/ui/components/spinner";
 import { cn } from "@registrum/ui/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
-import { HouseIcon, LogOutIcon, RefreshCwIcon, TagsIcon } from "lucide-react";
-import { useCallback } from "react";
+import {
+	HouseIcon,
+	LogOutIcon,
+	RefreshCwIcon,
+	TagsIcon,
+	Trash2Icon,
+} from "lucide-react";
+import { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { Confirm } from "@/components/confirm";
 import { LanguagePicker } from "@/components/language-picker";
 import {
 	SheetBar,
@@ -24,10 +31,12 @@ import { ScanProgressBar } from "@/features/shelf/components/scan-progress-bar";
 import { ShelfSettings } from "@/features/shelf/components/shelf-settings";
 import { NO_FACETS } from "@/features/shelf/filter";
 import { folderLabel, shortDate } from "@/features/shelf/labels";
+import { useRemoveMissing } from "@/features/shelf/mutations";
 import { useFacetsQuery } from "@/features/shelf/queries";
 import { useCurrentShelf } from "@/features/shelf/shelf-queries";
 import { useShelfStore } from "@/features/shelf/store";
 import { useWindowTitle } from "@/hooks/use-window-title";
+import { showNotice } from "@/store/alert";
 
 /** The settings, risen over the shelf like a book's detail. The router owns its coming and going. */
 export function SettingsSheet({
@@ -81,6 +90,8 @@ function SettingsSections({ className }: { className?: string }) {
 	// letting through: this screen is about the folder.
 	const counted = useFacetsQuery();
 	const facets = counted.data ?? NO_FACETS;
+	const removeMissing = useRemoveMissing();
+	const [clearing, setClearing] = useState(false);
 
 	useWindowTitle(t("app.settingsWindowTitle"));
 
@@ -146,10 +157,43 @@ function SettingsSections({ className }: { className?: string }) {
 						</Button>
 					</div>
 
+					{facets.missing > 0 && (
+						<div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+							<span className="min-w-0 flex-1 text-muted-foreground text-xs">
+								{t("scan.missingCount", { count: facets.missing })}
+							</span>
+							<Button
+								variant="ghost"
+								size="sm"
+								disabled={busy === "scanning" || removeMissing.isPending}
+								onClick={() => setClearing(true)}
+								className="gap-2 text-muted-foreground hover:text-destructive"
+							>
+								<Trash2Icon />
+								{t("scan.removeMissing")}
+							</Button>
+						</div>
+					)}
+
 					{/* The shelf's own bar reports a scan too, but a scan started
               here has to be answerable here. */}
 					<ScanProgressBar className="pt-3" barClassName="phone:w-20" />
 				</div>
+
+				<Confirm
+					open={clearing}
+					onOpenChange={setClearing}
+					title={t("scan.removeMissingTitle", { count: facets.missing })}
+					description={t("scan.removeMissingDescription")}
+					confirmLabel={t("common.delete")}
+					onConfirm={() => {
+						setClearing(false);
+						removeMissing.mutate(undefined, {
+							onSuccess: (count) =>
+								showNotice(t("scan.missingRemoved", { count })),
+						});
+					}}
+				/>
 			</Section>
 
 			<Section title={t("shelf.heading")}>

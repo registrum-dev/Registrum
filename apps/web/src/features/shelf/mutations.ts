@@ -220,3 +220,23 @@ export function useRemoveBooks() {
 		meta: { failure: "removeRecord" },
 	});
 }
+
+/** Drops every book whose file the last scan could not find. */
+export function useRemoveMissing() {
+	const { shelfId } = useShelfId();
+
+	return useMutation({
+		mutationFn: () => api.book.removeMissing.mutate({ shelfId }),
+		onMutate: () => {
+			if (!shelfId) return;
+			overBooks(shelfId, (book) => (book.missing ? null : book));
+		},
+		onSuccess: () => {
+			// A filter still asking for them would come back empty.
+			const { filter, setFilter } = useShelfStore.getState();
+			if (filter.missing) setFilter({ missing: undefined });
+		},
+		onSettled: () => invalidateShelf(shelfId),
+		meta: { failure: "removeRecord" },
+	});
+}

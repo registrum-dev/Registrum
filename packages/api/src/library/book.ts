@@ -33,6 +33,18 @@ export async function removeBooks(
 	});
 }
 
+/** The books whose file the last scan could not find. */
+export async function missingBooks(
+	db: Client,
+	shelfId: string,
+): Promise<string[]> {
+	const rows = await db.book.findMany({
+		where: { shelfId, missing: true },
+		select: { id: true },
+	});
+	return rows.map((row) => row.id);
+}
+
 /** The fields a book is searched by besides its title, path and lists, in the
  *  order they go into the search text. */
 export type SearchFields = [

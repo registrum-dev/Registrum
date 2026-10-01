@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 import { dbProcedure, publicProcedure, router } from "../index";
-import { findBook, removeBooks } from "../library/book";
+import { findBook, missingBooks, removeBooks } from "../library/book";
 import { removeCovers } from "../library/covers";
 import { facets, names } from "../library/facets";
 import { closeComic, openComic } from "../library/files";
@@ -194,6 +194,17 @@ export const bookRouter = router({
 		await removeBooks(ctx.db, input.shelfId, input.ids);
 		await removeCovers(ctx.config, input.ids);
 	}),
+
+	/** Drops every book whose file the last scan could not find, and says how
+	 *  many went. */
+	removeMissing: dbProcedure
+		.input(shelfInput)
+		.mutation(async ({ ctx, input }) => {
+			const ids = await missingBooks(ctx.db, input.shelfId);
+			await removeBooks(ctx.db, input.shelfId, ids);
+			await removeCovers(ctx.config, ids);
+			return ids.length;
+		}),
 
 	/** Opens a comic archive for reading and holds it open. The pages themselves
 	 *  come over `/api/comics/<key>/<page>`. */
