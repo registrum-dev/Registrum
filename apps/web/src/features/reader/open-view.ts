@@ -195,6 +195,7 @@ export interface MountCallbacks {
 	 * one would take the text underneath out of reach.
 	 */
 	onTap: () => void;
+	onZoom: PageGestureHandlers["onZoom"];
 	/**
 	 * A tap near one edge or a sideways swipe. Physical sides, not next and
 	 * previous: which of the two goes forward is the book's business.
@@ -258,6 +259,7 @@ export function mountBook(
 				: flow === "paginated";
 		},
 		onTap: () => latest().onTap(),
+		onZoom: (src) => latest().onZoom(src),
 		onTurn: (side) => latest().onTurn(side),
 		onPull: (distance) => latest().onPull(distance),
 		onPullEnd: (end) => latest().onPullEnd(end),

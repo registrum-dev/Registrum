@@ -707,6 +707,8 @@ export const en = {
 		noBookmarks:
 			"Mark the page you are on with the bookmark button above, or press B.",
 		closePanel: "Close the panel (Esc)",
+		imageViewer: "Image",
+		closeImage: "Close the image (Esc)",
 		noTocTitle: "No contents",
 		noToc: "This book carries no table of contents.",
 		untitled: "(untitled)",
