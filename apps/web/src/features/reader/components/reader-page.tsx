@@ -5,6 +5,7 @@ import { cn } from "@registrum/ui/lib/utils";
 import { useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { Confirm } from "@/components/confirm";
 import { Presence } from "@/components/presence";
 import { useAiConfigured } from "@/features/ai/queries";
 import { hasBookText } from "@/features/ai/types";
@@ -24,6 +25,7 @@ import { useBookmarks } from "@/features/reader/hooks/use-bookmarks";
 import { useChromeVisibility } from "@/features/reader/hooks/use-chrome-visibility";
 import { useLeaveReader } from "@/features/reader/hooks/use-leave-reader";
 import { useOpenWatchdog } from "@/features/reader/hooks/use-open-watchdog";
+import { usePositionAhead } from "@/features/reader/hooks/use-position-ahead";
 import { useReaderNavigation } from "@/features/reader/hooks/use-reader-navigation";
 import { useReaderShortcuts } from "@/features/reader/hooks/use-reader-shortcuts";
 import { useReadingPosition } from "@/features/reader/hooks/use-reading-position";
@@ -102,6 +104,13 @@ export function ReaderPage({ id, file, from }: ReaderSearch) {
 	const { source, failed } = useBookSource({ book: shelved, file: handed });
 	const { record, lastCfi } = useReadingPosition(bookId);
 	const bookmarks = useBookmarks(shelfId, bookId, relocation);
+	const ahead = usePositionAhead({
+		shelfId,
+		bookId,
+		view,
+		openedAt: book?.position?.cfi,
+		relocation,
+	});
 
 	const { visible: chromeVisible, toggle: toggleChrome } = useChromeVisibility(
 		panel !== "none" || !source || loading,
@@ -334,6 +343,25 @@ export function ReaderPage({ id, file, from }: ReaderSearch) {
 					)}
 				</Presence>
 
+				<Confirm
+					open={ahead.ahead !== null}
+					onOpenChange={(open) => {
+						if (!open) ahead.decline();
+					}}
+					title={t("reader.ahead", {
+						percent: percentOf(ahead.ahead?.fraction),
+					})}
+					description={t("reader.aheadHere", {
+						percent: percentOf(relocation?.fraction),
+					})}
+					confirmLabel={t("reader.goAhead", {
+						percent: percentOf(ahead.ahead?.fraction),
+					})}
+					cancelLabel={t("reader.stayHere")}
+					destructive={false}
+					onConfirm={ahead.accept}
+				/>
+
 				<Presence>
 					{loading && (
 						<div
@@ -350,4 +378,8 @@ export function ReaderPage({ id, file, from }: ReaderSearch) {
 			</div>
 		</div>
 	);
+}
+
+function percentOf(fraction: number | undefined): number {
+	return Math.round((fraction ?? 0) * 100);
 }

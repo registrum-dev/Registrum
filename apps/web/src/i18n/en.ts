@@ -725,6 +725,10 @@ export const en = {
 		noMatches:
 			"Pages that are only images — a CBZ, a scanned PDF — carry no text, so there is nothing to search.",
 		notOnShelf: "That book is not on the shelf.",
+		ahead: "Read to {{percent}}% on another device",
+		aheadHere: "This device is at {{percent}}%.",
+		goAhead: "Go to {{percent}}%",
+		stayHere: "Read from here",
 		readFailed: "Could not read the file: {{message}}",
 		openBookFailed: "Could not open the book: {{message}}",
 		stillLoading:

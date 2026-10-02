@@ -669,6 +669,10 @@ export const ja = {
 		noMatches:
 			"画像だけのページ（CBZ やスキャンした PDF）は本文を持たないため検索できません。",
 		notOnShelf: "この本は本棚にありません。",
+		ahead: "別の端末で {{percent}}% まで読んでいます",
+		aheadHere: "この端末では {{percent}}% です。",
+		goAhead: "{{percent}}% へ移動",
+		stayHere: "ここから読む",
 		readFailed: "ファイルを読み込めませんでした: {{message}}",
 		openBookFailed: "本を開けませんでした: {{message}}",
 		stillLoading:
