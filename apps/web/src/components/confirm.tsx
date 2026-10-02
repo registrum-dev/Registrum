@@ -23,6 +23,7 @@ export function Confirm({
 	title,
 	description,
 	confirmLabel,
+	cancelLabel,
 	destructive = true,
 	onConfirm,
 }: {
@@ -31,6 +32,7 @@ export function Confirm({
 	title: ReactNode;
 	description: ReactNode;
 	confirmLabel: string;
+	cancelLabel?: string;
 	/** Off for the ones that only cost work, not data. */
 	destructive?: boolean;
 	onConfirm: () => void;
@@ -68,7 +70,7 @@ export function Confirm({
 							onClick={() => onOpenChange(false)}
 							className="h-12 rounded-xl text-[15px]"
 						>
-							{t("common.cancel")}
+							{cancelLabel ?? t("common.cancel")}
 						</Button>
 					</div>
 				</div>
@@ -84,7 +86,9 @@ export function Confirm({
 					<AlertDialogDescription>{description}</AlertDialogDescription>
 				</AlertDialogHeader>
 				<AlertDialogFooter>
-					<AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
+					<AlertDialogCancel>
+						{cancelLabel ?? t("common.cancel")}
+					</AlertDialogCancel>
 					<AlertDialogAction
 						variant={destructive ? "destructive" : "default"}
 						onClick={onConfirm}
