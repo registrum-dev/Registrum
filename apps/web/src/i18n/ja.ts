@@ -653,6 +653,8 @@ export const ja = {
 		noBookmarksTitle: "しおりはまだありません",
 		noBookmarks: "上のしおりボタンか B キーで、今のページに挟めます。",
 		closePanel: "パネルを閉じる (Esc)",
+		imageViewer: "画像",
+		closeImage: "画像を閉じる (Esc)",
 		noTocTitle: "目次がありません",
 		noToc: "この本は目次を持っていません。",
 		untitled: "(無題)",

@@ -1,5 +1,7 @@
 // Taps, swipes and the wheel over the page.
 
+import { imageUnder } from "@/features/reader/image-under";
+
 /** How far a pointer may travel and still count as a tap rather than a drag. */
 const TAP_SLOP = 6;
 
@@ -14,6 +16,12 @@ const SWIPE_LOCK = 12;
 
 /** How long after a swipe the browser's own click is still the swipe's. */
 const SWIPE_CLICK_MS = 400;
+
+/** How soon a second tap on a picture has to follow the first to open it. */
+const DOUBLE_TAP_MS = 300;
+
+/** How far apart the two taps of a double tap may land (px). */
+const DOUBLE_TAP_SLOP = 24;
 
 /** `touchmove` has to be cancellable for a sideways drag to stay ours. */
 const TOUCH_OPTS = { passive: false } as const;
@@ -30,6 +38,8 @@ export interface PageGestureHandlers {
 	canTurn: () => boolean;
 	/** A plain tap on the page — not a drag, a selection or a link. */
 	onTap: () => void;
+	/** A double tap on a picture, with the picture's URL. */
+	onZoom: (src: string) => void;
 	/**
 	 * A tap near one edge or a sideways swipe. Physical sides, not next and
 	 * previous: which of the two goes forward is the book's business.
@@ -98,6 +108,18 @@ export function attachPageGestures(
 			event.button === 0 ? { x: event.clientX, y: event.clientY } : null;
 	};
 
+	// A tap on a picture waits to see whether a second one follows.
+	let pendingTap: {
+		src: string;
+		x: number;
+		y: number;
+		timer: ReturnType<typeof setTimeout>;
+	} | null = null;
+	const dropPendingTap = () => {
+		if (pendingTap) clearTimeout(pendingTap.timer);
+		pendingTap = null;
+	};
+
 	const reportTap = (event: MouseEvent) => {
 		const from = pressedAt;
 		pressedAt = null;
@@ -121,7 +143,28 @@ export function attachPageGestures(
 			if (zone !== null && zone < TAP_EDGE) return handlers.onTurn("left");
 			if (zone !== null && zone > 1 - TAP_EDGE) return handlers.onTurn("right");
 		}
-		handlers.onTap();
+
+		const src = imageUnder(event.target);
+		const first = pendingTap;
+		dropPendingTap();
+		if (
+			first &&
+			first.src === src &&
+			Math.hypot(event.screenX - first.x, event.screenY - first.y) <=
+				DOUBLE_TAP_SLOP
+		)
+			return handlers.onZoom(first.src);
+		if (first) handlers.onTap();
+		if (!src) return handlers.onTap();
+		pendingTap = {
+			src,
+			x: event.screenX,
+			y: event.screenY,
+			timer: setTimeout(() => {
+				pendingTap = null;
+				handlers.onTap();
+			}, DOUBLE_TAP_MS),
+		};
 	};
 
 	const noteTouch = (event: TouchEvent) => {
@@ -231,6 +274,7 @@ export function attachPageGestures(
 		},
 
 		detach() {
+			dropPendingTap();
 			listening.abort();
 		},
 	};

@@ -12,6 +12,7 @@ import { useKeepSavedRecord, useSavedBook } from "@/features/offline/queries";
 import { AiPanel } from "@/features/reader/components/ai-panel";
 import { BookPanel } from "@/features/reader/components/book-panel";
 import { ChromeBar } from "@/features/reader/components/chrome-bar";
+import { ImageViewer } from "@/features/reader/components/image-viewer";
 import { ProgressPanel } from "@/features/reader/components/progress-panel";
 import { ReaderView } from "@/features/reader/components/reader-view";
 import { SettingsPanel } from "@/features/reader/components/settings-panel";
@@ -93,6 +94,8 @@ export function ReaderPage({ id, file, from }: ReaderSearch) {
 	const [relocation, setRelocation] = useState<RelocateDetail | null>(null);
 	const [panel, setPanel] = useState<ReaderPanel>("none");
 	const [loading, setLoading] = useState(true);
+	/** The picture opened up from the page, if any. */
+	const [zoomed, setZoomed] = useState<string | null>(null);
 
 	const [view, setView] = useState<FoliateView | null>(null);
 
@@ -232,6 +235,7 @@ export function ReaderPage({ id, file, from }: ReaderSearch) {
 								}}
 								onClosed={() => {
 									setView(null);
+									setZoomed(null);
 									setLoading(true);
 								}}
 								onRelocate={(detail) => {
@@ -247,6 +251,7 @@ export function ReaderPage({ id, file, from }: ReaderSearch) {
 									}
 									toggleChrome();
 								}}
+								onZoom={setZoomed}
 								onTurn={(side) => (side === "left" ? goLeft() : goRight())}
 								onPull={(distance) => drag.pull(distance)}
 								onPullEnd={(end) => {
@@ -318,6 +323,16 @@ export function ReaderPage({ id, file, from }: ReaderSearch) {
 					onToggleFullscreen={() => void toggleFullscreen()}
 					onClose={() => setPanel("none")}
 				/>
+
+				<Presence>
+					{zoomed && (
+						<ImageViewer
+							key={zoomed}
+							src={zoomed}
+							onClose={() => setZoomed(null)}
+						/>
+					)}
+				</Presence>
 
 				<Presence>
 					{loading && (
